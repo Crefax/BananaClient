@@ -221,8 +221,14 @@ public class MuzModGuiModern extends GuiScreen {
         String afkText = autoAfk ? "§a✓ Boşta AFK" : "§c✗ Boşta AFK";
         drawButton(guiX + 320, y, 110, 26, afkText, autoAfk ? ACCENT_BLUE : BG_BUTTON, mouseX, mouseY);
         
+        // HUD toggle
+        y += 30;
+        boolean hudOn = MuzMod.instance.getConfig().isShowOverlay();
+        String hudText = hudOn ? "§a● HUD Açık" : "§c○ HUD Kapalı";
+        drawButton(guiX + 20, y, 120, 22, hudText, hudOn ? ACCENT_GREEN : BG_BUTTON, mouseX, mouseY);
+        
         // State buttons
-        y += 40;
+        y += 30;
         drawString(fontRendererObj, "§7Manuel Durum:", guiX + 20, y, TEXT_GRAY);
         y += 14;
         drawButton(guiX + 20, y, 65, 22, "Idle", BG_BUTTON, mouseX, mouseY);
@@ -629,8 +635,14 @@ public class MuzModGuiModern extends GuiScreen {
                 schedule.setAutoAfkWhenIdle(!schedule.isAutoAfkWhenIdle());
             }
             
+            // HUD toggle
+            y += 30;
+            if (isInside(mouseX, mouseY, guiX + 20, y, 120, 22)) {
+                config.setShowOverlay(!config.isShowOverlay());
+            }
+            
             // State buttons
-            y += 54;
+            y += 30;
             if (isInside(mouseX, mouseY, guiX + 20, y, 65, 22)) {
                 MuzMod.instance.getStateManager().forceState("idle");
             } else if (isInside(mouseX, mouseY, guiX + 90, y, 65, 22)) {

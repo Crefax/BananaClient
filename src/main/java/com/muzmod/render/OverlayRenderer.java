@@ -195,7 +195,7 @@ public class OverlayRenderer {
             case MINING: return "§6⛏";
             case AFK: return "§b⏸";
             case REPAIR: return "§e🔧";
-            case OX: return "§d♦";
+            case OX: return "§d";
             default: return "§7○";
         }
     }
