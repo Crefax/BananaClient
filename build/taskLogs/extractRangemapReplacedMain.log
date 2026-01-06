@@ -1,5 +1,5 @@
 Symbol range map extraction starting
-Processing 29 files
+Processing 30 files
 processing com\muzmod\MuzMod.java
 processing com\muzmod\account\AccountManager.java
 processing com\muzmod\config\ModConfig.java
@@ -22,6 +22,7 @@ processing com\muzmod\state\StateManager.java
 processing com\muzmod\state\impl\AFKState.java
 processing com\muzmod\state\impl\IdleState.java
 processing com\muzmod\state\impl\MiningState.java
+processing com\muzmod\state\impl\OXState.java
 processing com\muzmod\state\impl\RepairState.java
 processing com\muzmod\state\impl\SafeState.java
 processing com\muzmod\util\BlockScanner.java

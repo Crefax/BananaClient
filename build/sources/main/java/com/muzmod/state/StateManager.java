@@ -6,6 +6,7 @@ import com.muzmod.schedule.ScheduleManager;
 import com.muzmod.state.impl.AFKState;
 import com.muzmod.state.impl.IdleState;
 import com.muzmod.state.impl.MiningState;
+import com.muzmod.state.impl.OXState;
 import com.muzmod.state.impl.RepairState;
 import com.muzmod.state.impl.SafeState;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -30,6 +31,7 @@ public class StateManager {
     private MiningState miningState;
     private RepairState repairState;
     private SafeState safeState;
+    private OXState oxState;
     
     private int tickCounter = 0;
     private static final int CHECK_INTERVAL = 20; // Check every second (20 ticks)
@@ -48,12 +50,14 @@ public class StateManager {
         miningState = new MiningState();
         repairState = new RepairState();
         safeState = new SafeState();
+        oxState = new OXState();
         
         states.add(idleState);
         states.add(afkState);
         states.add(miningState);
         states.add(repairState);
         states.add(safeState);
+        states.add(oxState);
         
         // Sort by priority (highest first)
         states.sort(Comparator.comparingInt(IState::getPriority).reversed());
@@ -182,6 +186,7 @@ public class StateManager {
             case MINING: return miningState;
             case AFK: return afkState;
             case REPAIR: return repairState;
+            case OX: return oxState;
             case IDLE: 
             default: return idleState;
         }
@@ -226,6 +231,9 @@ public class StateManager {
                 break;
             case "safe":
                 transitionTo(safeState);
+                break;
+            case "ox":
+                transitionTo(oxState);
                 break;
             default:
                 MuzMod.LOGGER.warn("Unknown state: " + stateName);
@@ -276,6 +284,10 @@ public class StateManager {
     
     public SafeState getSafeState() {
         return safeState;
+    }
+    
+    public OXState getOxState() {
+        return oxState;
     }
     
     public List<IState> getAllStates() {

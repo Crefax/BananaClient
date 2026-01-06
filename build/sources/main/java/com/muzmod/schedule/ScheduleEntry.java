@@ -10,7 +10,8 @@ public class ScheduleEntry {
         MINING("Maden", 0xFFFF9800),      // Turuncu
         AFK("AFK", 0xFF2196F3),            // Mavi
         REPAIR("Tamir", 0xFFFFEB3B),       // Sarı
-        IDLE("Boşta", 0xFF9E9E9E);         // Gri
+        OX("OX Event", 0xFF9C27B0),        // Mor
+        IDLE("Bosta", 0xFF9E9E9E);         // Gri
         
         private final String displayName;
         private final int color;

@@ -225,10 +225,11 @@ public class MuzModGuiModern extends GuiScreen {
         y += 40;
         drawString(fontRendererObj, "§7Manuel Durum:", guiX + 20, y, TEXT_GRAY);
         y += 14;
-        drawButton(guiX + 20, y, 70, 22, "Idle", BG_BUTTON, mouseX, mouseY);
-        drawButton(guiX + 100, y, 70, 22, "§6Mining", ACCENT_ORANGE, mouseX, mouseY);
-        drawButton(guiX + 180, y, 70, 22, "§bAFK", ACCENT_BLUE, mouseX, mouseY);
-        drawButton(guiX + 260, y, 70, 22, "§eRepair", ACCENT_YELLOW, mouseX, mouseY);
+        drawButton(guiX + 20, y, 65, 22, "Idle", BG_BUTTON, mouseX, mouseY);
+        drawButton(guiX + 90, y, 65, 22, "§6Mining", ACCENT_ORANGE, mouseX, mouseY);
+        drawButton(guiX + 160, y, 65, 22, "§bAFK", ACCENT_BLUE, mouseX, mouseY);
+        drawButton(guiX + 230, y, 65, 22, "§eRepair", ACCENT_YELLOW, mouseX, mouseY);
+        drawButton(guiX + 300, y, 65, 22, "§dOX", ACCENT_PURPLE, mouseX, mouseY);
         
         // Current state info
         y += 35;
@@ -259,7 +260,7 @@ public class MuzModGuiModern extends GuiScreen {
         
         // Pickaxe info (right side)
         int px = guiX + 280;
-        int py = guiY + 130;
+        int py = guiY + 175;
         drawRect(px, py, guiX + GUI_WIDTH - 15, py + 90, BG_HEADER);
         drawString(fontRendererObj, "§eKazma Durumu", px + 8, py + 6, ACCENT_YELLOW);
         
@@ -392,14 +393,14 @@ public class MuzModGuiModern extends GuiScreen {
             
             // Event type selector
             drawString(fontRendererObj, "§7Tip:", panelX + 8, panelY + 68, TEXT_GRAY);
-            String[] types = {"§6Maden", "§bAFK", "§eTamir"};
-            int[] typeColors = {ACCENT_ORANGE, ACCENT_BLUE, ACCENT_YELLOW};
-            for (int i = 0; i < 3; i++) {
-                int tx = panelX + 40 + i * 50;
-                boolean tHover = mouseX >= tx && mouseX < tx + 45 && mouseY >= panelY + 65 && mouseY < panelY + 82;
+            String[] types = {"§6Maden", "§bAFK", "§eTamir", "§dOX"};
+            int[] typeColors = {ACCENT_ORANGE, ACCENT_BLUE, ACCENT_YELLOW, ACCENT_PURPLE};
+            for (int i = 0; i < 4; i++) {
+                int tx = panelX + 8 + i * 45;
+                boolean tHover = mouseX >= tx && mouseX < tx + 42 && mouseY >= panelY + 65 && mouseY < panelY + 82;
                 boolean tSel = newEntryType == i;
-                drawRect(tx, panelY + 65, tx + 45, panelY + 82, tSel ? typeColors[i] : (tHover ? BG_BUTTON_HOVER : BG_BUTTON));
-                drawCenteredString(fontRendererObj, types[i], tx + 22, panelY + 69, TEXT_WHITE);
+                drawRect(tx, panelY + 65, tx + 42, panelY + 82, tSel ? typeColors[i] : (tHover ? BG_BUTTON_HOVER : BG_BUTTON));
+                drawCenteredString(fontRendererObj, types[i], tx + 21, panelY + 69, TEXT_WHITE);
             }
             
             // Warp command
@@ -580,14 +581,16 @@ public class MuzModGuiModern extends GuiScreen {
             
             // State buttons
             y += 54;
-            if (isInside(mouseX, mouseY, guiX + 20, y, 70, 22)) {
+            if (isInside(mouseX, mouseY, guiX + 20, y, 65, 22)) {
                 MuzMod.instance.getStateManager().forceState("idle");
-            } else if (isInside(mouseX, mouseY, guiX + 100, y, 70, 22)) {
+            } else if (isInside(mouseX, mouseY, guiX + 90, y, 65, 22)) {
                 MuzMod.instance.getStateManager().forceState("mining");
-            } else if (isInside(mouseX, mouseY, guiX + 180, y, 70, 22)) {
+            } else if (isInside(mouseX, mouseY, guiX + 160, y, 65, 22)) {
                 MuzMod.instance.getStateManager().forceState("afk");
-            } else if (isInside(mouseX, mouseY, guiX + 260, y, 70, 22)) {
+            } else if (isInside(mouseX, mouseY, guiX + 230, y, 65, 22)) {
                 MuzMod.instance.getStateManager().forceState("repair");
+            } else if (isInside(mouseX, mouseY, guiX + 300, y, 65, 22)) {
+                MuzMod.instance.getStateManager().forceState("ox");
             }
         }
         
@@ -636,9 +639,9 @@ public class MuzModGuiModern extends GuiScreen {
             
             if (addingNewEntry || selectedEntryId != -1) {
                 // Type selector
-                for (int i = 0; i < 3; i++) {
-                    int tx = panelX + 40 + i * 50;
-                    if (mouseX >= tx && mouseX < tx + 45 && mouseY >= panelY + 65 && mouseY < panelY + 82) {
+                for (int i = 0; i < 4; i++) {
+                    int tx = panelX + 8 + i * 45;
+                    if (mouseX >= tx && mouseX < tx + 42 && mouseY >= panelY + 65 && mouseY < panelY + 82) {
                         newEntryType = i;
                         return;
                     }
