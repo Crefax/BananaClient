@@ -1,7 +1,9 @@
 Symbol range map extraction starting
-Processing 27 files
+Processing 29 files
 processing com\muzmod\MuzMod.java
+processing com\muzmod\account\AccountManager.java
 processing com\muzmod\config\ModConfig.java
+processing com\muzmod\gui\GuiAccountManager.java
 processing com\muzmod\gui\ModernGuiUtils.java
 processing com\muzmod\gui\MuzModGui.java
 processing com\muzmod\gui\MuzModGuiModern.java

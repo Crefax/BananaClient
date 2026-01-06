@@ -1,5 +1,5 @@
 Symbol range map extraction starting
-Processing 27 files
+Processing 29 files
 processing com\muzmod\MuzMod.java
 @|com\muzmod\MuzMod.java|8|18|com.muzmod|package|com.muzmod|(file)
 Class Start: com.muzmod.MuzMod
@@ -112,6 +112,155 @@ Class Start: com.muzmod.MuzMod
    Method End: toggleBot()V
 Class End  : com.muzmod.MuzMod
 endProcessing com\muzmod\MuzMod.java
+
+processing com\muzmod\account\AccountManager.java
+@|com\muzmod\account\AccountManager.java|8|26|com.muzmod.account|package|com.muzmod.account|(file)
+Class Start: com.muzmod.account.AccountManager
+   @|com\muzmod\account\AccountManager.java|330|344|AccountManager|class|com.muzmod.account.AccountManager
+   @|com\muzmod\account\AccountManager.java|345|353|instance|field|com.muzmod.account.AccountManager|instance|
+   @|com\muzmod\account\AccountManager.java|410|417|Session|class|net.minecraft.util.Session
+   @|com\muzmod\account\AccountManager.java|418|433|originalSession|field|com.muzmod.account.AccountManager|originalSession|
+   @|com\muzmod\account\AccountManager.java|447|453|String|class|java.lang.String
+   @|com\muzmod\account\AccountManager.java|454|470|originalUsername|field|com.muzmod.account.AccountManager|originalUsername|
+   @|com\muzmod\account\AccountManager.java|512|518|String|class|java.lang.String
+   @|com\muzmod\account\AccountManager.java|519|534|currentUsername|field|com.muzmod.account.AccountManager|currentUsername|
+   Method Start: AccountManager()V
+      @|com\muzmod\account\AccountManager.java|553|567|AccountManager|method|com.muzmod.account.AccountManager|AccountManager|()V
+      @|com\muzmod\account\AccountManager.java|617|626|Minecraft|class|net.minecraft.client.Minecraft
+      @|com\muzmod\account\AccountManager.java|632|641|Minecraft|class|net.minecraft.client.Minecraft
+      @|com\muzmod\account\AccountManager.java|642|654|getMinecraft|method|net.minecraft.client.Minecraft|getMinecraft|()Lnet/minecraft/client/Minecraft;
+      @|com\muzmod\account\AccountManager.java|671|686|originalSession|field|com.muzmod.account.AccountManager|originalSession
+      @|com\muzmod\account\AccountManager.java|692|702|getSession|method|net.minecraft.client.Minecraft|getSession|()Lnet/minecraft/util/Session;
+      @|com\muzmod\account\AccountManager.java|719|735|originalUsername|field|com.muzmod.account.AccountManager|originalUsername
+      @|com\muzmod\account\AccountManager.java|741|751|getSession|method|net.minecraft.client.Minecraft|getSession|()Lnet/minecraft/util/Session;
+      @|com\muzmod\account\AccountManager.java|754|765|getUsername|method|net.minecraft.util.Session|getUsername|()Ljava/lang/String;
+      @|com\muzmod\account\AccountManager.java|782|797|currentUsername|field|com.muzmod.account.AccountManager|currentUsername
+      @|com\muzmod\account\AccountManager.java|805|821|originalUsername|field|com.muzmod.account.AccountManager|originalUsername
+      @|com\muzmod\account\AccountManager.java|840|846|MuzMod|class|com.muzmod.MuzMod
+      @|com\muzmod\account\AccountManager.java|847|853|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\account\AccountManager.java|854|858|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
+      @|com\muzmod\account\AccountManager.java|899|915|originalUsername|field|com.muzmod.account.AccountManager|originalUsername
+   Method End: AccountManager()V
+   Method Start: getInstance()Lcom/muzmod/account/AccountManager;
+      @|com\muzmod\account\AccountManager.java|962|973|getInstance|method|com.muzmod.account.AccountManager|getInstance|()Lcom/muzmod/account/AccountManager;
+      @|com\muzmod\account\AccountManager.java|947|961|AccountManager|class|com.muzmod.account.AccountManager
+      @|com\muzmod\account\AccountManager.java|990|998|instance|field|com.muzmod.account.AccountManager|instance
+      @|com\muzmod\account\AccountManager.java|1022|1030|instance|field|com.muzmod.account.AccountManager|instance
+      @|com\muzmod\account\AccountManager.java|1037|1051|AccountManager|class|com.muzmod.account.AccountManager
+      @|com\muzmod\account\AccountManager.java|1080|1088|instance|field|com.muzmod.account.AccountManager|instance
+   Method End: getInstance()Lcom/muzmod/account/AccountManager;
+   Method Start: loginOffline(Ljava/lang/String;)Z
+      @|com\muzmod\account\AccountManager.java|1171|1183|loginOffline|method|com.muzmod.account.AccountManager|loginOffline|(Ljava/lang/String;)Z
+      @|com\muzmod\account\AccountManager.java|1184|1190|String|class|java.lang.String
+      @|com\muzmod\account\AccountManager.java|1191|1199|username|param|com.muzmod.account.AccountManager|loginOffline|(Ljava/lang/String;)Z|username|0
+      @|com\muzmod\account\AccountManager.java|1215|1223|username|param|com.muzmod.account.AccountManager|loginOffline|(Ljava/lang/String;)Z|username|0
+      @|com\muzmod\account\AccountManager.java|1235|1243|username|param|com.muzmod.account.AccountManager|loginOffline|(Ljava/lang/String;)Z|username|0
+      @|com\muzmod\account\AccountManager.java|1244|1248|trim|method|java.lang.String|trim|()Ljava/lang/String;
+      @|com\muzmod\account\AccountManager.java|1251|1258|isEmpty|method|java.lang.String|isEmpty|()Z
+      @|com\muzmod\account\AccountManager.java|1317|1325|username|param|com.muzmod.account.AccountManager|loginOffline|(Ljava/lang/String;)Z|username|0
+      @|com\muzmod\account\AccountManager.java|1328|1336|username|param|com.muzmod.account.AccountManager|loginOffline|(Ljava/lang/String;)Z|username|0
+      @|com\muzmod\account\AccountManager.java|1337|1341|trim|method|java.lang.String|trim|()Ljava/lang/String;
+      @|com\muzmod\account\AccountManager.java|1408|1423|isValidUsername|method|com.muzmod.account.AccountManager|isValidUsername|(Ljava/lang/String;)Z
+      @|com\muzmod\account\AccountManager.java|1424|1432|username|param|com.muzmod.account.AccountManager|loginOffline|(Ljava/lang/String;)Z|username|0
+      @|com\muzmod\account\AccountManager.java|1449|1455|MuzMod|class|com.muzmod.MuzMod
+      @|com\muzmod\account\AccountManager.java|1456|1462|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\account\AccountManager.java|1463|1467|warn|method|org.apache.logging.log4j.Logger|warn|(Ljava/lang/String;)V
+      @|com\muzmod\account\AccountManager.java|1508|1516|username|param|com.muzmod.account.AccountManager|loginOffline|(Ljava/lang/String;)Z|username|0
+      @|com\muzmod\account\AccountManager.java|1662|1666|UUID|class|java.util.UUID
+      @|com\muzmod\account\AccountManager.java|1681|1685|UUID|class|java.util.UUID
+      @|com\muzmod\account\AccountManager.java|1686|1703|nameUUIDFromBytes|method|java.util.UUID|nameUUIDFromBytes|([B)Ljava/util/UUID;
+      @|com\muzmod\account\AccountManager.java|1724|1732|username|param|com.muzmod.account.AccountManager|loginOffline|(Ljava/lang/String;)Z|username|0
+      @|com\muzmod\account\AccountManager.java|1734|1742|getBytes|method|java.lang.String|getBytes|()[B
+      @|com\muzmod\account\AccountManager.java|1808|1815|Session|class|net.minecraft.util.Session
+      @|com\muzmod\account\AccountManager.java|1833|1840|Session|class|net.minecraft.util.Session
+      @|com\muzmod\account\AccountManager.java|1841|1849|username|param|com.muzmod.account.AccountManager|loginOffline|(Ljava/lang/String;)Z|username|0
+      @|com\muzmod\account\AccountManager.java|1863|1871|toString|method|java.lang.Object|toString|()Ljava/lang/String;
+      @|com\muzmod\account\AccountManager.java|1874|1881|replace|method|java.lang.String|replace|(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Ljava/lang/String;
+      @|com\muzmod\account\AccountManager.java|1984|1994|setSession|method|com.muzmod.account.AccountManager|setSession|(Lnet/minecraft/util/Session;)V
+      @|com\muzmod\account\AccountManager.java|2033|2048|currentUsername|field|com.muzmod.account.AccountManager|currentUsername
+      @|com\muzmod\account\AccountManager.java|2051|2059|username|param|com.muzmod.account.AccountManager|loginOffline|(Ljava/lang/String;)Z|username|0
+      @|com\muzmod\account\AccountManager.java|2073|2079|MuzMod|class|com.muzmod.MuzMod
+      @|com\muzmod\account\AccountManager.java|2080|2086|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\account\AccountManager.java|2087|2091|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
+      @|com\muzmod\account\AccountManager.java|2128|2136|username|param|com.muzmod.account.AccountManager|loginOffline|(Ljava/lang/String;)Z|username|0
+      @|com\muzmod\account\AccountManager.java|2194|2203|Exception|class|java.lang.Exception
+      @|com\muzmod\account\AccountManager.java|2221|2227|MuzMod|class|com.muzmod.MuzMod
+      @|com\muzmod\account\AccountManager.java|2228|2234|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\account\AccountManager.java|2235|2240|error|method|org.apache.logging.log4j.Logger|error|(Ljava/lang/String;)V
+      @|com\muzmod\account\AccountManager.java|2279|2289|getMessage|method|java.lang.Throwable|getMessage|()Ljava/lang/String;
+   Method End: loginOffline(Ljava/lang/String;)Z
+   Method Start: restoreOriginal()Z
+      @|com\muzmod\account\AccountManager.java|2408|2423|restoreOriginal|method|com.muzmod.account.AccountManager|restoreOriginal|()Z
+      @|com\muzmod\account\AccountManager.java|2440|2455|originalSession|field|com.muzmod.account.AccountManager|originalSession
+      @|com\muzmod\account\AccountManager.java|2538|2548|setSession|method|com.muzmod.account.AccountManager|setSession|(Lnet/minecraft/util/Session;)V
+      @|com\muzmod\account\AccountManager.java|2549|2564|originalSession|field|com.muzmod.account.AccountManager|originalSession
+      @|com\muzmod\account\AccountManager.java|2579|2594|currentUsername|field|com.muzmod.account.AccountManager|currentUsername
+      @|com\muzmod\account\AccountManager.java|2597|2613|originalUsername|field|com.muzmod.account.AccountManager|originalUsername
+      @|com\muzmod\account\AccountManager.java|2627|2633|MuzMod|class|com.muzmod.MuzMod
+      @|com\muzmod\account\AccountManager.java|2634|2640|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\account\AccountManager.java|2641|2645|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
+      @|com\muzmod\account\AccountManager.java|2690|2706|originalUsername|field|com.muzmod.account.AccountManager|originalUsername
+      @|com\muzmod\account\AccountManager.java|2751|2760|Exception|class|java.lang.Exception
+      @|com\muzmod\account\AccountManager.java|2778|2784|MuzMod|class|com.muzmod.MuzMod
+      @|com\muzmod\account\AccountManager.java|2785|2791|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\account\AccountManager.java|2792|2797|error|method|org.apache.logging.log4j.Logger|error|(Ljava/lang/String;)V
+      @|com\muzmod\account\AccountManager.java|2838|2848|getMessage|method|java.lang.Throwable|getMessage|()Ljava/lang/String;
+   Method End: restoreOriginal()Z
+   Method Start: setSession(Lnet/minecraft/util/Session;)V
+      @|com\muzmod\account\AccountManager.java|2974|2984|setSession|method|com.muzmod.account.AccountManager|setSession|(Lnet/minecraft/util/Session;)V
+      @|com\muzmod\account\AccountManager.java|3009|3018|Exception|class|java.lang.Exception
+      @|com\muzmod\account\AccountManager.java|2985|2992|Session|class|net.minecraft.util.Session
+      @|com\muzmod\account\AccountManager.java|2993|3000|session|param|com.muzmod.account.AccountManager|setSession|(Lnet/minecraft/util/Session;)V|session|0
+      @|com\muzmod\account\AccountManager.java|3029|3038|Minecraft|class|net.minecraft.client.Minecraft
+      @|com\muzmod\account\AccountManager.java|3044|3053|Minecraft|class|net.minecraft.client.Minecraft
+      @|com\muzmod\account\AccountManager.java|3054|3066|getMinecraft|method|net.minecraft.client.Minecraft|getMinecraft|()Lnet/minecraft/client/Minecraft;
+      @|com\muzmod\account\AccountManager.java|3142|3147|Field|class|java.lang.reflect.Field
+      @|com\muzmod\account\AccountManager.java|3191|3196|Field|class|java.lang.reflect.Field
+      @|com\muzmod\account\AccountManager.java|3205|3214|Minecraft|class|net.minecraft.client.Minecraft
+      @|com\muzmod\account\AccountManager.java|3221|3238|getDeclaredFields|method|java.lang.Class|getDeclaredFields|()[Ljava/lang/reflect/Field;
+      @|com\muzmod\account\AccountManager.java|3266|3273|getType|method|java.lang.reflect.Field|getType|()Ljava/lang/Class;
+      @|com\muzmod\account\AccountManager.java|3279|3286|Session|class|net.minecraft.util.Session
+      @|com\muzmod\account\AccountManager.java|3448|3457|Exception|class|java.lang.Exception
+      @|com\muzmod\account\AccountManager.java|3526|3539|setAccessible|method|java.lang.reflect.AccessibleObject|setAccessible|(Z)V
+      @|com\muzmod\account\AccountManager.java|3568|3571|set|method|java.lang.reflect.Field|set|(Ljava/lang/Object;Ljava/lang/Object;)V
+      @|com\muzmod\account\AccountManager.java|3576|3583|session|param|com.muzmod.account.AccountManager|setSession|(Lnet/minecraft/util/Session;)V|session|0
+   Method End: setSession(Lnet/minecraft/util/Session;)V
+   Method Start: isValidUsername(Ljava/lang/String;)Z
+      @|com\muzmod\account\AccountManager.java|3666|3681|isValidUsername|method|com.muzmod.account.AccountManager|isValidUsername|(Ljava/lang/String;)Z
+      @|com\muzmod\account\AccountManager.java|3682|3688|String|class|java.lang.String
+      @|com\muzmod\account\AccountManager.java|3689|3697|username|param|com.muzmod.account.AccountManager|isValidUsername|(Ljava/lang/String;)Z|username|0
+      @|com\muzmod\account\AccountManager.java|3713|3721|username|param|com.muzmod.account.AccountManager|isValidUsername|(Ljava/lang/String;)Z|username|0
+      @|com\muzmod\account\AccountManager.java|3722|3728|length|method|java.lang.CharSequence|length|()I
+      @|com\muzmod\account\AccountManager.java|3738|3746|username|param|com.muzmod.account.AccountManager|isValidUsername|(Ljava/lang/String;)Z|username|0
+      @|com\muzmod\account\AccountManager.java|3747|3753|length|method|java.lang.CharSequence|length|()I
+      @|com\muzmod\account\AccountManager.java|3874|3882|username|param|com.muzmod.account.AccountManager|isValidUsername|(Ljava/lang/String;)Z|username|0
+      @|com\muzmod\account\AccountManager.java|3883|3894|toCharArray|method|java.lang.String|toCharArray|()[C
+      @|com\muzmod\account\AccountManager.java|3917|3926|Character|class|java.lang.Character
+      @|com\muzmod\account\AccountManager.java|3927|3942|isLetterOrDigit|method|java.lang.Character|isLetterOrDigit|(C)Z
+   Method End: isValidUsername(Ljava/lang/String;)Z
+   Method Start: getOriginalUsername()Ljava/lang/String;
+      @|com\muzmod\account\AccountManager.java|4089|4108|getOriginalUsername|method|com.muzmod.account.AccountManager|getOriginalUsername|()Ljava/lang/String;
+      @|com\muzmod\account\AccountManager.java|4082|4088|String|class|java.lang.String
+      @|com\muzmod\account\AccountManager.java|4128|4144|originalUsername|field|com.muzmod.account.AccountManager|originalUsername
+   Method End: getOriginalUsername()Ljava/lang/String;
+   Method Start: getCurrentUsername()Ljava/lang/String;
+      @|com\muzmod\account\AccountManager.java|4175|4193|getCurrentUsername|method|com.muzmod.account.AccountManager|getCurrentUsername|()Ljava/lang/String;
+      @|com\muzmod\account\AccountManager.java|4168|4174|String|class|java.lang.String
+      @|com\muzmod\account\AccountManager.java|4213|4228|currentUsername|field|com.muzmod.account.AccountManager|currentUsername
+   Method End: getCurrentUsername()Ljava/lang/String;
+   Method Start: isUsingOriginal()Z
+      @|com\muzmod\account\AccountManager.java|4260|4275|isUsingOriginal|method|com.muzmod.account.AccountManager|isUsingOriginal|()Z
+      @|com\muzmod\account\AccountManager.java|4295|4310|currentUsername|field|com.muzmod.account.AccountManager|currentUsername
+      @|com\muzmod\account\AccountManager.java|4311|4317|equals|method|java.lang.String|equals|(Ljava/lang/Object;)Z
+      @|com\muzmod\account\AccountManager.java|4318|4334|originalUsername|field|com.muzmod.account.AccountManager|originalUsername
+   Method End: isUsingOriginal()Z
+   Method Start: getOriginalSession()Lnet/minecraft/util/Session;
+      @|com\muzmod\account\AccountManager.java|4367|4385|getOriginalSession|method|com.muzmod.account.AccountManager|getOriginalSession|()Lnet/minecraft/util/Session;
+      @|com\muzmod\account\AccountManager.java|4359|4366|Session|class|net.minecraft.util.Session
+      @|com\muzmod\account\AccountManager.java|4405|4420|originalSession|field|com.muzmod.account.AccountManager|originalSession
+   Method End: getOriginalSession()Lnet/minecraft/util/Session;
+Class End  : com.muzmod.account.AccountManager
+endProcessing com\muzmod\account\AccountManager.java
 
 processing com\muzmod\config\ModConfig.java
 @|com\muzmod\config\ModConfig.java|8|25|com.muzmod.config|package|com.muzmod.config|(file)
@@ -949,6 +1098,328 @@ Class Start: com.muzmod.config.ModConfig
    Method End: setRepairClickDelay(F)V
 Class End  : com.muzmod.config.ModConfig
 endProcessing com\muzmod\config\ModConfig.java
+
+processing com\muzmod\gui\GuiAccountManager.java
+@|com\muzmod\gui\GuiAccountManager.java|8|22|com.muzmod.gui|package|com.muzmod.gui|(file)
+Class Start: com.muzmod.gui.GuiAccountManager
+   @|com\muzmod\gui\GuiAccountManager.java|430|439|GuiScreen|class|net.minecraft.client.gui.GuiScreen
+   @|com\muzmod\gui\GuiAccountManager.java|440|452|parentScreen|field|com.muzmod.gui.GuiAccountManager|parentScreen|
+   @|com\muzmod\gui\GuiAccountManager.java|502|510|BG_PANEL|field|com.muzmod.gui.GuiAccountManager|BG_PANEL|
+   @|com\muzmod\gui\GuiAccountManager.java|554|563|BG_HEADER|field|com.muzmod.gui.GuiAccountManager|BG_HEADER|
+   @|com\muzmod\gui\GuiAccountManager.java|607|615|BG_FIELD|field|com.muzmod.gui.GuiAccountManager|BG_FIELD|
+   @|com\muzmod\gui\GuiAccountManager.java|659|672|ACCENT_PURPLE|field|com.muzmod.gui.GuiAccountManager|ACCENT_PURPLE|
+   @|com\muzmod\gui\GuiAccountManager.java|716|727|ACCENT_CYAN|field|com.muzmod.gui.GuiAccountManager|ACCENT_CYAN|
+   @|com\muzmod\gui\GuiAccountManager.java|771|783|ACCENT_GREEN|field|com.muzmod.gui.GuiAccountManager|ACCENT_GREEN|
+   @|com\muzmod\gui\GuiAccountManager.java|827|837|ACCENT_RED|field|com.muzmod.gui.GuiAccountManager|ACCENT_RED|
+   @|com\muzmod\gui\GuiAccountManager.java|881|894|ACCENT_ORANGE|field|com.muzmod.gui.GuiAccountManager|ACCENT_ORANGE|
+   @|com\muzmod\gui\GuiAccountManager.java|938|948|TEXT_WHITE|field|com.muzmod.gui.GuiAccountManager|TEXT_WHITE|
+   @|com\muzmod\gui\GuiAccountManager.java|992|1001|TEXT_GRAY|field|com.muzmod.gui.GuiAccountManager|TEXT_GRAY|
+   @|com\muzmod\gui\GuiAccountManager.java|1045|1054|TEXT_DARK|field|com.muzmod.gui.GuiAccountManager|TEXT_DARK|
+   @|com\muzmod\gui\GuiAccountManager.java|1104|1108|guiX|field|com.muzmod.gui.GuiAccountManager|guiX|
+   @|com\muzmod\gui\GuiAccountManager.java|1110|1114|guiY|field|com.muzmod.gui.GuiAccountManager|guiY|
+   @|com\muzmod\gui\GuiAccountManager.java|1145|1154|GUI_WIDTH|field|com.muzmod.gui.GuiAccountManager|GUI_WIDTH|
+   @|com\muzmod\gui\GuiAccountManager.java|1191|1201|GUI_HEIGHT|field|com.muzmod.gui.GuiAccountManager|GUI_HEIGHT|
+   @|com\muzmod\gui\GuiAccountManager.java|1244|1256|GuiTextField|class|net.minecraft.client.gui.GuiTextField
+   @|com\muzmod\gui\GuiAccountManager.java|1257|1270|usernameField|field|com.muzmod.gui.GuiAccountManager|usernameField|
+   @|com\muzmod\gui\GuiAccountManager.java|1284|1290|String|class|java.lang.String
+   @|com\muzmod\gui\GuiAccountManager.java|1291|1304|statusMessage|field|com.muzmod.gui.GuiAccountManager|statusMessage|
+   @|com\muzmod\gui\GuiAccountManager.java|1327|1338|statusColor|field|com.muzmod.gui.GuiAccountManager|statusColor|
+   @|com\muzmod\gui\GuiAccountManager.java|1341|1350|TEXT_GRAY|field|com.muzmod.gui.GuiAccountManager|TEXT_GRAY
+   Method Start: GuiAccountManager(Lnet/minecraft/client/gui/GuiScreen;)V
+      @|com\muzmod\gui\GuiAccountManager.java|1368|1385|GuiAccountManager|method|com.muzmod.gui.GuiAccountManager|GuiAccountManager|(Lnet/minecraft/client/gui/GuiScreen;)V
+      @|com\muzmod\gui\GuiAccountManager.java|1386|1395|GuiScreen|class|net.minecraft.client.gui.GuiScreen
+      @|com\muzmod\gui\GuiAccountManager.java|1396|1402|parent|param|com.muzmod.gui.GuiAccountManager|GuiAccountManager|(Lnet/minecraft/client/gui/GuiScreen;)V|parent|0
+      @|com\muzmod\gui\GuiAccountManager.java|1419|1431|parentScreen|field|com.muzmod.gui.GuiAccountManager|parentScreen
+      @|com\muzmod\gui\GuiAccountManager.java|1434|1440|parent|param|com.muzmod.gui.GuiAccountManager|GuiAccountManager|(Lnet/minecraft/client/gui/GuiScreen;)V|parent|0
+   Method End: GuiAccountManager(Lnet/minecraft/client/gui/GuiScreen;)V
+   Method Start: initGui()V
+      @|com\muzmod\gui\GuiAccountManager.java|1483|1490|initGui|method|net.minecraft.client.gui.GuiScreen|initGui|()V
+      @|com\muzmod\gui\GuiAccountManager.java|1503|1511|Keyboard|class|org.lwjgl.input.Keyboard
+      @|com\muzmod\gui\GuiAccountManager.java|1512|1530|enableRepeatEvents|method|org.lwjgl.input.Keyboard|enableRepeatEvents|(Z)V
+      @|com\muzmod\gui\GuiAccountManager.java|1555|1559|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|1563|1568|width|field|net.minecraft.client.gui.GuiScreen|width
+      @|com\muzmod\gui\GuiAccountManager.java|1571|1580|GUI_WIDTH|field|com.muzmod.gui.GuiAccountManager|GUI_WIDTH
+      @|com\muzmod\gui\GuiAccountManager.java|1595|1599|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|1603|1609|height|field|net.minecraft.client.gui.GuiScreen|height
+      @|com\muzmod\gui\GuiAccountManager.java|1612|1622|GUI_HEIGHT|field|com.muzmod.gui.GuiAccountManager|GUI_HEIGHT
+      @|com\muzmod\gui\GuiAccountManager.java|1672|1685|usernameField|field|com.muzmod.gui.GuiAccountManager|usernameField
+      @|com\muzmod\gui\GuiAccountManager.java|1692|1704|GuiTextField|class|net.minecraft.client.gui.GuiTextField
+      @|com\muzmod\gui\GuiAccountManager.java|1708|1723|fontRendererObj|field|net.minecraft.client.gui.GuiScreen|fontRendererObj
+      @|com\muzmod\gui\GuiAccountManager.java|1725|1729|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|1736|1740|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|1747|1756|GUI_WIDTH|field|com.muzmod.gui.GuiAccountManager|GUI_WIDTH
+      @|com\muzmod\gui\GuiAccountManager.java|1776|1789|usernameField|field|com.muzmod.gui.GuiAccountManager|usernameField
+      @|com\muzmod\gui\GuiAccountManager.java|1790|1808|setMaxStringLength|method|net.minecraft.client.gui.GuiTextField|setMaxStringLength|(I)V
+      @|com\muzmod\gui\GuiAccountManager.java|1822|1835|usernameField|field|com.muzmod.gui.GuiAccountManager|usernameField
+      @|com\muzmod\gui\GuiAccountManager.java|1836|1846|setFocused|method|net.minecraft.client.gui.GuiTextField|setFocused|(Z)V
+      @|com\muzmod\gui\GuiAccountManager.java|1862|1875|usernameField|field|com.muzmod.gui.GuiAccountManager|usernameField
+      @|com\muzmod\gui\GuiAccountManager.java|1876|1902|setEnableBackgroundDrawing|method|net.minecraft.client.gui.GuiTextField|setEnableBackgroundDrawing|(Z)V
+      @|com\muzmod\gui\GuiAccountManager.java|1947|1957|buttonList|field|net.minecraft.client.gui.GuiScreen|buttonList
+      @|com\muzmod\gui\GuiAccountManager.java|1958|1963|clear|method|java.util.Collection|clear|()V
+      @|com\muzmod\gui\GuiAccountManager.java|1975|1985|buttonList|field|net.minecraft.client.gui.GuiScreen|buttonList
+      @|com\muzmod\gui\GuiAccountManager.java|1986|1989|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
+      @|com\muzmod\gui\GuiAccountManager.java|1994|2003|GuiButton|class|net.minecraft.client.gui.GuiButton
+      @|com\muzmod\gui\GuiAccountManager.java|2007|2011|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|2018|2022|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|2064|2074|buttonList|field|net.minecraft.client.gui.GuiScreen|buttonList
+      @|com\muzmod\gui\GuiAccountManager.java|2075|2078|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
+      @|com\muzmod\gui\GuiAccountManager.java|2083|2092|GuiButton|class|net.minecraft.client.gui.GuiButton
+      @|com\muzmod\gui\GuiAccountManager.java|2096|2100|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|2108|2112|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|2152|2162|buttonList|field|net.minecraft.client.gui.GuiScreen|buttonList
+      @|com\muzmod\gui\GuiAccountManager.java|2163|2166|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
+      @|com\muzmod\gui\GuiAccountManager.java|2171|2180|GuiButton|class|net.minecraft.client.gui.GuiButton
+      @|com\muzmod\gui\GuiAccountManager.java|2184|2188|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|2195|2199|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|2207|2216|GUI_WIDTH|field|com.muzmod.gui.GuiAccountManager|GUI_WIDTH
+   Method End: initGui()V
+   Method Start: drawScreen(IIF)V
+      @|com\muzmod\gui\GuiAccountManager.java|2280|2290|drawScreen|method|net.minecraft.client.gui.GuiScreen|drawScreen|(IIF)V
+      @|com\muzmod\gui\GuiAccountManager.java|2295|2301|mouseX|param|com.muzmod.gui.GuiAccountManager|drawScreen|(IIF)V|mouseX|0
+      @|com\muzmod\gui\GuiAccountManager.java|2307|2313|mouseY|param|com.muzmod.gui.GuiAccountManager|drawScreen|(IIF)V|mouseY|1
+      @|com\muzmod\gui\GuiAccountManager.java|2321|2333|partialTicks|param|com.muzmod.gui.GuiAccountManager|drawScreen|(IIF)V|partialTicks|2
+      @|com\muzmod\gui\GuiAccountManager.java|2372|2380|drawRect|method|net.minecraft.client.gui.Gui|drawRect|(IIIII)V
+      @|com\muzmod\gui\GuiAccountManager.java|2387|2392|width|field|net.minecraft.client.gui.GuiScreen|width
+      @|com\muzmod\gui\GuiAccountManager.java|2394|2400|height|field|net.minecraft.client.gui.GuiScreen|height
+      @|com\muzmod\gui\GuiAccountManager.java|2456|2464|drawRect|method|net.minecraft.client.gui.Gui|drawRect|(IIIII)V
+      @|com\muzmod\gui\GuiAccountManager.java|2465|2469|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|2475|2479|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|2485|2489|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|2492|2501|GUI_WIDTH|field|com.muzmod.gui.GuiAccountManager|GUI_WIDTH
+      @|com\muzmod\gui\GuiAccountManager.java|2507|2511|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|2514|2524|GUI_HEIGHT|field|com.muzmod.gui.GuiAccountManager|GUI_HEIGHT
+      @|com\muzmod\gui\GuiAccountManager.java|2582|2590|drawRect|method|net.minecraft.client.gui.Gui|drawRect|(IIIII)V
+      @|com\muzmod\gui\GuiAccountManager.java|2591|2595|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|2597|2601|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|2603|2607|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|2610|2619|GUI_WIDTH|field|com.muzmod.gui.GuiAccountManager|GUI_WIDTH
+      @|com\muzmod\gui\GuiAccountManager.java|2621|2625|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|2628|2638|GUI_HEIGHT|field|com.muzmod.gui.GuiAccountManager|GUI_HEIGHT
+      @|com\muzmod\gui\GuiAccountManager.java|2640|2648|BG_PANEL|field|com.muzmod.gui.GuiAccountManager|BG_PANEL
+      @|com\muzmod\gui\GuiAccountManager.java|2686|2694|drawRect|method|net.minecraft.client.gui.Gui|drawRect|(IIIII)V
+      @|com\muzmod\gui\GuiAccountManager.java|2695|2699|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|2701|2705|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|2707|2711|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|2714|2723|GUI_WIDTH|field|com.muzmod.gui.GuiAccountManager|GUI_WIDTH
+      @|com\muzmod\gui\GuiAccountManager.java|2725|2729|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|2736|2745|BG_HEADER|field|com.muzmod.gui.GuiAccountManager|BG_HEADER
+      @|com\muzmod\gui\GuiAccountManager.java|2756|2773|drawGradientRectH|method|com.muzmod.gui.GuiAccountManager|drawGradientRectH|(IIIIII)V
+      @|com\muzmod\gui\GuiAccountManager.java|2774|2778|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|2780|2784|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|2791|2795|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|2798|2807|GUI_WIDTH|field|com.muzmod.gui.GuiAccountManager|GUI_WIDTH
+      @|com\muzmod\gui\GuiAccountManager.java|2809|2813|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|2820|2833|ACCENT_PURPLE|field|com.muzmod.gui.GuiAccountManager|ACCENT_PURPLE
+      @|com\muzmod\gui\GuiAccountManager.java|2835|2846|ACCENT_CYAN|field|com.muzmod.gui.GuiAccountManager|ACCENT_CYAN
+      @|com\muzmod\gui\GuiAccountManager.java|2883|2901|drawCenteredString|method|net.minecraft.client.gui.Gui|drawCenteredString|(Lnet/minecraft/client/gui/FontRenderer;Ljava/lang/String;III)V
+      @|com\muzmod\gui\GuiAccountManager.java|2902|2917|fontRendererObj|field|net.minecraft.client.gui.GuiScreen|fontRendererObj
+      @|com\muzmod\gui\GuiAccountManager.java|2942|2946|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|2949|2958|GUI_WIDTH|field|com.muzmod.gui.GuiAccountManager|GUI_WIDTH
+      @|com\muzmod\gui\GuiAccountManager.java|2964|2968|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|2975|2985|TEXT_WHITE|field|com.muzmod.gui.GuiAccountManager|TEXT_WHITE
+      @|com\muzmod\gui\GuiAccountManager.java|3037|3051|AccountManager|class|com.muzmod.account.AccountManager
+      @|com\muzmod\gui\GuiAccountManager.java|3057|3071|AccountManager|class|com.muzmod.account.AccountManager
+      @|com\muzmod\gui\GuiAccountManager.java|3072|3083|getInstance|method|com.muzmod.account.AccountManager|getInstance|()Lcom/muzmod/account/AccountManager;
+      @|com\muzmod\gui\GuiAccountManager.java|3095|3101|String|class|java.lang.String
+      @|com\muzmod\gui\GuiAccountManager.java|3136|3154|getCurrentUsername|method|com.muzmod.account.AccountManager|getCurrentUsername|()Ljava/lang/String;
+      @|com\muzmod\gui\GuiAccountManager.java|3174|3189|isUsingOriginal|method|com.muzmod.account.AccountManager|isUsingOriginal|()Z
+      @|com\muzmod\gui\GuiAccountManager.java|3256|3274|drawCenteredString|method|net.minecraft.client.gui.Gui|drawCenteredString|(Lnet/minecraft/client/gui/FontRenderer;Ljava/lang/String;III)V
+      @|com\muzmod\gui\GuiAccountManager.java|3275|3290|fontRendererObj|field|net.minecraft.client.gui.GuiScreen|fontRendererObj
+      @|com\muzmod\gui\GuiAccountManager.java|3305|3309|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|3312|3321|GUI_WIDTH|field|com.muzmod.gui.GuiAccountManager|GUI_WIDTH
+      @|com\muzmod\gui\GuiAccountManager.java|3327|3331|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|3338|3348|TEXT_WHITE|field|com.muzmod.gui.GuiAccountManager|TEXT_WHITE
+      @|com\muzmod\gui\GuiAccountManager.java|3394|3404|drawString|method|net.minecraft.client.gui.Gui|drawString|(Lnet/minecraft/client/gui/FontRenderer;Ljava/lang/String;III)V
+      @|com\muzmod\gui\GuiAccountManager.java|3405|3420|fontRendererObj|field|net.minecraft.client.gui.GuiScreen|fontRendererObj
+      @|com\muzmod\gui\GuiAccountManager.java|3442|3446|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|3453|3457|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|3464|3473|TEXT_GRAY|field|com.muzmod.gui.GuiAccountManager|TEXT_GRAY
+      @|com\muzmod\gui\GuiAccountManager.java|3530|3538|drawRect|method|net.minecraft.client.gui.Gui|drawRect|(IIIII)V
+      @|com\muzmod\gui\GuiAccountManager.java|3539|3543|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|3550|3554|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|3561|3565|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|3568|3577|GUI_WIDTH|field|com.muzmod.gui.GuiAccountManager|GUI_WIDTH
+      @|com\muzmod\gui\GuiAccountManager.java|3584|3588|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|3595|3603|BG_FIELD|field|com.muzmod.gui.GuiAccountManager|BG_FIELD
+      @|com\muzmod\gui\GuiAccountManager.java|3618|3631|usernameField|field|com.muzmod.gui.GuiAccountManager|usernameField
+      @|com\muzmod\gui\GuiAccountManager.java|3632|3641|isFocused|method|net.minecraft.client.gui.GuiTextField|isFocused|()Z
+      @|com\muzmod\gui\GuiAccountManager.java|3659|3667|drawRect|method|net.minecraft.client.gui.Gui|drawRect|(IIIII)V
+      @|com\muzmod\gui\GuiAccountManager.java|3668|3672|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|3679|3683|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|3690|3694|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|3697|3706|GUI_WIDTH|field|com.muzmod.gui.GuiAccountManager|GUI_WIDTH
+      @|com\muzmod\gui\GuiAccountManager.java|3713|3717|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|3724|3735|ACCENT_CYAN|field|com.muzmod.gui.GuiAccountManager|ACCENT_CYAN
+      @|com\muzmod\gui\GuiAccountManager.java|3756|3769|usernameField|field|com.muzmod.gui.GuiAccountManager|usernameField
+      @|com\muzmod\gui\GuiAccountManager.java|3770|3781|drawTextBox|method|net.minecraft.client.gui.GuiTextField|drawTextBox|()V
+      @|com\muzmod\gui\GuiAccountManager.java|3833|3846|statusMessage|field|com.muzmod.gui.GuiAccountManager|statusMessage
+      @|com\muzmod\gui\GuiAccountManager.java|3847|3854|isEmpty|method|java.lang.String|isEmpty|()Z
+      @|com\muzmod\gui\GuiAccountManager.java|3872|3890|drawCenteredString|method|net.minecraft.client.gui.Gui|drawCenteredString|(Lnet/minecraft/client/gui/FontRenderer;Ljava/lang/String;III)V
+      @|com\muzmod\gui\GuiAccountManager.java|3891|3906|fontRendererObj|field|net.minecraft.client.gui.GuiScreen|fontRendererObj
+      @|com\muzmod\gui\GuiAccountManager.java|3908|3921|statusMessage|field|com.muzmod.gui.GuiAccountManager|statusMessage
+      @|com\muzmod\gui\GuiAccountManager.java|3923|3927|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|3930|3939|GUI_WIDTH|field|com.muzmod.gui.GuiAccountManager|GUI_WIDTH
+      @|com\muzmod\gui\GuiAccountManager.java|3945|3949|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|3952|3962|GUI_HEIGHT|field|com.muzmod.gui.GuiAccountManager|GUI_HEIGHT
+      @|com\muzmod\gui\GuiAccountManager.java|3969|3980|statusColor|field|com.muzmod.gui.GuiAccountManager|statusColor
+      @|com\muzmod\gui\GuiAccountManager.java|4043|4049|String|class|java.lang.String
+      @|com\muzmod\gui\GuiAccountManager.java|4085|4104|getOriginalUsername|method|com.muzmod.account.AccountManager|getOriginalUsername|()Ljava/lang/String;
+      @|com\muzmod\gui\GuiAccountManager.java|4116|4134|drawCenteredString|method|net.minecraft.client.gui.Gui|drawCenteredString|(Lnet/minecraft/client/gui/FontRenderer;Ljava/lang/String;III)V
+      @|com\muzmod\gui\GuiAccountManager.java|4135|4150|fontRendererObj|field|net.minecraft.client.gui.GuiScreen|fontRendererObj
+      @|com\muzmod\gui\GuiAccountManager.java|4166|4170|guiX|field|com.muzmod.gui.GuiAccountManager|guiX
+      @|com\muzmod\gui\GuiAccountManager.java|4173|4182|GUI_WIDTH|field|com.muzmod.gui.GuiAccountManager|GUI_WIDTH
+      @|com\muzmod\gui\GuiAccountManager.java|4188|4192|guiY|field|com.muzmod.gui.GuiAccountManager|guiY
+      @|com\muzmod\gui\GuiAccountManager.java|4195|4205|GUI_HEIGHT|field|com.muzmod.gui.GuiAccountManager|GUI_HEIGHT
+      @|com\muzmod\gui\GuiAccountManager.java|4211|4220|TEXT_DARK|field|com.muzmod.gui.GuiAccountManager|TEXT_DARK
+      @|com\muzmod\gui\GuiAccountManager.java|4246|4256|drawScreen|method|net.minecraft.client.gui.GuiScreen|drawScreen|(IIF)V
+      @|com\muzmod\gui\GuiAccountManager.java|4257|4263|mouseX|param|com.muzmod.gui.GuiAccountManager|drawScreen|(IIF)V|mouseX|0
+      @|com\muzmod\gui\GuiAccountManager.java|4265|4271|mouseY|param|com.muzmod.gui.GuiAccountManager|drawScreen|(IIF)V|mouseY|1
+      @|com\muzmod\gui\GuiAccountManager.java|4273|4285|partialTicks|param|com.muzmod.gui.GuiAccountManager|drawScreen|(IIF)V|partialTicks|2
+   Method End: drawScreen(IIF)V
+   Method Start: actionPerformed(Lnet/minecraft/client/gui/GuiButton;)V
+      @|com\muzmod\gui\GuiAccountManager.java|4332|4347|actionPerformed|method|net.minecraft.client.gui.GuiScreen|actionPerformed|(Lnet/minecraft/client/gui/GuiButton;)V
+      @|com\muzmod\gui\GuiAccountManager.java|4373|4384|IOException|class|java.io.IOException
+      @|com\muzmod\gui\GuiAccountManager.java|4348|4357|GuiButton|class|net.minecraft.client.gui.GuiButton
+      @|com\muzmod\gui\GuiAccountManager.java|4358|4364|button|param|com.muzmod.gui.GuiAccountManager|actionPerformed|(Lnet/minecraft/client/gui/GuiButton;)V|button|0
+      @|com\muzmod\gui\GuiAccountManager.java|4395|4409|AccountManager|class|com.muzmod.account.AccountManager
+      @|com\muzmod\gui\GuiAccountManager.java|4415|4429|AccountManager|class|com.muzmod.account.AccountManager
+      @|com\muzmod\gui\GuiAccountManager.java|4430|4441|getInstance|method|com.muzmod.account.AccountManager|getInstance|()Lcom/muzmod/account/AccountManager;
+      @|com\muzmod\gui\GuiAccountManager.java|4470|4476|button|param|com.muzmod.gui.GuiAccountManager|actionPerformed|(Lnet/minecraft/client/gui/GuiButton;)V|button|0
+      @|com\muzmod\gui\GuiAccountManager.java|4477|4479|id|field|net.minecraft.client.gui.GuiButton|id
+      @|com\muzmod\gui\GuiAccountManager.java|4527|4529|mc|field|net.minecraft.client.gui.GuiScreen|mc
+      @|com\muzmod\gui\GuiAccountManager.java|4530|4546|displayGuiScreen|method|net.minecraft.client.Minecraft|displayGuiScreen|(Lnet/minecraft/client/gui/GuiScreen;)V
+      @|com\muzmod\gui\GuiAccountManager.java|4547|4559|parentScreen|field|com.muzmod.gui.GuiAccountManager|parentScreen
+      @|com\muzmod\gui\GuiAccountManager.java|4651|4657|String|class|java.lang.String
+      @|com\muzmod\gui\GuiAccountManager.java|4669|4682|usernameField|field|com.muzmod.gui.GuiAccountManager|usernameField
+      @|com\muzmod\gui\GuiAccountManager.java|4683|4690|getText|method|net.minecraft.client.gui.GuiTextField|getText|()Ljava/lang/String;
+      @|com\muzmod\gui\GuiAccountManager.java|4693|4697|trim|method|java.lang.String|trim|()Ljava/lang/String;
+      @|com\muzmod\gui\GuiAccountManager.java|4730|4737|isEmpty|method|java.lang.String|isEmpty|()Z
+      @|com\muzmod\gui\GuiAccountManager.java|4763|4772|setStatus|method|com.muzmod.gui.GuiAccountManager|setStatus|(Ljava/lang/String;I)V
+      @|com\muzmod\gui\GuiAccountManager.java|4804|4814|ACCENT_RED|field|com.muzmod.gui.GuiAccountManager|ACCENT_RED
+      @|com\muzmod\gui\GuiAccountManager.java|4853|4859|length|method|java.lang.CharSequence|length|()I
+      @|com\muzmod\gui\GuiAccountManager.java|4878|4884|length|method|java.lang.CharSequence|length|()I
+      @|com\muzmod\gui\GuiAccountManager.java|4915|4924|setStatus|method|com.muzmod.gui.GuiAccountManager|setStatus|(Ljava/lang/String;I)V
+      @|com\muzmod\gui\GuiAccountManager.java|4966|4976|ACCENT_RED|field|com.muzmod.gui.GuiAccountManager|ACCENT_RED
+      @|com\muzmod\gui\GuiAccountManager.java|5009|5021|loginOffline|method|com.muzmod.account.AccountManager|loginOffline|(Ljava/lang/String;)Z
+      @|com\muzmod\gui\GuiAccountManager.java|5055|5064|setStatus|method|com.muzmod.gui.GuiAccountManager|setStatus|(Ljava/lang/String;I)V
+      @|com\muzmod\gui\GuiAccountManager.java|5107|5119|ACCENT_GREEN|field|com.muzmod.gui.GuiAccountManager|ACCENT_GREEN
+      @|com\muzmod\gui\GuiAccountManager.java|5142|5155|usernameField|field|com.muzmod.gui.GuiAccountManager|usernameField
+      @|com\muzmod\gui\GuiAccountManager.java|5156|5163|setText|method|net.minecraft.client.gui.GuiTextField|setText|(Ljava/lang/String;)V
+      @|com\muzmod\gui\GuiAccountManager.java|5214|5223|setStatus|method|com.muzmod.gui.GuiAccountManager|setStatus|(Ljava/lang/String;I)V
+      @|com\muzmod\gui\GuiAccountManager.java|5265|5275|ACCENT_RED|field|com.muzmod.gui.GuiAccountManager|ACCENT_RED
+      @|com\muzmod\gui\GuiAccountManager.java|5390|5405|isUsingOriginal|method|com.muzmod.account.AccountManager|isUsingOriginal|()Z
+      @|com\muzmod\gui\GuiAccountManager.java|5431|5440|setStatus|method|com.muzmod.gui.GuiAccountManager|setStatus|(Ljava/lang/String;I)V
+      @|com\muzmod\gui\GuiAccountManager.java|5475|5488|ACCENT_ORANGE|field|com.muzmod.gui.GuiAccountManager|ACCENT_ORANGE
+      @|com\muzmod\gui\GuiAccountManager.java|5521|5536|restoreOriginal|method|com.muzmod.account.AccountManager|restoreOriginal|()Z
+      @|com\muzmod\gui\GuiAccountManager.java|5562|5571|setStatus|method|com.muzmod.gui.GuiAccountManager|setStatus|(Ljava/lang/String;I)V
+      @|com\muzmod\gui\GuiAccountManager.java|5602|5614|ACCENT_GREEN|field|com.muzmod.gui.GuiAccountManager|ACCENT_GREEN
+      @|com\muzmod\gui\GuiAccountManager.java|5662|5671|setStatus|method|com.muzmod.gui.GuiAccountManager|setStatus|(Ljava/lang/String;I)V
+      @|com\muzmod\gui\GuiAccountManager.java|5696|5706|ACCENT_RED|field|com.muzmod.gui.GuiAccountManager|ACCENT_RED
+   Method End: actionPerformed(Lnet/minecraft/client/gui/GuiButton;)V
+   Method Start: setStatus(Ljava/lang/String;I)V
+      @|com\muzmod\gui\GuiAccountManager.java|5788|5797|setStatus|method|com.muzmod.gui.GuiAccountManager|setStatus|(Ljava/lang/String;I)V
+      @|com\muzmod\gui\GuiAccountManager.java|5798|5804|String|class|java.lang.String
+      @|com\muzmod\gui\GuiAccountManager.java|5805|5812|message|param|com.muzmod.gui.GuiAccountManager|setStatus|(Ljava/lang/String;I)V|message|0
+      @|com\muzmod\gui\GuiAccountManager.java|5818|5823|color|param|com.muzmod.gui.GuiAccountManager|setStatus|(Ljava/lang/String;I)V|color|1
+      @|com\muzmod\gui\GuiAccountManager.java|5840|5853|statusMessage|field|com.muzmod.gui.GuiAccountManager|statusMessage
+      @|com\muzmod\gui\GuiAccountManager.java|5856|5863|message|param|com.muzmod.gui.GuiAccountManager|setStatus|(Ljava/lang/String;I)V|message|0
+      @|com\muzmod\gui\GuiAccountManager.java|5878|5889|statusColor|field|com.muzmod.gui.GuiAccountManager|statusColor
+      @|com\muzmod\gui\GuiAccountManager.java|5892|5897|color|param|com.muzmod.gui.GuiAccountManager|setStatus|(Ljava/lang/String;I)V|color|1
+   Method End: setStatus(Ljava/lang/String;I)V
+   Method Start: keyTyped(CI)V
+      @|com\muzmod\gui\GuiAccountManager.java|5943|5951|keyTyped|method|net.minecraft.client.gui.GuiScreen|keyTyped|(CI)V
+      @|com\muzmod\gui\GuiAccountManager.java|5988|5999|IOException|class|java.io.IOException
+      @|com\muzmod\gui\GuiAccountManager.java|5957|5966|typedChar|param|com.muzmod.gui.GuiAccountManager|keyTyped|(CI)V|typedChar|0
+      @|com\muzmod\gui\GuiAccountManager.java|5972|5979|keyCode|param|com.muzmod.gui.GuiAccountManager|keyTyped|(CI)V|keyCode|1
+      @|com\muzmod\gui\GuiAccountManager.java|6014|6021|keyCode|param|com.muzmod.gui.GuiAccountManager|keyTyped|(CI)V|keyCode|1
+      @|com\muzmod\gui\GuiAccountManager.java|6025|6033|Keyboard|class|org.lwjgl.input.Keyboard
+      @|com\muzmod\gui\GuiAccountManager.java|6034|6044|KEY_ESCAPE|field|org.lwjgl.input.Keyboard|KEY_ESCAPE
+      @|com\muzmod\gui\GuiAccountManager.java|6060|6062|mc|field|net.minecraft.client.gui.GuiScreen|mc
+      @|com\muzmod\gui\GuiAccountManager.java|6063|6079|displayGuiScreen|method|net.minecraft.client.Minecraft|displayGuiScreen|(Lnet/minecraft/client/gui/GuiScreen;)V
+      @|com\muzmod\gui\GuiAccountManager.java|6080|6092|parentScreen|field|com.muzmod.gui.GuiAccountManager|parentScreen
+      @|com\muzmod\gui\GuiAccountManager.java|6146|6153|keyCode|param|com.muzmod.gui.GuiAccountManager|keyTyped|(CI)V|keyCode|1
+      @|com\muzmod\gui\GuiAccountManager.java|6157|6165|Keyboard|class|org.lwjgl.input.Keyboard
+      @|com\muzmod\gui\GuiAccountManager.java|6166|6176|KEY_RETURN|field|org.lwjgl.input.Keyboard|KEY_RETURN
+      @|com\muzmod\gui\GuiAccountManager.java|6180|6187|keyCode|param|com.muzmod.gui.GuiAccountManager|keyTyped|(CI)V|keyCode|1
+      @|com\muzmod\gui\GuiAccountManager.java|6191|6199|Keyboard|class|org.lwjgl.input.Keyboard
+      @|com\muzmod\gui\GuiAccountManager.java|6200|6215|KEY_NUMPADENTER|field|org.lwjgl.input.Keyboard|KEY_NUMPADENTER
+      @|com\muzmod\gui\GuiAccountManager.java|6288|6303|actionPerformed|method|net.minecraft.client.gui.GuiScreen|actionPerformed|(Lnet/minecraft/client/gui/GuiButton;)V
+      @|com\muzmod\gui\GuiAccountManager.java|6304|6314|buttonList|field|net.minecraft.client.gui.GuiScreen|buttonList
+      @|com\muzmod\gui\GuiAccountManager.java|6315|6318|get|method|java.util.List|get|(I)Ljava/lang/Object;
+      @|com\muzmod\gui\GuiAccountManager.java|6365|6374|Exception|class|java.lang.Exception
+      @|com\muzmod\gui\GuiAccountManager.java|6428|6441|usernameField|field|com.muzmod.gui.GuiAccountManager|usernameField
+      @|com\muzmod\gui\GuiAccountManager.java|6442|6457|textboxKeyTyped|method|net.minecraft.client.gui.GuiTextField|textboxKeyTyped|(CI)Z
+      @|com\muzmod\gui\GuiAccountManager.java|6458|6467|typedChar|param|com.muzmod.gui.GuiAccountManager|keyTyped|(CI)V|typedChar|0
+      @|com\muzmod\gui\GuiAccountManager.java|6469|6476|keyCode|param|com.muzmod.gui.GuiAccountManager|keyTyped|(CI)V|keyCode|1
+   Method End: keyTyped(CI)V
+   Method Start: mouseClicked(III)V
+      @|com\muzmod\gui\GuiAccountManager.java|6523|6535|mouseClicked|method|net.minecraft.client.gui.GuiScreen|mouseClicked|(III)V
+      @|com\muzmod\gui\GuiAccountManager.java|6584|6595|IOException|class|java.io.IOException
+      @|com\muzmod\gui\GuiAccountManager.java|6540|6546|mouseX|param|com.muzmod.gui.GuiAccountManager|mouseClicked|(III)V|mouseX|0
+      @|com\muzmod\gui\GuiAccountManager.java|6552|6558|mouseY|param|com.muzmod.gui.GuiAccountManager|mouseClicked|(III)V|mouseY|1
+      @|com\muzmod\gui\GuiAccountManager.java|6564|6575|mouseButton|param|com.muzmod.gui.GuiAccountManager|mouseClicked|(III)V|mouseButton|2
+      @|com\muzmod\gui\GuiAccountManager.java|6612|6624|mouseClicked|method|net.minecraft.client.gui.GuiScreen|mouseClicked|(III)V
+      @|com\muzmod\gui\GuiAccountManager.java|6625|6631|mouseX|param|com.muzmod.gui.GuiAccountManager|mouseClicked|(III)V|mouseX|0
+      @|com\muzmod\gui\GuiAccountManager.java|6633|6639|mouseY|param|com.muzmod.gui.GuiAccountManager|mouseClicked|(III)V|mouseY|1
+      @|com\muzmod\gui\GuiAccountManager.java|6641|6652|mouseButton|param|com.muzmod.gui.GuiAccountManager|mouseClicked|(III)V|mouseButton|2
+      @|com\muzmod\gui\GuiAccountManager.java|6663|6676|usernameField|field|com.muzmod.gui.GuiAccountManager|usernameField
+      @|com\muzmod\gui\GuiAccountManager.java|6677|6689|mouseClicked|method|net.minecraft.client.gui.GuiTextField|mouseClicked|(III)V
+      @|com\muzmod\gui\GuiAccountManager.java|6690|6696|mouseX|param|com.muzmod.gui.GuiAccountManager|mouseClicked|(III)V|mouseX|0
+      @|com\muzmod\gui\GuiAccountManager.java|6698|6704|mouseY|param|com.muzmod.gui.GuiAccountManager|mouseClicked|(III)V|mouseY|1
+      @|com\muzmod\gui\GuiAccountManager.java|6706|6717|mouseButton|param|com.muzmod.gui.GuiAccountManager|mouseClicked|(III)V|mouseButton|2
+   Method End: mouseClicked(III)V
+   Method Start: updateScreen()V
+      @|com\muzmod\gui\GuiAccountManager.java|6761|6773|updateScreen|method|net.minecraft.client.gui.GuiScreen|updateScreen|()V
+      @|com\muzmod\gui\GuiAccountManager.java|6786|6799|usernameField|field|com.muzmod.gui.GuiAccountManager|usernameField
+      @|com\muzmod\gui\GuiAccountManager.java|6800|6819|updateCursorCounter|method|net.minecraft.client.gui.GuiTextField|updateCursorCounter|()V
+   Method End: updateScreen()V
+   Method Start: onGuiClosed()V
+      @|com\muzmod\gui\GuiAccountManager.java|6864|6875|onGuiClosed|method|net.minecraft.client.gui.GuiScreen|onGuiClosed|()V
+      @|com\muzmod\gui\GuiAccountManager.java|6888|6896|Keyboard|class|org.lwjgl.input.Keyboard
+      @|com\muzmod\gui\GuiAccountManager.java|6897|6915|enableRepeatEvents|method|org.lwjgl.input.Keyboard|enableRepeatEvents|(Z)V
+   Method End: onGuiClosed()V
+   Method Start: drawGradientRectH(IIIIII)V
+      @|com\muzmod\gui\GuiAccountManager.java|6952|6969|drawGradientRectH|method|com.muzmod.gui.GuiAccountManager|drawGradientRectH|(IIIIII)V
+      @|com\muzmod\gui\GuiAccountManager.java|6974|6978|left|param|com.muzmod.gui.GuiAccountManager|drawGradientRectH|(IIIIII)V|left|0
+      @|com\muzmod\gui\GuiAccountManager.java|6984|6987|top|param|com.muzmod.gui.GuiAccountManager|drawGradientRectH|(IIIIII)V|top|1
+      @|com\muzmod\gui\GuiAccountManager.java|6993|6998|right|param|com.muzmod.gui.GuiAccountManager|drawGradientRectH|(IIIIII)V|right|2
+      @|com\muzmod\gui\GuiAccountManager.java|7004|7010|bottom|param|com.muzmod.gui.GuiAccountManager|drawGradientRectH|(IIIIII)V|bottom|3
+      @|com\muzmod\gui\GuiAccountManager.java|7016|7025|colorLeft|param|com.muzmod.gui.GuiAccountManager|drawGradientRectH|(IIIIII)V|colorLeft|4
+      @|com\muzmod\gui\GuiAccountManager.java|7031|7041|colorRight|param|com.muzmod.gui.GuiAccountManager|drawGradientRectH|(IIIIII)V|colorRight|5
+      @|com\muzmod\gui\GuiAccountManager.java|7061|7066|right|param|com.muzmod.gui.GuiAccountManager|drawGradientRectH|(IIIIII)V|right|2
+      @|com\muzmod\gui\GuiAccountManager.java|7069|7073|left|param|com.muzmod.gui.GuiAccountManager|drawGradientRectH|(IIIIII)V|left|0
+      @|com\muzmod\gui\GuiAccountManager.java|7178|7187|lerpColor|method|com.muzmod.gui.GuiAccountManager|lerpColor|(IIF)I
+      @|com\muzmod\gui\GuiAccountManager.java|7188|7197|colorLeft|param|com.muzmod.gui.GuiAccountManager|drawGradientRectH|(IIIIII)V|colorLeft|4
+      @|com\muzmod\gui\GuiAccountManager.java|7199|7209|colorRight|param|com.muzmod.gui.GuiAccountManager|drawGradientRectH|(IIIIII)V|colorRight|5
+      @|com\muzmod\gui\GuiAccountManager.java|7231|7239|drawRect|method|net.minecraft.client.gui.Gui|drawRect|(IIIII)V
+      @|com\muzmod\gui\GuiAccountManager.java|7240|7244|left|param|com.muzmod.gui.GuiAccountManager|drawGradientRectH|(IIIIII)V|left|0
+      @|com\muzmod\gui\GuiAccountManager.java|7250|7253|top|param|com.muzmod.gui.GuiAccountManager|drawGradientRectH|(IIIIII)V|top|1
+      @|com\muzmod\gui\GuiAccountManager.java|7255|7259|left|param|com.muzmod.gui.GuiAccountManager|drawGradientRectH|(IIIIII)V|left|0
+      @|com\muzmod\gui\GuiAccountManager.java|7269|7275|bottom|param|com.muzmod.gui.GuiAccountManager|drawGradientRectH|(IIIIII)V|bottom|3
+   Method End: drawGradientRectH(IIIIII)V
+   Method Start: lerpColor(IIF)I
+      @|com\muzmod\gui\GuiAccountManager.java|7322|7331|lerpColor|method|com.muzmod.gui.GuiAccountManager|lerpColor|(IIF)I
+      @|com\muzmod\gui\GuiAccountManager.java|7336|7338|c1|param|com.muzmod.gui.GuiAccountManager|lerpColor|(IIF)I|c1|0
+      @|com\muzmod\gui\GuiAccountManager.java|7344|7346|c2|param|com.muzmod.gui.GuiAccountManager|lerpColor|(IIF)I|c2|1
+      @|com\muzmod\gui\GuiAccountManager.java|7354|7355|t|param|com.muzmod.gui.GuiAccountManager|lerpColor|(IIF)I|t|2
+      @|com\muzmod\gui\GuiAccountManager.java|7377|7379|c1|param|com.muzmod.gui.GuiAccountManager|lerpColor|(IIF)I|c1|0
+      @|com\muzmod\gui\GuiAccountManager.java|7401|7403|c2|param|com.muzmod.gui.GuiAccountManager|lerpColor|(IIF)I|c2|1
+      @|com\muzmod\gui\GuiAccountManager.java|7437|7439|c1|param|com.muzmod.gui.GuiAccountManager|lerpColor|(IIF)I|c1|0
+      @|com\muzmod\gui\GuiAccountManager.java|7461|7463|c2|param|com.muzmod.gui.GuiAccountManager|lerpColor|(IIF)I|c2|1
+      @|com\muzmod\gui\GuiAccountManager.java|7497|7499|c1|param|com.muzmod.gui.GuiAccountManager|lerpColor|(IIF)I|c1|0
+      @|com\muzmod\gui\GuiAccountManager.java|7520|7522|c2|param|com.muzmod.gui.GuiAccountManager|lerpColor|(IIF)I|c2|1
+      @|com\muzmod\gui\GuiAccountManager.java|7554|7556|c1|param|com.muzmod.gui.GuiAccountManager|lerpColor|(IIF)I|c1|0
+      @|com\muzmod\gui\GuiAccountManager.java|7570|7572|c2|param|com.muzmod.gui.GuiAccountManager|lerpColor|(IIF)I|c2|1
+      @|com\muzmod\gui\GuiAccountManager.java|7616|7617|t|param|com.muzmod.gui.GuiAccountManager|lerpColor|(IIF)I|t|2
+      @|com\muzmod\gui\GuiAccountManager.java|7648|7649|t|param|com.muzmod.gui.GuiAccountManager|lerpColor|(IIF)I|t|2
+      @|com\muzmod\gui\GuiAccountManager.java|7696|7697|t|param|com.muzmod.gui.GuiAccountManager|lerpColor|(IIF)I|t|2
+      @|com\muzmod\gui\GuiAccountManager.java|7726|7727|t|param|com.muzmod.gui.GuiAccountManager|lerpColor|(IIF)I|t|2
+   Method End: lerpColor(IIF)I
+   Method Start: doesGuiPauseGame()Z
+      @|com\muzmod\gui\GuiAccountManager.java|7774|7790|doesGuiPauseGame|method|net.minecraft.client.gui.GuiScreen|doesGuiPauseGame|()Z
+   Method End: doesGuiPauseGame()Z
+Class End  : com.muzmod.gui.GuiAccountManager
+endProcessing com\muzmod\gui\GuiAccountManager.java
 
 processing com\muzmod\gui\ModernGuiUtils.java
 @|com\muzmod\gui\ModernGuiUtils.java|8|22|com.muzmod.gui|package|com.muzmod.gui|(file)
@@ -3710,36 +4181,83 @@ endProcessing com\muzmod\gui\MuzModGuiModern.java
 processing com\muzmod\handler\EventHandler.java
 @|com\muzmod\handler\EventHandler.java|8|26|com.muzmod.handler|package|com.muzmod.handler|(file)
 Class Start: com.muzmod.handler.EventHandler
-   @|com\muzmod\handler\EventHandler.java|440|455|OverlayRenderer|class|com.muzmod.render.OverlayRenderer
-   @|com\muzmod\handler\EventHandler.java|456|471|overlayRenderer|field|com.muzmod.handler.EventHandler|overlayRenderer|
-   @|com\muzmod\handler\EventHandler.java|478|493|OverlayRenderer|class|com.muzmod.render.OverlayRenderer
-   @|com\muzmod\handler\EventHandler.java|515|528|WorldRenderer|class|com.muzmod.render.WorldRenderer
-   @|com\muzmod\handler\EventHandler.java|529|542|worldRenderer|field|com.muzmod.handler.EventHandler|worldRenderer|
-   @|com\muzmod\handler\EventHandler.java|549|562|WorldRenderer|class|com.muzmod.render.WorldRenderer
+   @|com\muzmod\handler\EventHandler.java|753|768|OverlayRenderer|class|com.muzmod.render.OverlayRenderer
+   @|com\muzmod\handler\EventHandler.java|769|784|overlayRenderer|field|com.muzmod.handler.EventHandler|overlayRenderer|
+   @|com\muzmod\handler\EventHandler.java|791|806|OverlayRenderer|class|com.muzmod.render.OverlayRenderer
+   @|com\muzmod\handler\EventHandler.java|828|841|WorldRenderer|class|com.muzmod.render.WorldRenderer
+   @|com\muzmod\handler\EventHandler.java|842|855|worldRenderer|field|com.muzmod.handler.EventHandler|worldRenderer|
+   @|com\muzmod\handler\EventHandler.java|862|875|WorldRenderer|class|com.muzmod.render.WorldRenderer
+   @|com\muzmod\handler\EventHandler.java|946|963|ACCOUNT_BUTTON_ID|field|com.muzmod.handler.EventHandler|ACCOUNT_BUTTON_ID|
    Method Start: onRenderOverlay(Lnet/minecraftforge/client/event/RenderGameOverlayEvent$Post;)V
-      @|com\muzmod\handler\EventHandler.java|607|622|onRenderOverlay|method|com.muzmod.handler.EventHandler|onRenderOverlay|(Lnet/minecraftforge/client/event/RenderGameOverlayEvent$Post;)V
-      @|com\muzmod\handler\EventHandler.java|623|650|RenderGameOverlayEvent.Post|class|net.minecraftforge.client.event.RenderGameOverlayEvent.Post
-      @|com\muzmod\handler\EventHandler.java|651|656|event|param|com.muzmod.handler.EventHandler|onRenderOverlay|(Lnet/minecraftforge/client/event/RenderGameOverlayEvent$Post;)V|event|0
-      @|com\muzmod\handler\EventHandler.java|672|677|event|param|com.muzmod.handler.EventHandler|onRenderOverlay|(Lnet/minecraftforge/client/event/RenderGameOverlayEvent$Post;)V|event|0
-      @|com\muzmod\handler\EventHandler.java|678|682|type|field|net.minecraftforge.client.event.RenderGameOverlayEvent|type
-      @|com\muzmod\handler\EventHandler.java|686|720|RenderGameOverlayEvent.ElementType|class|net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType
-      @|com\muzmod\handler\EventHandler.java|721|724|ALL|field|net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType|ALL
-      @|com\muzmod\handler\EventHandler.java|755|761|MuzMod|class|com.muzmod.MuzMod
-      @|com\muzmod\handler\EventHandler.java|762|770|instance|field|com.muzmod.MuzMod|instance
-      @|com\muzmod\handler\EventHandler.java|771|780|getConfig|method|com.muzmod.MuzMod|getConfig|()Lcom/muzmod/config/ModConfig;
-      @|com\muzmod\handler\EventHandler.java|783|796|isShowOverlay|method|com.muzmod.config.ModConfig|isShowOverlay|()Z
-      @|com\muzmod\handler\EventHandler.java|814|829|overlayRenderer|field|com.muzmod.handler.EventHandler|overlayRenderer
-      @|com\muzmod\handler\EventHandler.java|830|836|render|method|com.muzmod.render.OverlayRenderer|render|()V
+      @|com\muzmod\handler\EventHandler.java|1013|1028|onRenderOverlay|method|com.muzmod.handler.EventHandler|onRenderOverlay|(Lnet/minecraftforge/client/event/RenderGameOverlayEvent$Post;)V
+      @|com\muzmod\handler\EventHandler.java|1029|1056|RenderGameOverlayEvent.Post|class|net.minecraftforge.client.event.RenderGameOverlayEvent.Post
+      @|com\muzmod\handler\EventHandler.java|1057|1062|event|param|com.muzmod.handler.EventHandler|onRenderOverlay|(Lnet/minecraftforge/client/event/RenderGameOverlayEvent$Post;)V|event|0
+      @|com\muzmod\handler\EventHandler.java|1078|1083|event|param|com.muzmod.handler.EventHandler|onRenderOverlay|(Lnet/minecraftforge/client/event/RenderGameOverlayEvent$Post;)V|event|0
+      @|com\muzmod\handler\EventHandler.java|1084|1088|type|field|net.minecraftforge.client.event.RenderGameOverlayEvent|type
+      @|com\muzmod\handler\EventHandler.java|1092|1126|RenderGameOverlayEvent.ElementType|class|net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType
+      @|com\muzmod\handler\EventHandler.java|1127|1130|ALL|field|net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType|ALL
+      @|com\muzmod\handler\EventHandler.java|1161|1167|MuzMod|class|com.muzmod.MuzMod
+      @|com\muzmod\handler\EventHandler.java|1168|1176|instance|field|com.muzmod.MuzMod|instance
+      @|com\muzmod\handler\EventHandler.java|1177|1186|getConfig|method|com.muzmod.MuzMod|getConfig|()Lcom/muzmod/config/ModConfig;
+      @|com\muzmod\handler\EventHandler.java|1189|1202|isShowOverlay|method|com.muzmod.config.ModConfig|isShowOverlay|()Z
+      @|com\muzmod\handler\EventHandler.java|1220|1235|overlayRenderer|field|com.muzmod.handler.EventHandler|overlayRenderer
+      @|com\muzmod\handler\EventHandler.java|1236|1242|render|method|com.muzmod.render.OverlayRenderer|render|()V
    Method End: onRenderOverlay(Lnet/minecraftforge/client/event/RenderGameOverlayEvent$Post;)V
    Method Start: onRenderWorld(Lnet/minecraftforge/client/event/RenderWorldLastEvent;)V
-      @|com\muzmod\handler\EventHandler.java|897|910|onRenderWorld|method|com.muzmod.handler.EventHandler|onRenderWorld|(Lnet/minecraftforge/client/event/RenderWorldLastEvent;)V
-      @|com\muzmod\handler\EventHandler.java|911|931|RenderWorldLastEvent|class|net.minecraftforge.client.event.RenderWorldLastEvent
-      @|com\muzmod\handler\EventHandler.java|932|937|event|param|com.muzmod.handler.EventHandler|onRenderWorld|(Lnet/minecraftforge/client/event/RenderWorldLastEvent;)V|event|0
-      @|com\muzmod\handler\EventHandler.java|949|962|worldRenderer|field|com.muzmod.handler.EventHandler|worldRenderer
-      @|com\muzmod\handler\EventHandler.java|963|969|render|method|com.muzmod.render.WorldRenderer|render|(F)V
-      @|com\muzmod\handler\EventHandler.java|970|975|event|param|com.muzmod.handler.EventHandler|onRenderWorld|(Lnet/minecraftforge/client/event/RenderWorldLastEvent;)V|event|0
-      @|com\muzmod\handler\EventHandler.java|976|988|partialTicks|field|net.minecraftforge.client.event.RenderWorldLastEvent|partialTicks
+      @|com\muzmod\handler\EventHandler.java|1303|1316|onRenderWorld|method|com.muzmod.handler.EventHandler|onRenderWorld|(Lnet/minecraftforge/client/event/RenderWorldLastEvent;)V
+      @|com\muzmod\handler\EventHandler.java|1317|1337|RenderWorldLastEvent|class|net.minecraftforge.client.event.RenderWorldLastEvent
+      @|com\muzmod\handler\EventHandler.java|1338|1343|event|param|com.muzmod.handler.EventHandler|onRenderWorld|(Lnet/minecraftforge/client/event/RenderWorldLastEvent;)V|event|0
+      @|com\muzmod\handler\EventHandler.java|1355|1368|worldRenderer|field|com.muzmod.handler.EventHandler|worldRenderer
+      @|com\muzmod\handler\EventHandler.java|1369|1375|render|method|com.muzmod.render.WorldRenderer|render|(F)V
+      @|com\muzmod\handler\EventHandler.java|1376|1381|event|param|com.muzmod.handler.EventHandler|onRenderWorld|(Lnet/minecraftforge/client/event/RenderWorldLastEvent;)V|event|0
+      @|com\muzmod\handler\EventHandler.java|1382|1394|partialTicks|field|net.minecraftforge.client.event.RenderWorldLastEvent|partialTicks
    Method End: onRenderWorld(Lnet/minecraftforge/client/event/RenderWorldLastEvent;)V
+   Method Start: onGuiInit(Lnet/minecraftforge/client/event/GuiScreenEvent$InitGuiEvent$Post;)V
+      @|com\muzmod\handler\EventHandler.java|1506|1515|onGuiInit|method|com.muzmod.handler.EventHandler|onGuiInit|(Lnet/minecraftforge/client/event/GuiScreenEvent$InitGuiEvent$Post;)V
+      @|com\muzmod\handler\EventHandler.java|1516|1548|GuiScreenEvent.InitGuiEvent.Post|class|net.minecraftforge.client.event.GuiScreenEvent.InitGuiEvent.Post
+      @|com\muzmod\handler\EventHandler.java|1549|1554|event|param|com.muzmod.handler.EventHandler|onGuiInit|(Lnet/minecraftforge/client/event/GuiScreenEvent$InitGuiEvent$Post;)V|event|0
+      @|com\muzmod\handler\EventHandler.java|1570|1575|event|param|com.muzmod.handler.EventHandler|onGuiInit|(Lnet/minecraftforge/client/event/GuiScreenEvent$InitGuiEvent$Post;)V|event|0
+      @|com\muzmod\handler\EventHandler.java|1576|1579|gui|field|net.minecraftforge.client.event.GuiScreenEvent|gui
+      @|com\muzmod\handler\EventHandler.java|1591|1602|GuiMainMenu|class|net.minecraft.client.gui.GuiMainMenu
+      @|com\muzmod\handler\EventHandler.java|1657|1671|AccountManager|class|com.muzmod.account.AccountManager
+      @|com\muzmod\handler\EventHandler.java|1672|1683|getInstance|method|com.muzmod.account.AccountManager|getInstance|()Lcom/muzmod/account/AccountManager;
+      @|com\muzmod\handler\EventHandler.java|1783|1792|GuiButton|class|net.minecraft.client.gui.GuiButton
+      @|com\muzmod\handler\EventHandler.java|1833|1839|Object|class|java.lang.Object
+      @|com\muzmod\handler\EventHandler.java|1846|1851|event|param|com.muzmod.handler.EventHandler|onGuiInit|(Lnet/minecraftforge/client/event/GuiScreenEvent$InitGuiEvent$Post;)V|event|0
+      @|com\muzmod\handler\EventHandler.java|1852|1862|buttonList|field|net.minecraftforge.client.event.GuiScreenEvent.InitGuiEvent|buttonList
+      @|com\muzmod\handler\EventHandler.java|1882|1891|GuiButton|class|net.minecraft.client.gui.GuiButton
+      @|com\muzmod\handler\EventHandler.java|1899|1908|GuiButton|class|net.minecraft.client.gui.GuiButton
+      @|com\muzmod\handler\EventHandler.java|1939|1941|id|field|net.minecraft.client.gui.GuiButton|id
+      @|com\muzmod\handler\EventHandler.java|2239|2248|xPosition|field|net.minecraft.client.gui.GuiButton|xPosition
+      @|com\muzmod\handler\EventHandler.java|2292|2301|yPosition|field|net.minecraft.client.gui.GuiButton|yPosition
+      @|com\muzmod\handler\EventHandler.java|2350|2355|width|field|net.minecraft.client.gui.GuiButton|width
+      @|com\muzmod\handler\EventHandler.java|2390|2399|GuiButton|class|net.minecraft.client.gui.GuiButton
+      @|com\muzmod\handler\EventHandler.java|2417|2426|GuiButton|class|net.minecraft.client.gui.GuiButton
+      @|com\muzmod\handler\EventHandler.java|2427|2444|ACCOUNT_BUTTON_ID|field|com.muzmod.handler.EventHandler|ACCOUNT_BUTTON_ID
+      @|com\muzmod\handler\EventHandler.java|2506|2511|event|param|com.muzmod.handler.EventHandler|onGuiInit|(Lnet/minecraftforge/client/event/GuiScreenEvent$InitGuiEvent$Post;)V|event|0
+      @|com\muzmod\handler\EventHandler.java|2512|2522|buttonList|field|net.minecraftforge.client.event.GuiScreenEvent.InitGuiEvent|buttonList
+      @|com\muzmod\handler\EventHandler.java|2523|2526|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
+   Method End: onGuiInit(Lnet/minecraftforge/client/event/GuiScreenEvent$InitGuiEvent$Post;)V
+   Method Start: onGuiAction(Lnet/minecraftforge/client/event/GuiScreenEvent$ActionPerformedEvent$Pre;)V
+      @|com\muzmod\handler\EventHandler.java|2673|2684|onGuiAction|method|com.muzmod.handler.EventHandler|onGuiAction|(Lnet/minecraftforge/client/event/GuiScreenEvent$ActionPerformedEvent$Pre;)V
+      @|com\muzmod\handler\EventHandler.java|2685|2724|GuiScreenEvent.ActionPerformedEvent.Pre|class|net.minecraftforge.client.event.GuiScreenEvent.ActionPerformedEvent.Pre
+      @|com\muzmod\handler\EventHandler.java|2725|2730|event|param|com.muzmod.handler.EventHandler|onGuiAction|(Lnet/minecraftforge/client/event/GuiScreenEvent$ActionPerformedEvent$Pre;)V|event|0
+      @|com\muzmod\handler\EventHandler.java|2746|2751|event|param|com.muzmod.handler.EventHandler|onGuiAction|(Lnet/minecraftforge/client/event/GuiScreenEvent$ActionPerformedEvent$Pre;)V|event|0
+      @|com\muzmod\handler\EventHandler.java|2752|2755|gui|field|net.minecraftforge.client.event.GuiScreenEvent|gui
+      @|com\muzmod\handler\EventHandler.java|2767|2778|GuiMainMenu|class|net.minecraft.client.gui.GuiMainMenu
+      @|com\muzmod\handler\EventHandler.java|2798|2803|event|param|com.muzmod.handler.EventHandler|onGuiAction|(Lnet/minecraftforge/client/event/GuiScreenEvent$ActionPerformedEvent$Pre;)V|event|0
+      @|com\muzmod\handler\EventHandler.java|2804|2810|button|field|net.minecraftforge.client.event.GuiScreenEvent.ActionPerformedEvent|button
+      @|com\muzmod\handler\EventHandler.java|2811|2813|id|field|net.minecraft.client.gui.GuiButton|id
+      @|com\muzmod\handler\EventHandler.java|2817|2834|ACCOUNT_BUTTON_ID|field|com.muzmod.handler.EventHandler|ACCOUNT_BUTTON_ID
+      @|com\muzmod\handler\EventHandler.java|2854|2863|Minecraft|class|net.minecraft.client.Minecraft
+      @|com\muzmod\handler\EventHandler.java|2864|2876|getMinecraft|method|net.minecraft.client.Minecraft|getMinecraft|()Lnet/minecraft/client/Minecraft;
+      @|com\muzmod\handler\EventHandler.java|2879|2895|displayGuiScreen|method|net.minecraft.client.Minecraft|displayGuiScreen|(Lnet/minecraft/client/gui/GuiScreen;)V
+      @|com\muzmod\handler\EventHandler.java|2900|2917|GuiAccountManager|class|com.muzmod.gui.GuiAccountManager
+      @|com\muzmod\handler\EventHandler.java|2918|2923|event|param|com.muzmod.handler.EventHandler|onGuiAction|(Lnet/minecraftforge/client/event/GuiScreenEvent$ActionPerformedEvent$Pre;)V|event|0
+      @|com\muzmod\handler\EventHandler.java|2924|2927|gui|field|net.minecraftforge.client.event.GuiScreenEvent|gui
+      @|com\muzmod\handler\EventHandler.java|2947|2952|event|param|com.muzmod.handler.EventHandler|onGuiAction|(Lnet/minecraftforge/client/event/GuiScreenEvent$ActionPerformedEvent$Pre;)V|event|0
+      @|com\muzmod\handler\EventHandler.java|2953|2964|setCanceled|method|net.minecraftforge.fml.common.eventhandler.Event|setCanceled|(Z)V
+   Method End: onGuiAction(Lnet/minecraftforge/client/event/GuiScreenEvent$ActionPerformedEvent$Pre;)V
 Class End  : com.muzmod.handler.EventHandler
 endProcessing com\muzmod\handler\EventHandler.java
 

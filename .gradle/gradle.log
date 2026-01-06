@@ -16,7 +16,7 @@ See https://gist.github.com/TheCurle/fe7ad3ede188cbdd15c235cc75d52d4a for more i
 :compileApiJava UP-TO-DATE
 :processApiResources UP-TO-DATE
 :apiClasses UP-TO-DATE
-:sourceMainJava UP-TO-DATE
+:sourceMainJava
 :compileJava
 :processResources
 :classes
@@ -34,7 +34,8 @@ See https://gist.github.com/TheCurle/fe7ad3ede188cbdd15c235cc75d52d4a for more i
 :reobfJar
 :extractRangemapReplacedMain
 C:\Users\Crefax\Desktop\MuzMod\build\sources\main\java
-:retromapReplacedMain UP-TO-DATE
+:retromapReplacedMain
+remapping source...
 :sourceJar
 :assemble
 :check UP-TO-DATE
@@ -42,4 +43,4 @@ C:\Users\Crefax\Desktop\MuzMod\build\sources\main\java
 
 BUİLD SUCCESSFUL
 
-Total time: 7.826 secs
+Total time: 8.762 secs
