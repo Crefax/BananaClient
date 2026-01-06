@@ -364,21 +364,30 @@ public class OXState implements IState {
     }
     
     /**
-     * Smooth rotation başlat - Config'den yön al
+     * Smooth rotation başlat - Taraf değiştirirken 180 derece dön
      */
     private void startSmoothRotation(EntityPlayerSP player, boolean goToLime) {
-        // Config'den hedef yaw değerlerini al
-        float limeYaw = MuzMod.instance.getConfig().getOxLimeYaw();  // Default: 90 (West)
-        float redYaw = MuzMod.instance.getConfig().getOxRedYaw();    // Default: -90 (East)
+        // Şu anki tarafı kontrol et
+        Boolean currentSide = getCurrentSide(player);
         
-        // Hedef yaw'ı belirle
-        if (goToLime) {
-            targetYaw = limeYaw;
+        // Eğer zaten bir taraftaysak ve diğer tarafa geçmemiz gerekiyorsa
+        // 180 derece dönmek daha hızlı (önce ilerle sonra dön mantığı)
+        if (currentSide != null && currentSide != goToLime) {
+            // Mevcut yaw'a 180 derece ekle - tam ters tarafa dön
+            targetYaw = player.rotationYaw + 180;
+            MuzMod.LOGGER.info("[OXState] Side switch! Rotating 180 degrees to " + (goToLime ? "LIME" : "RED"));
         } else {
-            targetYaw = redYaw;
+            // İlk kez gidiyoruz veya ortadayız, config'den hedef yaw al
+            float limeYaw = MuzMod.instance.getConfig().getOxLimeYaw();  // Default: 90 (West)
+            float redYaw = MuzMod.instance.getConfig().getOxRedYaw();    // Default: -90 (East)
+            
+            if (goToLime) {
+                targetYaw = limeYaw;
+            } else {
+                targetYaw = redYaw;
+            }
+            MuzMod.LOGGER.info("[OXState] Initial rotation to " + (goToLime ? "LIME" : "RED") + " (yaw: " + targetYaw + ")");
         }
-        
-        MuzMod.LOGGER.info("[OXState] Rotating to " + (goToLime ? "LIME" : "RED") + " (yaw: " + targetYaw + ")");
         
         // Hızlı dönüş
         maxRotationSpeed = 12.0f + random.nextFloat() * 8.0f; // 12-20 derece/tick

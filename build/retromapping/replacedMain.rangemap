@@ -7,108 +7,108 @@ Class Start: com.muzmod.MuzMod
    @|com\muzmod\MuzMod.java|761|766|MODID|field|com.muzmod.MuzMod|MODID|
    @|com\muzmod\MuzMod.java|803|809|String|class|java.lang.String
    @|com\muzmod\MuzMod.java|810|817|VERSION|field|com.muzmod.MuzMod|VERSION|
-   @|com\muzmod\MuzMod.java|858|864|Logger|class|org.apache.logging.log4j.Logger
-   @|com\muzmod\MuzMod.java|865|871|LOGGER|field|com.muzmod.MuzMod|LOGGER|
-   @|com\muzmod\MuzMod.java|874|884|LogManager|class|org.apache.logging.log4j.LogManager
-   @|com\muzmod\MuzMod.java|885|894|getLogger|method|org.apache.logging.log4j.LogManager|getLogger|(Ljava/lang/String;)Lorg/apache/logging/log4j/Logger;
-   @|com\muzmod\MuzMod.java|895|900|MODID|field|com.muzmod.MuzMod|MODID
-   @|com\muzmod\MuzMod.java|951|957|MuzMod|class|com.muzmod.MuzMod
-   @|com\muzmod\MuzMod.java|958|966|instance|field|com.muzmod.MuzMod|instance|
-   @|com\muzmod\MuzMod.java|985|997|StateManager|class|com.muzmod.state.StateManager
-   @|com\muzmod\MuzMod.java|998|1010|stateManager|field|com.muzmod.MuzMod|stateManager|
-   @|com\muzmod\MuzMod.java|1024|1033|ModConfig|class|com.muzmod.config.ModConfig
-   @|com\muzmod\MuzMod.java|1034|1040|config|field|com.muzmod.MuzMod|config|
-   @|com\muzmod\MuzMod.java|1054|1069|ScheduleManager|class|com.muzmod.schedule.ScheduleManager
-   @|com\muzmod\MuzMod.java|1070|1085|scheduleManager|field|com.muzmod.MuzMod|scheduleManager|
-   @|com\muzmod\MuzMod.java|1107|1117|botEnabled|field|com.muzmod.MuzMod|botEnabled|
+   @|com\muzmod\MuzMod.java|859|865|Logger|class|org.apache.logging.log4j.Logger
+   @|com\muzmod\MuzMod.java|866|872|LOGGER|field|com.muzmod.MuzMod|LOGGER|
+   @|com\muzmod\MuzMod.java|875|885|LogManager|class|org.apache.logging.log4j.LogManager
+   @|com\muzmod\MuzMod.java|886|895|getLogger|method|org.apache.logging.log4j.LogManager|getLogger|(Ljava/lang/String;)Lorg/apache/logging/log4j/Logger;
+   @|com\muzmod\MuzMod.java|896|901|MODID|field|com.muzmod.MuzMod|MODID
+   @|com\muzmod\MuzMod.java|952|958|MuzMod|class|com.muzmod.MuzMod
+   @|com\muzmod\MuzMod.java|959|967|instance|field|com.muzmod.MuzMod|instance|
+   @|com\muzmod\MuzMod.java|986|998|StateManager|class|com.muzmod.state.StateManager
+   @|com\muzmod\MuzMod.java|999|1011|stateManager|field|com.muzmod.MuzMod|stateManager|
+   @|com\muzmod\MuzMod.java|1025|1034|ModConfig|class|com.muzmod.config.ModConfig
+   @|com\muzmod\MuzMod.java|1035|1041|config|field|com.muzmod.MuzMod|config|
+   @|com\muzmod\MuzMod.java|1055|1070|ScheduleManager|class|com.muzmod.schedule.ScheduleManager
+   @|com\muzmod\MuzMod.java|1071|1086|scheduleManager|field|com.muzmod.MuzMod|scheduleManager|
+   @|com\muzmod\MuzMod.java|1108|1118|botEnabled|field|com.muzmod.MuzMod|botEnabled|
    Method Start: preInit(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V
-      @|com\muzmod\MuzMod.java|1170|1177|preInit|method|com.muzmod.MuzMod|preInit|(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V
-      @|com\muzmod\MuzMod.java|1178|1203|FMLPreInitializationEvent|class|net.minecraftforge.fml.common.event.FMLPreInitializationEvent
-      @|com\muzmod\MuzMod.java|1204|1209|event|param|com.muzmod.MuzMod|preInit|(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V|event|0
-      @|com\muzmod\MuzMod.java|1221|1227|LOGGER|field|com.muzmod.MuzMod|LOGGER
-      @|com\muzmod\MuzMod.java|1228|1232|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
-      @|com\muzmod\MuzMod.java|1271|1275|File|class|java.io.File
-      @|com\muzmod\MuzMod.java|1288|1293|event|param|com.muzmod.MuzMod|preInit|(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V|event|0
-      @|com\muzmod\MuzMod.java|1294|1322|getModConfigurationDirectory|method|net.minecraftforge.fml.common.event.FMLPreInitializationEvent|getModConfigurationDirectory|()Ljava/io/File;
-      @|com\muzmod\MuzMod.java|1334|1338|File|class|java.io.File
-      @|com\muzmod\MuzMod.java|1355|1359|File|class|java.io.File
-      @|com\muzmod\MuzMod.java|1405|1411|exists|method|java.io.File|exists|()Z
-      @|com\muzmod\MuzMod.java|1439|1445|mkdirs|method|java.io.File|mkdirs|()Z
-      @|com\muzmod\MuzMod.java|1476|1482|config|field|com.muzmod.MuzMod|config
-      @|com\muzmod\MuzMod.java|1489|1498|ModConfig|class|com.muzmod.config.ModConfig
-      @|com\muzmod\MuzMod.java|1499|1504|event|param|com.muzmod.MuzMod|preInit|(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V|event|0
-      @|com\muzmod\MuzMod.java|1505|1534|getSuggestedConfigurationFile|method|net.minecraftforge.fml.common.event.FMLPreInitializationEvent|getSuggestedConfigurationFile|()Ljava/io/File;
-      @|com\muzmod\MuzMod.java|1547|1553|config|field|com.muzmod.MuzMod|config
-      @|com\muzmod\MuzMod.java|1554|1558|load|method|com.muzmod.config.ModConfig|load|()V
-      @|com\muzmod\MuzMod.java|1579|1594|scheduleManager|field|com.muzmod.MuzMod|scheduleManager
-      @|com\muzmod\MuzMod.java|1601|1616|ScheduleManager|class|com.muzmod.schedule.ScheduleManager
+      @|com\muzmod\MuzMod.java|1171|1178|preInit|method|com.muzmod.MuzMod|preInit|(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V
+      @|com\muzmod\MuzMod.java|1179|1204|FMLPreInitializationEvent|class|net.minecraftforge.fml.common.event.FMLPreInitializationEvent
+      @|com\muzmod\MuzMod.java|1205|1210|event|param|com.muzmod.MuzMod|preInit|(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V|event|0
+      @|com\muzmod\MuzMod.java|1222|1228|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\MuzMod.java|1229|1233|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
+      @|com\muzmod\MuzMod.java|1272|1276|File|class|java.io.File
+      @|com\muzmod\MuzMod.java|1289|1294|event|param|com.muzmod.MuzMod|preInit|(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V|event|0
+      @|com\muzmod\MuzMod.java|1295|1323|getModConfigurationDirectory|method|net.minecraftforge.fml.common.event.FMLPreInitializationEvent|getModConfigurationDirectory|()Ljava/io/File;
+      @|com\muzmod\MuzMod.java|1335|1339|File|class|java.io.File
+      @|com\muzmod\MuzMod.java|1356|1360|File|class|java.io.File
+      @|com\muzmod\MuzMod.java|1406|1412|exists|method|java.io.File|exists|()Z
+      @|com\muzmod\MuzMod.java|1440|1446|mkdirs|method|java.io.File|mkdirs|()Z
+      @|com\muzmod\MuzMod.java|1477|1483|config|field|com.muzmod.MuzMod|config
+      @|com\muzmod\MuzMod.java|1490|1499|ModConfig|class|com.muzmod.config.ModConfig
+      @|com\muzmod\MuzMod.java|1500|1505|event|param|com.muzmod.MuzMod|preInit|(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V|event|0
+      @|com\muzmod\MuzMod.java|1506|1535|getSuggestedConfigurationFile|method|net.minecraftforge.fml.common.event.FMLPreInitializationEvent|getSuggestedConfigurationFile|()Ljava/io/File;
+      @|com\muzmod\MuzMod.java|1548|1554|config|field|com.muzmod.MuzMod|config
+      @|com\muzmod\MuzMod.java|1555|1559|load|method|com.muzmod.config.ModConfig|load|()V
+      @|com\muzmod\MuzMod.java|1580|1595|scheduleManager|field|com.muzmod.MuzMod|scheduleManager
+      @|com\muzmod\MuzMod.java|1602|1617|ScheduleManager|class|com.muzmod.schedule.ScheduleManager
    Method End: preInit(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V
    Method Start: init(Lnet/minecraftforge/fml/common/event/FMLInitializationEvent;)V
-      @|com\muzmod\MuzMod.java|1678|1682|init|method|com.muzmod.MuzMod|init|(Lnet/minecraftforge/fml/common/event/FMLInitializationEvent;)V
-      @|com\muzmod\MuzMod.java|1683|1705|FMLInitializationEvent|class|net.minecraftforge.fml.common.event.FMLInitializationEvent
-      @|com\muzmod\MuzMod.java|1706|1711|event|param|com.muzmod.MuzMod|init|(Lnet/minecraftforge/fml/common/event/FMLInitializationEvent;)V|event|0
-      @|com\muzmod\MuzMod.java|1723|1729|LOGGER|field|com.muzmod.MuzMod|LOGGER
-      @|com\muzmod\MuzMod.java|1730|1734|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
-      @|com\muzmod\MuzMod.java|1778|1790|stateManager|field|com.muzmod.MuzMod|stateManager
-      @|com\muzmod\MuzMod.java|1797|1809|StateManager|class|com.muzmod.state.StateManager
-      @|com\muzmod\MuzMod.java|1830|1844|MinecraftForge|class|net.minecraftforge.common.MinecraftForge
-      @|com\muzmod\MuzMod.java|1845|1854|EVENT_BUS|field|net.minecraftforge.common.MinecraftForge|EVENT_BUS
-      @|com\muzmod\MuzMod.java|1855|1863|register|method|net.minecraftforge.fml.common.eventhandler.EventBus|register|(Ljava/lang/Object;)V
-      @|com\muzmod\MuzMod.java|1868|1880|EventHandler|class|com.muzmod.handler.EventHandler
-      @|com\muzmod\MuzMod.java|1893|1907|MinecraftForge|class|net.minecraftforge.common.MinecraftForge
-      @|com\muzmod\MuzMod.java|1908|1917|EVENT_BUS|field|net.minecraftforge.common.MinecraftForge|EVENT_BUS
-      @|com\muzmod\MuzMod.java|1918|1926|register|method|net.minecraftforge.fml.common.eventhandler.EventBus|register|(Ljava/lang/Object;)V
-      @|com\muzmod\MuzMod.java|1931|1945|KeyBindHandler|class|com.muzmod.handler.KeyBindHandler
-      @|com\muzmod\MuzMod.java|1958|1972|MinecraftForge|class|net.minecraftforge.common.MinecraftForge
-      @|com\muzmod\MuzMod.java|1973|1982|EVENT_BUS|field|net.minecraftforge.common.MinecraftForge|EVENT_BUS
-      @|com\muzmod\MuzMod.java|1983|1991|register|method|net.minecraftforge.fml.common.eventhandler.EventBus|register|(Ljava/lang/Object;)V
-      @|com\muzmod\MuzMod.java|1992|2004|stateManager|field|com.muzmod.MuzMod|stateManager
-      @|com\muzmod\MuzMod.java|2024|2038|KeyBindHandler|class|com.muzmod.handler.KeyBindHandler
-      @|com\muzmod\MuzMod.java|2039|2055|registerKeyBinds|method|com.muzmod.handler.KeyBindHandler|registerKeyBinds|()V
+      @|com\muzmod\MuzMod.java|1679|1683|init|method|com.muzmod.MuzMod|init|(Lnet/minecraftforge/fml/common/event/FMLInitializationEvent;)V
+      @|com\muzmod\MuzMod.java|1684|1706|FMLInitializationEvent|class|net.minecraftforge.fml.common.event.FMLInitializationEvent
+      @|com\muzmod\MuzMod.java|1707|1712|event|param|com.muzmod.MuzMod|init|(Lnet/minecraftforge/fml/common/event/FMLInitializationEvent;)V|event|0
+      @|com\muzmod\MuzMod.java|1724|1730|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\MuzMod.java|1731|1735|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
+      @|com\muzmod\MuzMod.java|1779|1791|stateManager|field|com.muzmod.MuzMod|stateManager
+      @|com\muzmod\MuzMod.java|1798|1810|StateManager|class|com.muzmod.state.StateManager
+      @|com\muzmod\MuzMod.java|1831|1845|MinecraftForge|class|net.minecraftforge.common.MinecraftForge
+      @|com\muzmod\MuzMod.java|1846|1855|EVENT_BUS|field|net.minecraftforge.common.MinecraftForge|EVENT_BUS
+      @|com\muzmod\MuzMod.java|1856|1864|register|method|net.minecraftforge.fml.common.eventhandler.EventBus|register|(Ljava/lang/Object;)V
+      @|com\muzmod\MuzMod.java|1869|1881|EventHandler|class|com.muzmod.handler.EventHandler
+      @|com\muzmod\MuzMod.java|1894|1908|MinecraftForge|class|net.minecraftforge.common.MinecraftForge
+      @|com\muzmod\MuzMod.java|1909|1918|EVENT_BUS|field|net.minecraftforge.common.MinecraftForge|EVENT_BUS
+      @|com\muzmod\MuzMod.java|1919|1927|register|method|net.minecraftforge.fml.common.eventhandler.EventBus|register|(Ljava/lang/Object;)V
+      @|com\muzmod\MuzMod.java|1932|1946|KeyBindHandler|class|com.muzmod.handler.KeyBindHandler
+      @|com\muzmod\MuzMod.java|1959|1973|MinecraftForge|class|net.minecraftforge.common.MinecraftForge
+      @|com\muzmod\MuzMod.java|1974|1983|EVENT_BUS|field|net.minecraftforge.common.MinecraftForge|EVENT_BUS
+      @|com\muzmod\MuzMod.java|1984|1992|register|method|net.minecraftforge.fml.common.eventhandler.EventBus|register|(Ljava/lang/Object;)V
+      @|com\muzmod\MuzMod.java|1993|2005|stateManager|field|com.muzmod.MuzMod|stateManager
+      @|com\muzmod\MuzMod.java|2025|2039|KeyBindHandler|class|com.muzmod.handler.KeyBindHandler
+      @|com\muzmod\MuzMod.java|2040|2056|registerKeyBinds|method|com.muzmod.handler.KeyBindHandler|registerKeyBinds|()V
    Method End: init(Lnet/minecraftforge/fml/common/event/FMLInitializationEvent;)V
    Method Start: postInit(Lnet/minecraftforge/fml/common/event/FMLPostInitializationEvent;)V
-      @|com\muzmod\MuzMod.java|2108|2116|postInit|method|com.muzmod.MuzMod|postInit|(Lnet/minecraftforge/fml/common/event/FMLPostInitializationEvent;)V
-      @|com\muzmod\MuzMod.java|2117|2143|FMLPostInitializationEvent|class|net.minecraftforge.fml.common.event.FMLPostInitializationEvent
-      @|com\muzmod\MuzMod.java|2144|2149|event|param|com.muzmod.MuzMod|postInit|(Lnet/minecraftforge/fml/common/event/FMLPostInitializationEvent;)V|event|0
-      @|com\muzmod\MuzMod.java|2161|2167|LOGGER|field|com.muzmod.MuzMod|LOGGER
-      @|com\muzmod\MuzMod.java|2168|2172|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
+      @|com\muzmod\MuzMod.java|2109|2117|postInit|method|com.muzmod.MuzMod|postInit|(Lnet/minecraftforge/fml/common/event/FMLPostInitializationEvent;)V
+      @|com\muzmod\MuzMod.java|2118|2144|FMLPostInitializationEvent|class|net.minecraftforge.fml.common.event.FMLPostInitializationEvent
+      @|com\muzmod\MuzMod.java|2145|2150|event|param|com.muzmod.MuzMod|postInit|(Lnet/minecraftforge/fml/common/event/FMLPostInitializationEvent;)V|event|0
+      @|com\muzmod\MuzMod.java|2162|2168|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\MuzMod.java|2169|2173|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
    Method End: postInit(Lnet/minecraftforge/fml/common/event/FMLPostInitializationEvent;)V
    Method Start: getStateManager()Lcom/muzmod/state/StateManager;
-      @|com\muzmod\MuzMod.java|2248|2263|getStateManager|method|com.muzmod.MuzMod|getStateManager|()Lcom/muzmod/state/StateManager;
-      @|com\muzmod\MuzMod.java|2235|2247|StateManager|class|com.muzmod.state.StateManager
-      @|com\muzmod\MuzMod.java|2283|2295|stateManager|field|com.muzmod.MuzMod|stateManager
+      @|com\muzmod\MuzMod.java|2249|2264|getStateManager|method|com.muzmod.MuzMod|getStateManager|()Lcom/muzmod/state/StateManager;
+      @|com\muzmod\MuzMod.java|2236|2248|StateManager|class|com.muzmod.state.StateManager
+      @|com\muzmod\MuzMod.java|2284|2296|stateManager|field|com.muzmod.MuzMod|stateManager
    Method End: getStateManager()Lcom/muzmod/state/StateManager;
    Method Start: getConfig()Lcom/muzmod/config/ModConfig;
-      @|com\muzmod\MuzMod.java|2329|2338|getConfig|method|com.muzmod.MuzMod|getConfig|()Lcom/muzmod/config/ModConfig;
-      @|com\muzmod\MuzMod.java|2319|2328|ModConfig|class|com.muzmod.config.ModConfig
-      @|com\muzmod\MuzMod.java|2358|2364|config|field|com.muzmod.MuzMod|config
+      @|com\muzmod\MuzMod.java|2330|2339|getConfig|method|com.muzmod.MuzMod|getConfig|()Lcom/muzmod/config/ModConfig;
+      @|com\muzmod\MuzMod.java|2320|2329|ModConfig|class|com.muzmod.config.ModConfig
+      @|com\muzmod\MuzMod.java|2359|2365|config|field|com.muzmod.MuzMod|config
    Method End: getConfig()Lcom/muzmod/config/ModConfig;
    Method Start: getScheduleManager()Lcom/muzmod/schedule/ScheduleManager;
-      @|com\muzmod\MuzMod.java|2404|2422|getScheduleManager|method|com.muzmod.MuzMod|getScheduleManager|()Lcom/muzmod/schedule/ScheduleManager;
-      @|com\muzmod\MuzMod.java|2388|2403|ScheduleManager|class|com.muzmod.schedule.ScheduleManager
-      @|com\muzmod\MuzMod.java|2442|2457|scheduleManager|field|com.muzmod.MuzMod|scheduleManager
+      @|com\muzmod\MuzMod.java|2405|2423|getScheduleManager|method|com.muzmod.MuzMod|getScheduleManager|()Lcom/muzmod/schedule/ScheduleManager;
+      @|com\muzmod\MuzMod.java|2389|2404|ScheduleManager|class|com.muzmod.schedule.ScheduleManager
+      @|com\muzmod\MuzMod.java|2443|2458|scheduleManager|field|com.muzmod.MuzMod|scheduleManager
    Method End: getScheduleManager()Lcom/muzmod/schedule/ScheduleManager;
    Method Start: isBotEnabled()Z
-      @|com\muzmod\MuzMod.java|2489|2501|isBotEnabled|method|com.muzmod.MuzMod|isBotEnabled|()Z
-      @|com\muzmod\MuzMod.java|2521|2531|botEnabled|field|com.muzmod.MuzMod|botEnabled
+      @|com\muzmod\MuzMod.java|2490|2502|isBotEnabled|method|com.muzmod.MuzMod|isBotEnabled|()Z
+      @|com\muzmod\MuzMod.java|2522|2532|botEnabled|field|com.muzmod.MuzMod|botEnabled
    Method End: isBotEnabled()Z
    Method Start: setBotEnabled(Z)V
-      @|com\muzmod\MuzMod.java|2560|2573|setBotEnabled|method|com.muzmod.MuzMod|setBotEnabled|(Z)V
-      @|com\muzmod\MuzMod.java|2582|2589|enabled|param|com.muzmod.MuzMod|setBotEnabled|(Z)V|enabled|0
-      @|com\muzmod\MuzMod.java|2606|2616|botEnabled|field|com.muzmod.MuzMod|botEnabled
-      @|com\muzmod\MuzMod.java|2619|2626|enabled|param|com.muzmod.MuzMod|setBotEnabled|(Z)V|enabled|0
-      @|com\muzmod\MuzMod.java|2640|2647|enabled|param|com.muzmod.MuzMod|setBotEnabled|(Z)V|enabled|0
-      @|com\muzmod\MuzMod.java|2663|2669|LOGGER|field|com.muzmod.MuzMod|LOGGER
-      @|com\muzmod\MuzMod.java|2670|2674|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
-      @|com\muzmod\MuzMod.java|2720|2726|LOGGER|field|com.muzmod.MuzMod|LOGGER
-      @|com\muzmod\MuzMod.java|2727|2731|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
-      @|com\muzmod\MuzMod.java|2761|2773|stateManager|field|com.muzmod.MuzMod|stateManager
-      @|com\muzmod\MuzMod.java|2774|2790|stopCurrentState|method|com.muzmod.state.StateManager|stopCurrentState|()V
+      @|com\muzmod\MuzMod.java|2561|2574|setBotEnabled|method|com.muzmod.MuzMod|setBotEnabled|(Z)V
+      @|com\muzmod\MuzMod.java|2583|2590|enabled|param|com.muzmod.MuzMod|setBotEnabled|(Z)V|enabled|0
+      @|com\muzmod\MuzMod.java|2607|2617|botEnabled|field|com.muzmod.MuzMod|botEnabled
+      @|com\muzmod\MuzMod.java|2620|2627|enabled|param|com.muzmod.MuzMod|setBotEnabled|(Z)V|enabled|0
+      @|com\muzmod\MuzMod.java|2641|2648|enabled|param|com.muzmod.MuzMod|setBotEnabled|(Z)V|enabled|0
+      @|com\muzmod\MuzMod.java|2664|2670|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\MuzMod.java|2671|2675|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
+      @|com\muzmod\MuzMod.java|2721|2727|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\MuzMod.java|2728|2732|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
+      @|com\muzmod\MuzMod.java|2762|2774|stateManager|field|com.muzmod.MuzMod|stateManager
+      @|com\muzmod\MuzMod.java|2775|2791|stopCurrentState|method|com.muzmod.state.StateManager|stopCurrentState|()V
    Method End: setBotEnabled(Z)V
    Method Start: toggleBot()V
-      @|com\muzmod\MuzMod.java|2831|2840|toggleBot|method|com.muzmod.MuzMod|toggleBot|()V
-      @|com\muzmod\MuzMod.java|2853|2866|setBotEnabled|method|com.muzmod.MuzMod|setBotEnabled|(Z)V
-      @|com\muzmod\MuzMod.java|2868|2878|botEnabled|field|com.muzmod.MuzMod|botEnabled
+      @|com\muzmod\MuzMod.java|2832|2841|toggleBot|method|com.muzmod.MuzMod|toggleBot|()V
+      @|com\muzmod\MuzMod.java|2854|2867|setBotEnabled|method|com.muzmod.MuzMod|setBotEnabled|(Z)V
+      @|com\muzmod\MuzMod.java|2869|2879|botEnabled|field|com.muzmod.MuzMod|botEnabled
    Method End: toggleBot()V
 Class End  : com.muzmod.MuzMod
 endProcessing com\muzmod\MuzMod.java
@@ -8255,124 +8255,135 @@ Class Start: com.muzmod.state.impl.OXState
       @|com\muzmod\state\impl\OXState.java|13011|13014|RED|field|net.minecraft.item.EnumDyeColor|RED
    Method End: getCurrentSide(Lnet/minecraft/client/entity/EntityPlayerSP;)Ljava/lang/Boolean;
    Method Start: startSmoothRotation(Lnet/minecraft/client/entity/EntityPlayerSP;Z)V
-      @|com\muzmod\state\impl\OXState.java|13224|13243|startSmoothRotation|method|com.muzmod.state.impl.OXState|startSmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;Z)V
-      @|com\muzmod\state\impl\OXState.java|13244|13258|EntityPlayerSP|class|net.minecraft.client.entity.EntityPlayerSP
-      @|com\muzmod\state\impl\OXState.java|13259|13265|player|param|com.muzmod.state.impl.OXState|startSmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;Z)V|player|0
-      @|com\muzmod\state\impl\OXState.java|13275|13283|goToLime|param|com.muzmod.state.impl.OXState|startSmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;Z)V|goToLime|1
-      @|com\muzmod\state\impl\OXState.java|13358|13364|MuzMod|class|com.muzmod.MuzMod
-      @|com\muzmod\state\impl\OXState.java|13365|13373|instance|field|com.muzmod.MuzMod|instance
-      @|com\muzmod\state\impl\OXState.java|13374|13383|getConfig|method|com.muzmod.MuzMod|getConfig|()Lcom/muzmod/config/ModConfig;
-      @|com\muzmod\state\impl\OXState.java|13386|13398|getOxLimeYaw|method|com.muzmod.config.ModConfig|getOxLimeYaw|()F
-      @|com\muzmod\state\impl\OXState.java|13448|13454|MuzMod|class|com.muzmod.MuzMod
-      @|com\muzmod\state\impl\OXState.java|13455|13463|instance|field|com.muzmod.MuzMod|instance
-      @|com\muzmod\state\impl\OXState.java|13464|13473|getConfig|method|com.muzmod.MuzMod|getConfig|()Lcom/muzmod/config/ModConfig;
-      @|com\muzmod\state\impl\OXState.java|13476|13487|getOxRedYaw|method|com.muzmod.config.ModConfig|getOxRedYaw|()F
-      @|com\muzmod\state\impl\OXState.java|13569|13577|goToLime|param|com.muzmod.state.impl.OXState|startSmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;Z)V|goToLime|1
-      @|com\muzmod\state\impl\OXState.java|13593|13602|targetYaw|field|com.muzmod.state.impl.OXState|targetYaw
-      @|com\muzmod\state\impl\OXState.java|13643|13652|targetYaw|field|com.muzmod.state.impl.OXState|targetYaw
-      @|com\muzmod\state\impl\OXState.java|13690|13696|MuzMod|class|com.muzmod.MuzMod
-      @|com\muzmod\state\impl\OXState.java|13697|13703|LOGGER|field|com.muzmod.MuzMod|LOGGER
-      @|com\muzmod\state\impl\OXState.java|13704|13708|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
-      @|com\muzmod\state\impl\OXState.java|13737|13745|goToLime|param|com.muzmod.state.impl.OXState|startSmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;Z)V|goToLime|1
-      @|com\muzmod\state\impl\OXState.java|13778|13787|targetYaw|field|com.muzmod.state.impl.OXState|targetYaw
-      @|com\muzmod\state\impl\OXState.java|13836|13852|maxRotationSpeed|field|com.muzmod.state.impl.OXState|maxRotationSpeed
-      @|com\muzmod\state\impl\OXState.java|13863|13869|random|field|com.muzmod.state.impl.OXState|random
-      @|com\muzmod\state\impl\OXState.java|13870|13879|nextFloat|method|java.util.Random|nextFloat|()F
-      @|com\muzmod\state\impl\OXState.java|13919|13939|currentRotationSpeed|field|com.muzmod.state.impl.OXState|currentRotationSpeed
-      @|com\muzmod\state\impl\OXState.java|13953|13963|isRotating|field|com.muzmod.state.impl.OXState|isRotating
+      @|com\muzmod\state\impl\OXState.java|13241|13260|startSmoothRotation|method|com.muzmod.state.impl.OXState|startSmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;Z)V
+      @|com\muzmod\state\impl\OXState.java|13261|13275|EntityPlayerSP|class|net.minecraft.client.entity.EntityPlayerSP
+      @|com\muzmod\state\impl\OXState.java|13276|13282|player|param|com.muzmod.state.impl.OXState|startSmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;Z)V|player|0
+      @|com\muzmod\state\impl\OXState.java|13292|13300|goToLime|param|com.muzmod.state.impl.OXState|startSmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;Z)V|goToLime|1
+      @|com\muzmod\state\impl\OXState.java|13349|13356|Boolean|class|java.lang.Boolean
+      @|com\muzmod\state\impl\OXState.java|13371|13385|getCurrentSide|method|com.muzmod.state.impl.OXState|getCurrentSide|(Lnet/minecraft/client/entity/EntityPlayerSP;)Ljava/lang/Boolean;
+      @|com\muzmod\state\impl\OXState.java|13386|13392|player|param|com.muzmod.state.impl.OXState|startSmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;Z)V|player|0
+      @|com\muzmod\state\impl\OXState.java|13601|13609|goToLime|param|com.muzmod.state.impl.OXState|startSmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;Z)V|goToLime|1
+      @|com\muzmod\state\impl\OXState.java|13691|13700|targetYaw|field|com.muzmod.state.impl.OXState|targetYaw
+      @|com\muzmod\state\impl\OXState.java|13703|13709|player|param|com.muzmod.state.impl.OXState|startSmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;Z)V|player|0
+      @|com\muzmod\state\impl\OXState.java|13710|13721|rotationYaw|field|net.minecraft.entity.Entity|rotationYaw
+      @|com\muzmod\state\impl\OXState.java|13741|13747|MuzMod|class|com.muzmod.MuzMod
+      @|com\muzmod\state\impl\OXState.java|13748|13754|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\state\impl\OXState.java|13755|13759|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
+      @|com\muzmod\state\impl\OXState.java|13813|13821|goToLime|param|com.muzmod.state.impl.OXState|startSmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;Z)V|goToLime|1
+      @|com\muzmod\state\impl\OXState.java|13960|13966|MuzMod|class|com.muzmod.MuzMod
+      @|com\muzmod\state\impl\OXState.java|13967|13975|instance|field|com.muzmod.MuzMod|instance
+      @|com\muzmod\state\impl\OXState.java|13976|13985|getConfig|method|com.muzmod.MuzMod|getConfig|()Lcom/muzmod/config/ModConfig;
+      @|com\muzmod\state\impl\OXState.java|13988|14000|getOxLimeYaw|method|com.muzmod.config.ModConfig|getOxLimeYaw|()F
+      @|com\muzmod\state\impl\OXState.java|14054|14060|MuzMod|class|com.muzmod.MuzMod
+      @|com\muzmod\state\impl\OXState.java|14061|14069|instance|field|com.muzmod.MuzMod|instance
+      @|com\muzmod\state\impl\OXState.java|14070|14079|getConfig|method|com.muzmod.MuzMod|getConfig|()Lcom/muzmod/config/ModConfig;
+      @|com\muzmod\state\impl\OXState.java|14082|14093|getOxRedYaw|method|com.muzmod.config.ModConfig|getOxRedYaw|()F
+      @|com\muzmod\state\impl\OXState.java|14152|14160|goToLime|param|com.muzmod.state.impl.OXState|startSmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;Z)V|goToLime|1
+      @|com\muzmod\state\impl\OXState.java|14180|14189|targetYaw|field|com.muzmod.state.impl.OXState|targetYaw
+      @|com\muzmod\state\impl\OXState.java|14238|14247|targetYaw|field|com.muzmod.state.impl.OXState|targetYaw
+      @|com\muzmod\state\impl\OXState.java|14284|14290|MuzMod|class|com.muzmod.MuzMod
+      @|com\muzmod\state\impl\OXState.java|14291|14297|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\state\impl\OXState.java|14298|14302|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
+      @|com\muzmod\state\impl\OXState.java|14339|14347|goToLime|param|com.muzmod.state.impl.OXState|startSmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;Z)V|goToLime|1
+      @|com\muzmod\state\impl\OXState.java|14380|14389|targetYaw|field|com.muzmod.state.impl.OXState|targetYaw
+      @|com\muzmod\state\impl\OXState.java|14448|14464|maxRotationSpeed|field|com.muzmod.state.impl.OXState|maxRotationSpeed
+      @|com\muzmod\state\impl\OXState.java|14475|14481|random|field|com.muzmod.state.impl.OXState|random
+      @|com\muzmod\state\impl\OXState.java|14482|14491|nextFloat|method|java.util.Random|nextFloat|()F
+      @|com\muzmod\state\impl\OXState.java|14531|14551|currentRotationSpeed|field|com.muzmod.state.impl.OXState|currentRotationSpeed
+      @|com\muzmod\state\impl\OXState.java|14565|14575|isRotating|field|com.muzmod.state.impl.OXState|isRotating
    Method End: startSmoothRotation(Lnet/minecraft/client/entity/EntityPlayerSP;Z)V
    Method Start: applySmoothRotation(Lnet/minecraft/client/entity/EntityPlayerSP;)V
-      @|com\muzmod\state\impl\OXState.java|14046|14065|applySmoothRotation|method|com.muzmod.state.impl.OXState|applySmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;)V
-      @|com\muzmod\state\impl\OXState.java|14066|14080|EntityPlayerSP|class|net.minecraft.client.entity.EntityPlayerSP
-      @|com\muzmod\state\impl\OXState.java|14081|14087|player|param|com.muzmod.state.impl.OXState|applySmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;)V|player|0
-      @|com\muzmod\state\impl\OXState.java|14118|14124|player|param|com.muzmod.state.impl.OXState|applySmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;)V|player|0
-      @|com\muzmod\state\impl\OXState.java|14125|14136|rotationYaw|field|net.minecraft.entity.Entity|rotationYaw
-      @|com\muzmod\state\impl\OXState.java|14159|14168|targetYaw|field|com.muzmod.state.impl.OXState|targetYaw
-      @|com\muzmod\state\impl\OXState.java|14365|14369|Math|class|java.lang.Math
-      @|com\muzmod\state\impl\OXState.java|14370|14373|abs|method|java.lang.Math|abs|(F)F
-      @|com\muzmod\state\impl\OXState.java|14402|14412|isRotating|field|com.muzmod.state.impl.OXState|isRotating
-      @|com\muzmod\state\impl\OXState.java|14516|14520|Math|class|java.lang.Math
-      @|com\muzmod\state\impl\OXState.java|14521|14524|abs|method|java.lang.Math|abs|(F)F
-      @|com\muzmod\state\impl\OXState.java|14583|14603|currentRotationSpeed|field|com.muzmod.state.impl.OXState|currentRotationSpeed
-      @|com\muzmod\state\impl\OXState.java|14606|14610|Math|class|java.lang.Math
-      @|com\muzmod\state\impl\OXState.java|14611|14614|min|method|java.lang.Math|min|(FF)F
-      @|com\muzmod\state\impl\OXState.java|14615|14635|currentRotationSpeed|field|com.muzmod.state.impl.OXState|currentRotationSpeed
-      @|com\muzmod\state\impl\OXState.java|14644|14660|maxRotationSpeed|field|com.muzmod.state.impl.OXState|maxRotationSpeed
-      @|com\muzmod\state\impl\OXState.java|14727|14747|currentRotationSpeed|field|com.muzmod.state.impl.OXState|currentRotationSpeed
-      @|com\muzmod\state\impl\OXState.java|14750|14754|Math|class|java.lang.Math
-      @|com\muzmod\state\impl\OXState.java|14755|14758|max|method|java.lang.Math|max|(FF)F
-      @|com\muzmod\state\impl\OXState.java|14759|14779|currentRotationSpeed|field|com.muzmod.state.impl.OXState|currentRotationSpeed
-      @|com\muzmod\state\impl\OXState.java|14864|14868|Math|class|java.lang.Math
-      @|com\muzmod\state\impl\OXState.java|14869|14875|signum|method|java.lang.Math|signum|(F)F
-      @|com\muzmod\state\impl\OXState.java|14884|14888|Math|class|java.lang.Math
-      @|com\muzmod\state\impl\OXState.java|14889|14892|min|method|java.lang.Math|min|(FF)F
-      @|com\muzmod\state\impl\OXState.java|14893|14897|Math|class|java.lang.Math
-      @|com\muzmod\state\impl\OXState.java|14898|14901|abs|method|java.lang.Math|abs|(F)F
-      @|com\muzmod\state\impl\OXState.java|14909|14929|currentRotationSpeed|field|com.muzmod.state.impl.OXState|currentRotationSpeed
-      @|com\muzmod\state\impl\OXState.java|14940|14946|player|param|com.muzmod.state.impl.OXState|applySmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;)V|player|0
-      @|com\muzmod\state\impl\OXState.java|14947|14958|rotationYaw|field|net.minecraft.entity.Entity|rotationYaw
+      @|com\muzmod\state\impl\OXState.java|14658|14677|applySmoothRotation|method|com.muzmod.state.impl.OXState|applySmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;)V
+      @|com\muzmod\state\impl\OXState.java|14678|14692|EntityPlayerSP|class|net.minecraft.client.entity.EntityPlayerSP
+      @|com\muzmod\state\impl\OXState.java|14693|14699|player|param|com.muzmod.state.impl.OXState|applySmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;)V|player|0
+      @|com\muzmod\state\impl\OXState.java|14730|14736|player|param|com.muzmod.state.impl.OXState|applySmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;)V|player|0
+      @|com\muzmod\state\impl\OXState.java|14737|14748|rotationYaw|field|net.minecraft.entity.Entity|rotationYaw
+      @|com\muzmod\state\impl\OXState.java|14771|14780|targetYaw|field|com.muzmod.state.impl.OXState|targetYaw
+      @|com\muzmod\state\impl\OXState.java|14977|14981|Math|class|java.lang.Math
+      @|com\muzmod\state\impl\OXState.java|14982|14985|abs|method|java.lang.Math|abs|(F)F
+      @|com\muzmod\state\impl\OXState.java|15014|15024|isRotating|field|com.muzmod.state.impl.OXState|isRotating
+      @|com\muzmod\state\impl\OXState.java|15128|15132|Math|class|java.lang.Math
+      @|com\muzmod\state\impl\OXState.java|15133|15136|abs|method|java.lang.Math|abs|(F)F
+      @|com\muzmod\state\impl\OXState.java|15195|15215|currentRotationSpeed|field|com.muzmod.state.impl.OXState|currentRotationSpeed
+      @|com\muzmod\state\impl\OXState.java|15218|15222|Math|class|java.lang.Math
+      @|com\muzmod\state\impl\OXState.java|15223|15226|min|method|java.lang.Math|min|(FF)F
+      @|com\muzmod\state\impl\OXState.java|15227|15247|currentRotationSpeed|field|com.muzmod.state.impl.OXState|currentRotationSpeed
+      @|com\muzmod\state\impl\OXState.java|15256|15272|maxRotationSpeed|field|com.muzmod.state.impl.OXState|maxRotationSpeed
+      @|com\muzmod\state\impl\OXState.java|15339|15359|currentRotationSpeed|field|com.muzmod.state.impl.OXState|currentRotationSpeed
+      @|com\muzmod\state\impl\OXState.java|15362|15366|Math|class|java.lang.Math
+      @|com\muzmod\state\impl\OXState.java|15367|15370|max|method|java.lang.Math|max|(FF)F
+      @|com\muzmod\state\impl\OXState.java|15371|15391|currentRotationSpeed|field|com.muzmod.state.impl.OXState|currentRotationSpeed
+      @|com\muzmod\state\impl\OXState.java|15476|15480|Math|class|java.lang.Math
+      @|com\muzmod\state\impl\OXState.java|15481|15487|signum|method|java.lang.Math|signum|(F)F
+      @|com\muzmod\state\impl\OXState.java|15496|15500|Math|class|java.lang.Math
+      @|com\muzmod\state\impl\OXState.java|15501|15504|min|method|java.lang.Math|min|(FF)F
+      @|com\muzmod\state\impl\OXState.java|15505|15509|Math|class|java.lang.Math
+      @|com\muzmod\state\impl\OXState.java|15510|15513|abs|method|java.lang.Math|abs|(F)F
+      @|com\muzmod\state\impl\OXState.java|15521|15541|currentRotationSpeed|field|com.muzmod.state.impl.OXState|currentRotationSpeed
+      @|com\muzmod\state\impl\OXState.java|15552|15558|player|param|com.muzmod.state.impl.OXState|applySmoothRotation|(Lnet/minecraft/client/entity/EntityPlayerSP;)V|player|0
+      @|com\muzmod\state\impl\OXState.java|15559|15570|rotationYaw|field|net.minecraft.entity.Entity|rotationYaw
    Method End: applySmoothRotation(Lnet/minecraft/client/entity/EntityPlayerSP;)V
    Method Start: releaseAllKeys()V
-      @|com\muzmod\state\impl\OXState.java|15000|15014|releaseAllKeys|method|com.muzmod.state.impl.OXState|releaseAllKeys|()V
-      @|com\muzmod\state\impl\OXState.java|15027|15037|KeyBinding|class|net.minecraft.client.settings.KeyBinding
-      @|com\muzmod\state\impl\OXState.java|15038|15053|setKeyBindState|method|net.minecraft.client.settings.KeyBinding|setKeyBindState|(IZ)V
-      @|com\muzmod\state\impl\OXState.java|15054|15056|mc|field|com.muzmod.state.impl.OXState|mc
-      @|com\muzmod\state\impl\OXState.java|15057|15069|gameSettings|field|net.minecraft.client.Minecraft|gameSettings
-      @|com\muzmod\state\impl\OXState.java|15070|15084|keyBindForward|field|net.minecraft.client.settings.GameSettings|keyBindForward
-      @|com\muzmod\state\impl\OXState.java|15085|15095|getKeyCode|method|net.minecraft.client.settings.KeyBinding|getKeyCode|()I
-      @|com\muzmod\state\impl\OXState.java|15115|15125|KeyBinding|class|net.minecraft.client.settings.KeyBinding
-      @|com\muzmod\state\impl\OXState.java|15126|15141|setKeyBindState|method|net.minecraft.client.settings.KeyBinding|setKeyBindState|(IZ)V
-      @|com\muzmod\state\impl\OXState.java|15142|15144|mc|field|com.muzmod.state.impl.OXState|mc
-      @|com\muzmod\state\impl\OXState.java|15145|15157|gameSettings|field|net.minecraft.client.Minecraft|gameSettings
-      @|com\muzmod\state\impl\OXState.java|15158|15169|keyBindBack|field|net.minecraft.client.settings.GameSettings|keyBindBack
-      @|com\muzmod\state\impl\OXState.java|15170|15180|getKeyCode|method|net.minecraft.client.settings.KeyBinding|getKeyCode|()I
-      @|com\muzmod\state\impl\OXState.java|15200|15210|KeyBinding|class|net.minecraft.client.settings.KeyBinding
-      @|com\muzmod\state\impl\OXState.java|15211|15226|setKeyBindState|method|net.minecraft.client.settings.KeyBinding|setKeyBindState|(IZ)V
-      @|com\muzmod\state\impl\OXState.java|15227|15229|mc|field|com.muzmod.state.impl.OXState|mc
-      @|com\muzmod\state\impl\OXState.java|15230|15242|gameSettings|field|net.minecraft.client.Minecraft|gameSettings
-      @|com\muzmod\state\impl\OXState.java|15243|15254|keyBindLeft|field|net.minecraft.client.settings.GameSettings|keyBindLeft
-      @|com\muzmod\state\impl\OXState.java|15255|15265|getKeyCode|method|net.minecraft.client.settings.KeyBinding|getKeyCode|()I
-      @|com\muzmod\state\impl\OXState.java|15285|15295|KeyBinding|class|net.minecraft.client.settings.KeyBinding
-      @|com\muzmod\state\impl\OXState.java|15296|15311|setKeyBindState|method|net.minecraft.client.settings.KeyBinding|setKeyBindState|(IZ)V
-      @|com\muzmod\state\impl\OXState.java|15312|15314|mc|field|com.muzmod.state.impl.OXState|mc
-      @|com\muzmod\state\impl\OXState.java|15315|15327|gameSettings|field|net.minecraft.client.Minecraft|gameSettings
-      @|com\muzmod\state\impl\OXState.java|15328|15340|keyBindRight|field|net.minecraft.client.settings.GameSettings|keyBindRight
-      @|com\muzmod\state\impl\OXState.java|15341|15351|getKeyCode|method|net.minecraft.client.settings.KeyBinding|getKeyCode|()I
-      @|com\muzmod\state\impl\OXState.java|15371|15381|KeyBinding|class|net.minecraft.client.settings.KeyBinding
-      @|com\muzmod\state\impl\OXState.java|15382|15397|setKeyBindState|method|net.minecraft.client.settings.KeyBinding|setKeyBindState|(IZ)V
-      @|com\muzmod\state\impl\OXState.java|15398|15400|mc|field|com.muzmod.state.impl.OXState|mc
-      @|com\muzmod\state\impl\OXState.java|15401|15413|gameSettings|field|net.minecraft.client.Minecraft|gameSettings
-      @|com\muzmod\state\impl\OXState.java|15414|15427|keyBindSprint|field|net.minecraft.client.settings.GameSettings|keyBindSprint
-      @|com\muzmod\state\impl\OXState.java|15428|15438|getKeyCode|method|net.minecraft.client.settings.KeyBinding|getKeyCode|()I
+      @|com\muzmod\state\impl\OXState.java|15612|15626|releaseAllKeys|method|com.muzmod.state.impl.OXState|releaseAllKeys|()V
+      @|com\muzmod\state\impl\OXState.java|15639|15649|KeyBinding|class|net.minecraft.client.settings.KeyBinding
+      @|com\muzmod\state\impl\OXState.java|15650|15665|setKeyBindState|method|net.minecraft.client.settings.KeyBinding|setKeyBindState|(IZ)V
+      @|com\muzmod\state\impl\OXState.java|15666|15668|mc|field|com.muzmod.state.impl.OXState|mc
+      @|com\muzmod\state\impl\OXState.java|15669|15681|gameSettings|field|net.minecraft.client.Minecraft|gameSettings
+      @|com\muzmod\state\impl\OXState.java|15682|15696|keyBindForward|field|net.minecraft.client.settings.GameSettings|keyBindForward
+      @|com\muzmod\state\impl\OXState.java|15697|15707|getKeyCode|method|net.minecraft.client.settings.KeyBinding|getKeyCode|()I
+      @|com\muzmod\state\impl\OXState.java|15727|15737|KeyBinding|class|net.minecraft.client.settings.KeyBinding
+      @|com\muzmod\state\impl\OXState.java|15738|15753|setKeyBindState|method|net.minecraft.client.settings.KeyBinding|setKeyBindState|(IZ)V
+      @|com\muzmod\state\impl\OXState.java|15754|15756|mc|field|com.muzmod.state.impl.OXState|mc
+      @|com\muzmod\state\impl\OXState.java|15757|15769|gameSettings|field|net.minecraft.client.Minecraft|gameSettings
+      @|com\muzmod\state\impl\OXState.java|15770|15781|keyBindBack|field|net.minecraft.client.settings.GameSettings|keyBindBack
+      @|com\muzmod\state\impl\OXState.java|15782|15792|getKeyCode|method|net.minecraft.client.settings.KeyBinding|getKeyCode|()I
+      @|com\muzmod\state\impl\OXState.java|15812|15822|KeyBinding|class|net.minecraft.client.settings.KeyBinding
+      @|com\muzmod\state\impl\OXState.java|15823|15838|setKeyBindState|method|net.minecraft.client.settings.KeyBinding|setKeyBindState|(IZ)V
+      @|com\muzmod\state\impl\OXState.java|15839|15841|mc|field|com.muzmod.state.impl.OXState|mc
+      @|com\muzmod\state\impl\OXState.java|15842|15854|gameSettings|field|net.minecraft.client.Minecraft|gameSettings
+      @|com\muzmod\state\impl\OXState.java|15855|15866|keyBindLeft|field|net.minecraft.client.settings.GameSettings|keyBindLeft
+      @|com\muzmod\state\impl\OXState.java|15867|15877|getKeyCode|method|net.minecraft.client.settings.KeyBinding|getKeyCode|()I
+      @|com\muzmod\state\impl\OXState.java|15897|15907|KeyBinding|class|net.minecraft.client.settings.KeyBinding
+      @|com\muzmod\state\impl\OXState.java|15908|15923|setKeyBindState|method|net.minecraft.client.settings.KeyBinding|setKeyBindState|(IZ)V
+      @|com\muzmod\state\impl\OXState.java|15924|15926|mc|field|com.muzmod.state.impl.OXState|mc
+      @|com\muzmod\state\impl\OXState.java|15927|15939|gameSettings|field|net.minecraft.client.Minecraft|gameSettings
+      @|com\muzmod\state\impl\OXState.java|15940|15952|keyBindRight|field|net.minecraft.client.settings.GameSettings|keyBindRight
+      @|com\muzmod\state\impl\OXState.java|15953|15963|getKeyCode|method|net.minecraft.client.settings.KeyBinding|getKeyCode|()I
+      @|com\muzmod\state\impl\OXState.java|15983|15993|KeyBinding|class|net.minecraft.client.settings.KeyBinding
+      @|com\muzmod\state\impl\OXState.java|15994|16009|setKeyBindState|method|net.minecraft.client.settings.KeyBinding|setKeyBindState|(IZ)V
+      @|com\muzmod\state\impl\OXState.java|16010|16012|mc|field|com.muzmod.state.impl.OXState|mc
+      @|com\muzmod\state\impl\OXState.java|16013|16025|gameSettings|field|net.minecraft.client.Minecraft|gameSettings
+      @|com\muzmod\state\impl\OXState.java|16026|16039|keyBindSprint|field|net.minecraft.client.settings.GameSettings|keyBindSprint
+      @|com\muzmod\state\impl\OXState.java|16040|16050|getKeyCode|method|net.minecraft.client.settings.KeyBinding|getKeyCode|()I
    Method End: releaseAllKeys()V
    Method Start: getCurrentStep()I
-      @|com\muzmod\state\impl\OXState.java|15499|15513|getCurrentStep|method|com.muzmod.state.impl.OXState|getCurrentStep|()I
-      @|com\muzmod\state\impl\OXState.java|15533|15544|currentStep|field|com.muzmod.state.impl.OXState|currentStep
+      @|com\muzmod\state\impl\OXState.java|16111|16125|getCurrentStep|method|com.muzmod.state.impl.OXState|getCurrentStep|()I
+      @|com\muzmod\state\impl\OXState.java|16145|16156|currentStep|field|com.muzmod.state.impl.OXState|currentStep
    Method End: getCurrentStep()I
    Method Start: getWarpCommand()Ljava/lang/String;
-      @|com\muzmod\state\impl\OXState.java|15575|15589|getWarpCommand|method|com.muzmod.state.impl.OXState|getWarpCommand|()Ljava/lang/String;
-      @|com\muzmod\state\impl\OXState.java|15568|15574|String|class|java.lang.String
-      @|com\muzmod\state\impl\OXState.java|15609|15620|warpCommand|field|com.muzmod.state.impl.OXState|warpCommand
+      @|com\muzmod\state\impl\OXState.java|16187|16201|getWarpCommand|method|com.muzmod.state.impl.OXState|getWarpCommand|()Ljava/lang/String;
+      @|com\muzmod\state\impl\OXState.java|16180|16186|String|class|java.lang.String
+      @|com\muzmod\state\impl\OXState.java|16221|16232|warpCommand|field|com.muzmod.state.impl.OXState|warpCommand
    Method End: getWarpCommand()Ljava/lang/String;
    Method Start: setWarpCommand(Ljava/lang/String;)V
-      @|com\muzmod\state\impl\OXState.java|15649|15663|setWarpCommand|method|com.muzmod.state.impl.OXState|setWarpCommand|(Ljava/lang/String;)V
-      @|com\muzmod\state\impl\OXState.java|15664|15670|String|class|java.lang.String
-      @|com\muzmod\state\impl\OXState.java|15671|15682|warpCommand|param|com.muzmod.state.impl.OXState|setWarpCommand|(Ljava/lang/String;)V|warpCommand|0
-      @|com\muzmod\state\impl\OXState.java|15699|15710|warpCommand|field|com.muzmod.state.impl.OXState|warpCommand
-      @|com\muzmod\state\impl\OXState.java|15713|15724|warpCommand|param|com.muzmod.state.impl.OXState|setWarpCommand|(Ljava/lang/String;)V|warpCommand|0
+      @|com\muzmod\state\impl\OXState.java|16261|16275|setWarpCommand|method|com.muzmod.state.impl.OXState|setWarpCommand|(Ljava/lang/String;)V
+      @|com\muzmod\state\impl\OXState.java|16276|16282|String|class|java.lang.String
+      @|com\muzmod\state\impl\OXState.java|16283|16294|warpCommand|param|com.muzmod.state.impl.OXState|setWarpCommand|(Ljava/lang/String;)V|warpCommand|0
+      @|com\muzmod\state\impl\OXState.java|16311|16322|warpCommand|field|com.muzmod.state.impl.OXState|warpCommand
+      @|com\muzmod\state\impl\OXState.java|16325|16336|warpCommand|param|com.muzmod.state.impl.OXState|setWarpCommand|(Ljava/lang/String;)V|warpCommand|0
    Method End: setWarpCommand(Ljava/lang/String;)V
    Method Start: getPlayersOnLime()I
-      @|com\muzmod\state\impl\OXState.java|15752|15768|getPlayersOnLime|method|com.muzmod.state.impl.OXState|getPlayersOnLime|()I
-      @|com\muzmod\state\impl\OXState.java|15788|15801|playersOnLime|field|com.muzmod.state.impl.OXState|playersOnLime
+      @|com\muzmod\state\impl\OXState.java|16364|16380|getPlayersOnLime|method|com.muzmod.state.impl.OXState|getPlayersOnLime|()I
+      @|com\muzmod\state\impl\OXState.java|16400|16413|playersOnLime|field|com.muzmod.state.impl.OXState|playersOnLime
    Method End: getPlayersOnLime()I
    Method Start: getPlayersOnRed()I
-      @|com\muzmod\state\impl\OXState.java|15829|15844|getPlayersOnRed|method|com.muzmod.state.impl.OXState|getPlayersOnRed|()I
-      @|com\muzmod\state\impl\OXState.java|15864|15876|playersOnRed|field|com.muzmod.state.impl.OXState|playersOnRed
+      @|com\muzmod\state\impl\OXState.java|16441|16456|getPlayersOnRed|method|com.muzmod.state.impl.OXState|getPlayersOnRed|()I
+      @|com\muzmod\state\impl\OXState.java|16476|16488|playersOnRed|field|com.muzmod.state.impl.OXState|playersOnRed
    Method End: getPlayersOnRed()I
    Method Start: restart()V
-      @|com\muzmod\state\impl\OXState.java|15951|15958|restart|method|com.muzmod.state.impl.OXState|restart|()V
-      @|com\muzmod\state\impl\OXState.java|15971|15980|onDisable|method|com.muzmod.state.IState|onDisable|()V
-      @|com\muzmod\state\impl\OXState.java|15992|16000|onEnable|method|com.muzmod.state.IState|onEnable|()V
+      @|com\muzmod\state\impl\OXState.java|16563|16570|restart|method|com.muzmod.state.impl.OXState|restart|()V
+      @|com\muzmod\state\impl\OXState.java|16583|16592|onDisable|method|com.muzmod.state.IState|onDisable|()V
+      @|com\muzmod\state\impl\OXState.java|16604|16612|onEnable|method|com.muzmod.state.IState|onEnable|()V
    Method End: restart()V
 Class End  : com.muzmod.state.impl.OXState
 endProcessing com\muzmod\state\impl\OXState.java
