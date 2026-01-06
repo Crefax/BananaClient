@@ -490,6 +490,56 @@ public class MuzModGuiModern extends GuiScreen {
         drawToggle(labelX, y, "Blok Kilidi", config.isBlockLockEnabled(), mouseX, mouseY);
         drawToggle(labelX + 120, y, "Aninda Kac", config.isInstantFlee(), mouseX, mouseY);
         drawToggle(labelX + 240, y, "Strafe", config.isStrafeEnabled(), mouseX, mouseY);
+        
+        // OX Event direction settings (right side)
+        int oxX = guiX + 280;
+        int oxY = guiY + 75;
+        drawRect(oxX, oxY, oxX + 155, oxY + 100, BG_HEADER);
+        drawString(fontRendererObj, "§dOX Event Yonleri", oxX + 8, oxY + 6, ACCENT_PURPLE);
+        
+        // Direction labels and buttons
+        String[] directions = {"Kuzey", "Dogu", "Guney", "Bati"};
+        float[] yawValues = {180f, -90f, 0f, 90f};
+        
+        // Lime direction
+        drawString(fontRendererObj, "§aYesil:", oxX + 8, oxY + 26, ACCENT_GREEN);
+        float limeYaw = config.getOxLimeYaw();
+        int limeDir = getDirectionIndex(limeYaw);
+        for (int i = 0; i < 4; i++) {
+            int bx = oxX + 50 + i * 26;
+            boolean sel = (i == limeDir);
+            boolean hov = mouseX >= bx && mouseX < bx + 24 && mouseY >= oxY + 22 && mouseY < oxY + 38;
+            drawRect(bx, oxY + 22, bx + 24, oxY + 38, sel ? ACCENT_GREEN : (hov ? BG_BUTTON_HOVER : BG_BUTTON));
+            drawCenteredString(fontRendererObj, directions[i].substring(0, 1), bx + 12, oxY + 26, TEXT_WHITE);
+        }
+        
+        // Red direction
+        drawString(fontRendererObj, "§cKirmizi:", oxX + 8, oxY + 48, ACCENT_RED);
+        float redYaw = config.getOxRedYaw();
+        int redDir = getDirectionIndex(redYaw);
+        for (int i = 0; i < 4; i++) {
+            int bx = oxX + 50 + i * 26;
+            boolean sel = (i == redDir);
+            boolean hov = mouseX >= bx && mouseX < bx + 24 && mouseY >= oxY + 44 && mouseY < oxY + 60;
+            drawRect(bx, oxY + 44, bx + 24, oxY + 60, sel ? ACCENT_RED : (hov ? BG_BUTTON_HOVER : BG_BUTTON));
+            drawCenteredString(fontRendererObj, directions[i].substring(0, 1), bx + 12, oxY + 48, TEXT_WHITE);
+        }
+        
+        // Direction legend
+        drawString(fontRendererObj, "§8K=Kuzey D=Dogu", oxX + 8, oxY + 68, TEXT_DARK);
+        drawString(fontRendererObj, "§8G=Guney B=Bati", oxX + 8, oxY + 80, TEXT_DARK);
+    }
+    
+    private int getDirectionIndex(float yaw) {
+        // Normalize yaw to 0-360
+        while (yaw < 0) yaw += 360;
+        while (yaw >= 360) yaw -= 360;
+        
+        // 0=South, 90=West, 180=North, 270=East
+        if (yaw >= 135 && yaw < 225) return 0; // North (180)
+        if (yaw >= 225 && yaw < 315) return 1; // East (270/-90)
+        if (yaw >= 315 || yaw < 45) return 2;  // South (0)
+        return 3; // West (90)
     }
     
     private void drawFieldBackground(GuiTextField field, int x, int y) {
@@ -709,6 +759,27 @@ public class MuzModGuiModern extends GuiScreen {
                 config.setInstantFlee(!config.isInstantFlee());
             } else if (isInside(mouseX, mouseY, labelX + 238, y - 2, 102, 14)) {
                 config.setStrafeEnabled(!config.isStrafeEnabled());
+            }
+            
+            // OX Direction buttons
+            int oxX = guiX + 280;
+            int oxY = guiY + 75;
+            float[] yawValues = {180f, -90f, 0f, 90f}; // North, East, South, West
+            
+            // Lime direction buttons
+            for (int i = 0; i < 4; i++) {
+                int bx = oxX + 50 + i * 26;
+                if (mouseX >= bx && mouseX < bx + 24 && mouseY >= oxY + 22 && mouseY < oxY + 38) {
+                    config.setOxLimeYaw(yawValues[i]);
+                }
+            }
+            
+            // Red direction buttons
+            for (int i = 0; i < 4; i++) {
+                int bx = oxX + 50 + i * 26;
+                if (mouseX >= bx && mouseX < bx + 24 && mouseY >= oxY + 44 && mouseY < oxY + 60) {
+                    config.setOxRedYaw(yawValues[i]);
+                }
             }
             
             // Field clicks

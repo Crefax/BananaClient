@@ -362,21 +362,21 @@ public class OXState implements IState {
     }
     
     /**
-     * Smooth rotation başlat
+     * Smooth rotation başlat - Config'den yön al
      */
     private void startSmoothRotation(EntityPlayerSP player, boolean goToLime) {
-        // Hangi yöne dönmemiz gerektiğini hesapla
-        // Lime genelde sağda, Red solda olur (sunucuya göre değişebilir)
-        // Rastgele bir açı ile dön
+        // Config'den hedef yaw değerlerini al
+        float limeYaw = MuzMod.instance.getConfig().getOxLimeYaw();  // Default: 90 (West)
+        float redYaw = MuzMod.instance.getConfig().getOxRedYaw();    // Default: -90 (East)
         
-        float currentYaw = player.rotationYaw;
-        
-        // Hedef yaw'ı hesapla - 90 derece sağa veya sola
+        // Hedef yaw'ı belirle
         if (goToLime) {
-            targetYaw = currentYaw + 90 + random.nextInt(20) - 10; // Sağa
+            targetYaw = limeYaw;
         } else {
-            targetYaw = currentYaw - 90 + random.nextInt(20) - 10; // Sola
+            targetYaw = redYaw;
         }
+        
+        MuzMod.LOGGER.info("[OXState] Rotating to " + (goToLime ? "LIME" : "RED") + " (yaw: " + targetYaw + ")");
         
         // Rastgele hız
         maxRotationSpeed = 5.0f + random.nextFloat() * 6.0f; // 5-11 derece/tick

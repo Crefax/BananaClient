@@ -78,6 +78,11 @@ public class ModConfig {
     private int repairMaxRetries = 3;
     private float repairClickDelay = 2.0f; // Tıklamalar arası bekleme (saniye)
     
+    // OX Event Settings
+    // Minecraft yaw: 0=South, 90=West, 180/-180=North, -90/270=East
+    private float oxLimeYaw = 90.0f;  // West (Batı) - Yeşil taraf
+    private float oxRedYaw = -90.0f;  // East (Doğu) - Kırmızı taraf
+    
     public ModConfig(File configFile) {
         config = new Configuration(configFile);
     }
@@ -204,6 +209,12 @@ public class ModConfig {
             repairClickDelay = (float) config.getFloat("clickDelay", "repair", 2.0f, 0.5f, 10.0f,
                 "Delay between clicks in repair GUI (seconds)");
             
+            // OX Event Category
+            oxLimeYaw = config.getFloat("limeYaw", "ox", 90.0f, -180.0f, 180.0f,
+                "Yaw direction for LIME side (default: 90 = West)");
+            oxRedYaw = config.getFloat("redYaw", "ox", -90.0f, -180.0f, 180.0f,
+                "Yaw direction for RED side (default: -90 = East)");
+            
         } catch (Exception e) {
             MuzMod.LOGGER.error("Error loading config", e);
         } finally {
@@ -290,6 +301,22 @@ public class ModConfig {
     public int getRepairSlot() { return repairSlot; }
     public int getRepairMaxRetries() { return repairMaxRetries; }
     public float getRepairClickDelay() { return repairClickDelay; }
+    
+    // OX Event Getters/Setters
+    public float getOxLimeYaw() { return oxLimeYaw; }
+    public float getOxRedYaw() { return oxRedYaw; }
+    
+    public void setOxLimeYaw(float yaw) {
+        this.oxLimeYaw = yaw;
+        config.get("ox", "limeYaw", 90.0f).set(yaw);
+        save();
+    }
+    
+    public void setOxRedYaw(float yaw) {
+        this.oxRedYaw = yaw;
+        config.get("ox", "redYaw", -90.0f).set(yaw);
+        save();
+    }
     
     // Mining Setters
     public void setMiningWarpCommand(String cmd) { 
