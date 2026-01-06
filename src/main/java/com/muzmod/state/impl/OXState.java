@@ -66,10 +66,6 @@ public class OXState implements IState {
     private int playersOnRed = 0;
     private int analysisCount = 0;
     
-    // Taraf değiştirme cooldown
-    private long lastSideChangeTime = 0;
-    private static final long SIDE_CHANGE_COOLDOWN = 3000; // 3 saniye bekle
-    
     // Warp komutu
     private String warpCommand = "/warp ox";
     
@@ -273,7 +269,6 @@ public class OXState implements IState {
             isRotating = false;
             currentStep = STEP_ON_POSITION;
             stepStartTime = System.currentTimeMillis();
-            lastSideChangeTime = System.currentTimeMillis(); // Cooldown başlat
             status = (targetSide ? "YEŞİL" : "KIRMIZI") + " tarafta!";
             MuzMod.LOGGER.info("[OXState] Reached " + (targetSide ? "LIME" : "RED") + " side");
         } else {
@@ -286,13 +281,6 @@ public class OXState implements IState {
         if (now - stepStartTime > 1000) {
             stepStartTime = now;
             analyzePlayerPositions(player);
-            
-            // Cooldown kontrolü - bir tarafa vardıktan sonra 3 saniye bekle
-            if (now - lastSideChangeTime < SIDE_CHANGE_COOLDOWN) {
-                long remaining = (SIDE_CHANGE_COOLDOWN - (now - lastSideChangeTime)) / 1000;
-                status = "Pozisyonda bekleniyor... " + remaining + "s (L:" + playersOnLime + " R:" + playersOnRed + ")";
-                return;
-            }
             
             // Sadece diğer taraf FAZLA olunca yer değiştir (eşitlikte kalma)
             if (playersOnLime > 0 || playersOnRed > 0) {
@@ -376,34 +364,25 @@ public class OXState implements IState {
     }
     
     /**
-     * Smooth rotation başlat - Taraf değiştirirken 180 derece dön
+     * Hızlı rotation - Config'den hedef yaw al ve anında dön
      */
     private void startSmoothRotation(EntityPlayerSP player, boolean goToLime) {
-        // Şu anki tarafı kontrol et
-        Boolean currentSide = getCurrentSide(player);
+        // Config'den hedef yaw değerlerini al
+        float limeYaw = MuzMod.instance.getConfig().getOxLimeYaw();  // Default: 90 (West)
+        float redYaw = MuzMod.instance.getConfig().getOxRedYaw();    // Default: -90 (East)
         
-        // Eğer zaten bir taraftaysak ve diğer tarafa geçmemiz gerekiyorsa
-        // 180 derece dönmek daha hızlı (önce ilerle sonra dön mantığı)
-        if (currentSide != null && currentSide != goToLime) {
-            // Mevcut yaw'a 180 derece ekle - tam ters tarafa dön
-            targetYaw = player.rotationYaw + 180;
-            MuzMod.LOGGER.info("[OXState] Side switch! Rotating 180 degrees to " + (goToLime ? "LIME" : "RED"));
+        // Hedef yaw'ı belirle
+        if (goToLime) {
+            targetYaw = limeYaw;
         } else {
-            // İlk kez gidiyoruz veya ortadayız, config'den hedef yaw al
-            float limeYaw = MuzMod.instance.getConfig().getOxLimeYaw();  // Default: 90 (West)
-            float redYaw = MuzMod.instance.getConfig().getOxRedYaw();    // Default: -90 (East)
-            
-            if (goToLime) {
-                targetYaw = limeYaw;
-            } else {
-                targetYaw = redYaw;
-            }
-            MuzMod.LOGGER.info("[OXState] Initial rotation to " + (goToLime ? "LIME" : "RED") + " (yaw: " + targetYaw + ")");
+            targetYaw = redYaw;
         }
         
-        // Hızlı dönüş
-        maxRotationSpeed = 12.0f + random.nextFloat() * 8.0f; // 12-20 derece/tick
-        currentRotationSpeed = 0;
+        MuzMod.LOGGER.info("[OXState] Rotating to " + (goToLime ? "LIME" : "RED") + " (yaw: " + targetYaw + ")");
+        
+        // Çok hızlı dönüş
+        maxRotationSpeed = 25.0f + random.nextFloat() * 10.0f; // 25-35 derece/tick
+        currentRotationSpeed = maxRotationSpeed; // Hemen max hızda başla
         isRotating = true;
     }
     
@@ -419,22 +398,14 @@ public class OXState implements IState {
         while (diff < -180) diff += 360;
         
         // Hedefe yaklaştıysak dur
-        if (Math.abs(diff) < 2.0f) {
+        if (Math.abs(diff) < 3.0f) {
+            player.rotationYaw = targetYaw; // Tam hedefe koy
             isRotating = false;
             return;
         }
         
-        // Hızlanma/yavaşlama (daha hızlı)
-        if (Math.abs(diff) > 20) {
-            // Uzaktaysa hızlan
-            currentRotationSpeed = Math.min(currentRotationSpeed + 1.5f, maxRotationSpeed);
-        } else {
-            // Yaklaştıysa yavaşla
-            currentRotationSpeed = Math.max(currentRotationSpeed - 0.5f, 5.0f);
-        }
-        
-        // Dönüşü uygula
-        float rotation = Math.signum(diff) * Math.min(Math.abs(diff), currentRotationSpeed);
+        // Sabit yüksek hızda dön (hızlanma/yavaşlama yok)
+        float rotation = Math.signum(diff) * Math.min(Math.abs(diff), maxRotationSpeed);
         player.rotationYaw += rotation;
     }
     

@@ -40,6 +40,10 @@ public class StateManager {
     private boolean useScheduleBasedTransition = true;
     private ScheduleEntry.EventType lastScheduleType = null;
     
+    // Manuel kontrol - true olduğunda otomatik geçiş yapma
+    private boolean manualOverride = false;
+    private long manualOverrideTime = 0;
+    
     public StateManager() {
         initStates();
     }
@@ -90,6 +94,11 @@ public class StateManager {
     }
     
     private void checkStateTransition() {
+        // Manuel override aktifse, otomatik geçiş yapma
+        if (manualOverride) {
+            return;
+        }
+        
         // SafeState aktifse, müdahale etme
         if (currentState instanceof SafeState) {
             return;
@@ -218,8 +227,17 @@ public class StateManager {
      * Force transition to a state by name
      */
     public void forceState(String stateName) {
+        // Manuel override'u aktifleştir (schedule kapalıyken)
+        ScheduleManager schedule = MuzMod.instance.getScheduleManager();
+        if (schedule == null || !schedule.isScheduleEnabled()) {
+            manualOverride = true;
+            manualOverrideTime = System.currentTimeMillis();
+            MuzMod.LOGGER.info("[StateManager] Manual override enabled");
+        }
+        
         switch (stateName.toLowerCase()) {
             case "idle":
+                manualOverride = false; // Idle'a geçince override kapat
                 transitionTo(idleState);
                 break;
             case "afk":
