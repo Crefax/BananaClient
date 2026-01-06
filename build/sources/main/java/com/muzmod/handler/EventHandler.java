@@ -40,13 +40,27 @@ public class EventHandler {
     }
     
     /**
-     * Ana menüye Account Manager butonu ekle
+     * Ana menüye Account Manager butonu ekle ve Realms butonunu kaldır
      */
     @SubscribeEvent
     public void onGuiInit(GuiScreenEvent.InitGuiEvent.Post event) {
         if (event.gui instanceof GuiMainMenu) {
             // AccountManager'ı başlat
             AccountManager.getInstance();
+            
+            // Realms butonunu bul ve kaldır (ID: 14)
+            GuiButton realmsBtn = null;
+            for (Object obj : event.buttonList) {
+                GuiButton btn = (GuiButton) obj;
+                if (btn.id == 14) { // Realms button ID
+                    realmsBtn = btn;
+                    break;
+                }
+            }
+            if (realmsBtn != null) {
+                event.buttonList.remove(realmsBtn);
+                MuzMod.LOGGER.info("[EventHandler] Realms button removed");
+            }
             
             // Multiplayer butonunu bul ve altına Account Manager ekle
             GuiButton multiplayerBtn = null;
