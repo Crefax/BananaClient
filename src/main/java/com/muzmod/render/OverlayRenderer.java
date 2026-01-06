@@ -2,6 +2,8 @@ package com.muzmod.render;
 
 import com.muzmod.MuzMod;
 import com.muzmod.config.ModConfig;
+import com.muzmod.schedule.ScheduleEntry;
+import com.muzmod.schedule.ScheduleManager;
 import com.muzmod.state.IState;
 import com.muzmod.state.impl.RepairState;
 import com.muzmod.state.impl.SafeState;
@@ -13,6 +15,7 @@ import net.minecraft.item.ItemStack;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Renders the status overlay on screen
@@ -56,6 +59,13 @@ public class OverlayRenderer {
         String currentTime = String.format("%02d:%02d:%02d", hour, minute, second);
         String offsetStr = offsetHours >= 0 ? "+" + offsetHours : String.valueOf(offsetHours);
         fr.drawStringWithShadow("§7Saat: §f" + currentTime + " §8(UTC" + offsetStr + ")", x, y, 0xFFFFFF);
+        y += lineHeight;
+        
+        // Day of week
+        int javaDow = cal.get(java.util.Calendar.DAY_OF_WEEK);
+        int dayOfWeek = (javaDow == java.util.Calendar.SUNDAY) ? 6 : javaDow - 2;
+        String dayName = ScheduleEntry.getDayName(dayOfWeek);
+        fr.drawStringWithShadow("§7Gün: §f" + dayName, x, y, 0xFFFFFF);
         y += lineHeight;
         
         // Current State
@@ -120,27 +130,74 @@ public class OverlayRenderer {
         fr.drawStringWithShadow("§8───────────", x, y, 0xFFFFFF);
         y += lineHeight;
         
-        // Schedule Preview
+        // Dynamic Schedule Preview from ScheduleManager
         fr.drawStringWithShadow("§7Görev Takvimi:", x, y, 0xFFFFFF);
         y += lineHeight;
         
-        // Mining schedule
-        String miningTime = String.format("%02d:%02d - %02d:%02d",
-            config.getMiningStartHour(), config.getMiningStartMinute(),
-            config.getMiningEndHour(), config.getMiningEndMinute());
-        fr.drawStringWithShadow("§e⛏ Maden: §f" + miningTime, x + 5, y, 0xFFFFFF);
-        y += lineHeight;
-        
-        // AFK schedule
-        String afkTime = String.format("%02d:%02d - %02d:%02d",
-            config.getAfkStartHour(), config.getAfkStartMinute(),
-            config.getAfkEndHour(), config.getAfkEndMinute());
-        fr.drawStringWithShadow("§b⏸ AFK: §f" + afkTime, x + 5, y, 0xFFFFFF);
-        y += lineHeight;
+        ScheduleManager schedule = MuzMod.instance.getScheduleManager();
+        if (schedule != null && schedule.isScheduleEnabled()) {
+            // Get today's entries
+            int javaDowNow = cal.get(java.util.Calendar.DAY_OF_WEEK);
+            int todayDow = (javaDowNow == java.util.Calendar.SUNDAY) ? 6 : javaDowNow - 2;
+            List<ScheduleEntry> todayEntries = schedule.getEntriesForDay(todayDow);
+            
+            int currentMinutes = hour * 60 + minute;
+            int shownCount = 0;
+            int maxShow = 5; // En fazla 5 görev göster
+            
+            for (ScheduleEntry entry : todayEntries) {
+                if (shownCount >= maxShow) break;
+                
+                int startMin = entry.getStartTimeMinutes();
+                int endMin = entry.getEndHour() * 60 + entry.getEndMinute();
+                // Gece yarısını geçen durumlar
+                if (endMin < startMin) endMin += 24 * 60;
+                int currentMinAdj = currentMinutes;
+                if (endMin > 24 * 60 && currentMinutes < startMin) currentMinAdj += 24 * 60;
+                
+                String icon = getEventIcon(entry.getEventType());
+                String timeRange = entry.getTimeRange();
+                String eventName = entry.getEventType().getDisplayName();
+                
+                String line;
+                if (currentMinAdj >= startMin && currentMinAdj < endMin) {
+                    // Devam eden - yeşil arka plan efekti
+                    line = "§a▶ " + icon + " " + timeRange + " §a" + eventName;
+                } else if (currentMinAdj >= endMin) {
+                    // Bitmiş - üstü çizili gri
+                    line = "§8§m  " + timeRange + " " + eventName + "§r §8✓";
+                } else {
+                    // Gelecek - gri
+                    line = "§7○ " + icon + " " + timeRange + " §7" + eventName;
+                }
+                
+                fr.drawStringWithShadow(line, x + 5, y, 0xFFFFFF);
+                y += lineHeight;
+                shownCount++;
+            }
+            
+            if (todayEntries.isEmpty()) {
+                fr.drawStringWithShadow("§8  Bugün görev yok", x + 5, y, 0xFFFFFF);
+                y += lineHeight;
+            }
+        } else {
+            fr.drawStringWithShadow("§8  Zamanlama kapalı", x + 5, y, 0xFFFFFF);
+            y += lineHeight;
+        }
         
         // Keybind hint
         y += 5;
         fr.drawStringWithShadow("§8[RSHIFT] Menü", x, y, 0xFFFFFF);
+    }
+    
+    private String getEventIcon(ScheduleEntry.EventType type) {
+        switch (type) {
+            case MINING: return "§6⛏";
+            case AFK: return "§b⏸";
+            case REPAIR: return "§e🔧";
+            case OX: return "§dOX";
+            default: return "§7○";
+        }
     }
     
     private int getStateColor(String stateName) {

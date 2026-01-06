@@ -738,11 +738,25 @@ public class MuzModGuiModern extends GuiScreen {
                 }
                 // Copy to weekdays
                 else if (isInside(mouseX, mouseY, panelX + 8, panelY + 120, 85, 18)) {
-                    schedule.applyToWeekdays(selectedDay);
+                    if (selectedDay >= 0 && selectedDay <= 4) {
+                        // Seçili gün zaten hafta içi - bu günü diğer hafta içi günlerine kopyala
+                        schedule.applyToWeekdays(selectedDay);
+                    } else {
+                        // Hafta sonu seçili - hafta sonundan hafta içine kopyala
+                        schedule.applyToWeekdays(selectedDay);
+                    }
+                    MuzMod.LOGGER.info("[GUI] Hafta içine kopyalandı: kaynak gün=" + selectedDay);
                 }
                 // Copy to weekends
                 else if (isInside(mouseX, mouseY, panelX + 98, panelY + 120, 85, 18)) {
-                    schedule.applyToWeekends(selectedDay);
+                    if (selectedDay >= 5 && selectedDay <= 6) {
+                        // Seçili gün zaten hafta sonu - bu günü diğer hafta sonu gününe kopyala
+                        schedule.applyToWeekends(selectedDay);
+                    } else {
+                        // Hafta içi seçili - hafta içinden hafta sonuna kopyala
+                        schedule.applyToWeekends(selectedDay);
+                    }
+                    MuzMod.LOGGER.info("[GUI] Hafta sonuna kopyalandı: kaynak gün=" + selectedDay);
                 }
             }
         }

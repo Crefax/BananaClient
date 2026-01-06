@@ -218,24 +218,30 @@ public class ScheduleManager {
      * Hafta içi günlerine aynı programı uygula
      */
     public void applyToWeekdays(int sourceDay) {
+        MuzMod.LOGGER.info("[Schedule] Applying day " + sourceDay + " to weekdays");
         for (int day = 0; day < 5; day++) { // Pzt-Cum
             if (day != sourceDay) {
                 clearDay(day);
                 copyDay(sourceDay, day);
             }
         }
+        save();
+        MuzMod.LOGGER.info("[Schedule] Weekdays updated from day " + sourceDay);
     }
     
     /**
      * Hafta sonu günlerine aynı programı uygula
      */
     public void applyToWeekends(int sourceDay) {
+        MuzMod.LOGGER.info("[Schedule] Applying day " + sourceDay + " to weekends");
         for (int day = 5; day < 7; day++) { // Cmt-Paz
             if (day != sourceDay) {
                 clearDay(day);
                 copyDay(sourceDay, day);
             }
         }
+        save();
+        MuzMod.LOGGER.info("[Schedule] Weekends updated from day " + sourceDay);
     }
     
     // Kaydet/Yükle
