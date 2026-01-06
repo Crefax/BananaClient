@@ -66,6 +66,10 @@ public class OXState implements IState {
     private int playersOnRed = 0;
     private int analysisCount = 0;
     
+    // Taraf değiştirme cooldown
+    private long lastSideChangeTime = 0;
+    private static final long SIDE_CHANGE_COOLDOWN = 3000; // 3 saniye bekle
+    
     // Warp komutu
     private String warpCommand = "/warp ox";
     
@@ -269,6 +273,7 @@ public class OXState implements IState {
             isRotating = false;
             currentStep = STEP_ON_POSITION;
             stepStartTime = System.currentTimeMillis();
+            lastSideChangeTime = System.currentTimeMillis(); // Cooldown başlat
             status = (targetSide ? "YEŞİL" : "KIRMIZI") + " tarafta!";
             MuzMod.LOGGER.info("[OXState] Reached " + (targetSide ? "LIME" : "RED") + " side");
         } else {
@@ -281,6 +286,13 @@ public class OXState implements IState {
         if (now - stepStartTime > 1000) {
             stepStartTime = now;
             analyzePlayerPositions(player);
+            
+            // Cooldown kontrolü - bir tarafa vardıktan sonra 3 saniye bekle
+            if (now - lastSideChangeTime < SIDE_CHANGE_COOLDOWN) {
+                long remaining = (SIDE_CHANGE_COOLDOWN - (now - lastSideChangeTime)) / 1000;
+                status = "Pozisyonda bekleniyor... " + remaining + "s (L:" + playersOnLime + " R:" + playersOnRed + ")";
+                return;
+            }
             
             // Sadece diğer taraf FAZLA olunca yer değiştir (eşitlikte kalma)
             if (playersOnLime > 0 || playersOnRed > 0) {
