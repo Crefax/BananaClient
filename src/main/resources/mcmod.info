@@ -1,0 +1,16 @@
+[
+{
+  "modid": "muzmod",
+  "name": "MuzMod",
+  "description": "Automated task management mod with state system",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Crefax"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
