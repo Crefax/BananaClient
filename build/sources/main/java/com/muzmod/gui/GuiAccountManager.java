@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiTextField;
 import org.lwjgl.input.Keyboard;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 
 /**
  * Account Manager GUI
@@ -48,6 +49,9 @@ public class GuiAccountManager extends GuiScreen {
     public void initGui() {
         Keyboard.enableRepeatEvents(true);
         
+        // Realms hatalarını engelle
+        disableRealmsCheck();
+        
         guiX = (width - GUI_WIDTH) / 2;
         guiY = (height - GUI_HEIGHT) / 2;
         
@@ -62,6 +66,31 @@ public class GuiAccountManager extends GuiScreen {
         buttonList.add(new GuiButton(1, guiX + 20, guiY + 100, 115, 20, "§aGiris Yap"));
         buttonList.add(new GuiButton(2, guiX + 145, guiY + 100, 115, 20, "§eRestore"));
         buttonList.add(new GuiButton(0, guiX + 20, guiY + 130, GUI_WIDTH - 40, 20, "§7Geri"));
+    }
+    
+    /**
+     * Realms servis çağrılarını devre dışı bırak
+     */
+    private void disableRealmsCheck() {
+        try {
+            // Realms ile ilgili tüm servisleri devre dışı bırakmaya çalış
+            // 1.8.9'da Realms çok farklı çalışıyor, bu yüzden sessizce geçiyoruz
+            
+            // RealmsClient'ı null yap
+            try {
+                Class<?> realmsClass = Class.forName("com.mojang.realmsclient.client.RealmsClient");
+                Field instanceField = realmsClass.getDeclaredField("instance");
+                instanceField.setAccessible(true);
+                instanceField.set(null, null);
+            } catch (ClassNotFoundException e) {
+                // Realms yok, sorun değil
+            } catch (NoSuchFieldException e) {
+                // Field yok, sorun değil
+            }
+            
+        } catch (Exception e) {
+            // Sessizce devam et
+        }
     }
     
     @Override

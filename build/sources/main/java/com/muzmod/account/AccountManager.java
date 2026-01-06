@@ -65,6 +65,9 @@ public class AccountManager {
             // Session'ı değiştir (reflection ile)
             setSession(newSession);
             
+            // Realms'i devre dışı bırak
+            disableRealms();
+            
             currentUsername = username;
             MuzMod.LOGGER.info("[AccountManager] Logged in as: " + username);
             return true;
@@ -116,6 +119,39 @@ public class AccountManager {
         
         sessionField.setAccessible(true);
         sessionField.set(mc, session);
+    }
+    
+    /**
+     * Realms'i devre dışı bırak - offline modda Realms hatası engellemek için
+     */
+    private void disableRealms() {
+        try {
+            // RealmsClient instance'ını null yap
+            Class<?> realmsClientClass = Class.forName("com.mojang.realmsclient.RealmsMainScreen");
+            // Sadece GUI'ye girince çağrılacak, şimdilik sessizce geç
+        } catch (Exception e) {
+            // Realms sınıfı bulunamadı - sorun yok
+        }
+        
+        // Minecraft'ın realms bilgisini temizle
+        try {
+            Minecraft mc = Minecraft.getMinecraft();
+            
+            // theRealmsHost ve benzer field'ları temizle
+            for (Field field : Minecraft.class.getDeclaredFields()) {
+                String fieldName = field.getName().toLowerCase();
+                if (fieldName.contains("realm")) {
+                    field.setAccessible(true);
+                    if (!field.getType().isPrimitive()) {
+                        field.set(mc, null);
+                        MuzMod.LOGGER.info("[AccountManager] Cleared realms field: " + field.getName());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Hata olursa sessizce devam et
+            MuzMod.LOGGER.debug("[AccountManager] Realms disable note: " + e.getMessage());
+        }
     }
     
     /**
