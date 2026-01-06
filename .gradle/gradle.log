@@ -18,7 +18,7 @@ See https://gist.github.com/TheCurle/fe7ad3ede188cbdd15c235cc75d52d4a for more i
 :apiClasses UP-TO-DATE
 :sourceMainJava
 :compileJava
-:processResources
+:processResources UP-TO-DATE
 :classes
 :jar
 :sourceTestJava UP-TO-DATE
@@ -43,4 +43,4 @@ remapping source...
 
 BUİLD SUCCESSFUL
 
-Total time: 9.216 secs
+Total time: 10.766 secs
