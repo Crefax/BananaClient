@@ -7,108 +7,108 @@ Class Start: com.muzmod.MuzMod
    @|com\muzmod\MuzMod.java|761|766|MODID|field|com.muzmod.MuzMod|MODID|
    @|com\muzmod\MuzMod.java|803|809|String|class|java.lang.String
    @|com\muzmod\MuzMod.java|810|817|VERSION|field|com.muzmod.MuzMod|VERSION|
-   @|com\muzmod\MuzMod.java|856|862|Logger|class|org.apache.logging.log4j.Logger
-   @|com\muzmod\MuzMod.java|863|869|LOGGER|field|com.muzmod.MuzMod|LOGGER|
-   @|com\muzmod\MuzMod.java|872|882|LogManager|class|org.apache.logging.log4j.LogManager
-   @|com\muzmod\MuzMod.java|883|892|getLogger|method|org.apache.logging.log4j.LogManager|getLogger|(Ljava/lang/String;)Lorg/apache/logging/log4j/Logger;
-   @|com\muzmod\MuzMod.java|893|898|MODID|field|com.muzmod.MuzMod|MODID
-   @|com\muzmod\MuzMod.java|949|955|MuzMod|class|com.muzmod.MuzMod
-   @|com\muzmod\MuzMod.java|956|964|instance|field|com.muzmod.MuzMod|instance|
-   @|com\muzmod\MuzMod.java|983|995|StateManager|class|com.muzmod.state.StateManager
-   @|com\muzmod\MuzMod.java|996|1008|stateManager|field|com.muzmod.MuzMod|stateManager|
-   @|com\muzmod\MuzMod.java|1022|1031|ModConfig|class|com.muzmod.config.ModConfig
-   @|com\muzmod\MuzMod.java|1032|1038|config|field|com.muzmod.MuzMod|config|
-   @|com\muzmod\MuzMod.java|1052|1067|ScheduleManager|class|com.muzmod.schedule.ScheduleManager
-   @|com\muzmod\MuzMod.java|1068|1083|scheduleManager|field|com.muzmod.MuzMod|scheduleManager|
-   @|com\muzmod\MuzMod.java|1105|1115|botEnabled|field|com.muzmod.MuzMod|botEnabled|
+   @|com\muzmod\MuzMod.java|857|863|Logger|class|org.apache.logging.log4j.Logger
+   @|com\muzmod\MuzMod.java|864|870|LOGGER|field|com.muzmod.MuzMod|LOGGER|
+   @|com\muzmod\MuzMod.java|873|883|LogManager|class|org.apache.logging.log4j.LogManager
+   @|com\muzmod\MuzMod.java|884|893|getLogger|method|org.apache.logging.log4j.LogManager|getLogger|(Ljava/lang/String;)Lorg/apache/logging/log4j/Logger;
+   @|com\muzmod\MuzMod.java|894|899|MODID|field|com.muzmod.MuzMod|MODID
+   @|com\muzmod\MuzMod.java|950|956|MuzMod|class|com.muzmod.MuzMod
+   @|com\muzmod\MuzMod.java|957|965|instance|field|com.muzmod.MuzMod|instance|
+   @|com\muzmod\MuzMod.java|984|996|StateManager|class|com.muzmod.state.StateManager
+   @|com\muzmod\MuzMod.java|997|1009|stateManager|field|com.muzmod.MuzMod|stateManager|
+   @|com\muzmod\MuzMod.java|1023|1032|ModConfig|class|com.muzmod.config.ModConfig
+   @|com\muzmod\MuzMod.java|1033|1039|config|field|com.muzmod.MuzMod|config|
+   @|com\muzmod\MuzMod.java|1053|1068|ScheduleManager|class|com.muzmod.schedule.ScheduleManager
+   @|com\muzmod\MuzMod.java|1069|1084|scheduleManager|field|com.muzmod.MuzMod|scheduleManager|
+   @|com\muzmod\MuzMod.java|1106|1116|botEnabled|field|com.muzmod.MuzMod|botEnabled|
    Method Start: preInit(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V
-      @|com\muzmod\MuzMod.java|1168|1175|preInit|method|com.muzmod.MuzMod|preInit|(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V
-      @|com\muzmod\MuzMod.java|1176|1201|FMLPreInitializationEvent|class|net.minecraftforge.fml.common.event.FMLPreInitializationEvent
-      @|com\muzmod\MuzMod.java|1202|1207|event|param|com.muzmod.MuzMod|preInit|(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V|event|0
-      @|com\muzmod\MuzMod.java|1219|1225|LOGGER|field|com.muzmod.MuzMod|LOGGER
-      @|com\muzmod\MuzMod.java|1226|1230|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
-      @|com\muzmod\MuzMod.java|1269|1273|File|class|java.io.File
-      @|com\muzmod\MuzMod.java|1286|1291|event|param|com.muzmod.MuzMod|preInit|(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V|event|0
-      @|com\muzmod\MuzMod.java|1292|1320|getModConfigurationDirectory|method|net.minecraftforge.fml.common.event.FMLPreInitializationEvent|getModConfigurationDirectory|()Ljava/io/File;
-      @|com\muzmod\MuzMod.java|1332|1336|File|class|java.io.File
-      @|com\muzmod\MuzMod.java|1353|1357|File|class|java.io.File
-      @|com\muzmod\MuzMod.java|1403|1409|exists|method|java.io.File|exists|()Z
-      @|com\muzmod\MuzMod.java|1437|1443|mkdirs|method|java.io.File|mkdirs|()Z
-      @|com\muzmod\MuzMod.java|1474|1480|config|field|com.muzmod.MuzMod|config
-      @|com\muzmod\MuzMod.java|1487|1496|ModConfig|class|com.muzmod.config.ModConfig
-      @|com\muzmod\MuzMod.java|1497|1502|event|param|com.muzmod.MuzMod|preInit|(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V|event|0
-      @|com\muzmod\MuzMod.java|1503|1532|getSuggestedConfigurationFile|method|net.minecraftforge.fml.common.event.FMLPreInitializationEvent|getSuggestedConfigurationFile|()Ljava/io/File;
-      @|com\muzmod\MuzMod.java|1545|1551|config|field|com.muzmod.MuzMod|config
-      @|com\muzmod\MuzMod.java|1552|1556|load|method|com.muzmod.config.ModConfig|load|()V
-      @|com\muzmod\MuzMod.java|1577|1592|scheduleManager|field|com.muzmod.MuzMod|scheduleManager
-      @|com\muzmod\MuzMod.java|1599|1614|ScheduleManager|class|com.muzmod.schedule.ScheduleManager
+      @|com\muzmod\MuzMod.java|1169|1176|preInit|method|com.muzmod.MuzMod|preInit|(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V
+      @|com\muzmod\MuzMod.java|1177|1202|FMLPreInitializationEvent|class|net.minecraftforge.fml.common.event.FMLPreInitializationEvent
+      @|com\muzmod\MuzMod.java|1203|1208|event|param|com.muzmod.MuzMod|preInit|(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V|event|0
+      @|com\muzmod\MuzMod.java|1220|1226|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\MuzMod.java|1227|1231|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
+      @|com\muzmod\MuzMod.java|1270|1274|File|class|java.io.File
+      @|com\muzmod\MuzMod.java|1287|1292|event|param|com.muzmod.MuzMod|preInit|(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V|event|0
+      @|com\muzmod\MuzMod.java|1293|1321|getModConfigurationDirectory|method|net.minecraftforge.fml.common.event.FMLPreInitializationEvent|getModConfigurationDirectory|()Ljava/io/File;
+      @|com\muzmod\MuzMod.java|1333|1337|File|class|java.io.File
+      @|com\muzmod\MuzMod.java|1354|1358|File|class|java.io.File
+      @|com\muzmod\MuzMod.java|1404|1410|exists|method|java.io.File|exists|()Z
+      @|com\muzmod\MuzMod.java|1438|1444|mkdirs|method|java.io.File|mkdirs|()Z
+      @|com\muzmod\MuzMod.java|1475|1481|config|field|com.muzmod.MuzMod|config
+      @|com\muzmod\MuzMod.java|1488|1497|ModConfig|class|com.muzmod.config.ModConfig
+      @|com\muzmod\MuzMod.java|1498|1503|event|param|com.muzmod.MuzMod|preInit|(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V|event|0
+      @|com\muzmod\MuzMod.java|1504|1533|getSuggestedConfigurationFile|method|net.minecraftforge.fml.common.event.FMLPreInitializationEvent|getSuggestedConfigurationFile|()Ljava/io/File;
+      @|com\muzmod\MuzMod.java|1546|1552|config|field|com.muzmod.MuzMod|config
+      @|com\muzmod\MuzMod.java|1553|1557|load|method|com.muzmod.config.ModConfig|load|()V
+      @|com\muzmod\MuzMod.java|1578|1593|scheduleManager|field|com.muzmod.MuzMod|scheduleManager
+      @|com\muzmod\MuzMod.java|1600|1615|ScheduleManager|class|com.muzmod.schedule.ScheduleManager
    Method End: preInit(Lnet/minecraftforge/fml/common/event/FMLPreInitializationEvent;)V
    Method Start: init(Lnet/minecraftforge/fml/common/event/FMLInitializationEvent;)V
-      @|com\muzmod\MuzMod.java|1676|1680|init|method|com.muzmod.MuzMod|init|(Lnet/minecraftforge/fml/common/event/FMLInitializationEvent;)V
-      @|com\muzmod\MuzMod.java|1681|1703|FMLInitializationEvent|class|net.minecraftforge.fml.common.event.FMLInitializationEvent
-      @|com\muzmod\MuzMod.java|1704|1709|event|param|com.muzmod.MuzMod|init|(Lnet/minecraftforge/fml/common/event/FMLInitializationEvent;)V|event|0
-      @|com\muzmod\MuzMod.java|1721|1727|LOGGER|field|com.muzmod.MuzMod|LOGGER
-      @|com\muzmod\MuzMod.java|1728|1732|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
-      @|com\muzmod\MuzMod.java|1776|1788|stateManager|field|com.muzmod.MuzMod|stateManager
-      @|com\muzmod\MuzMod.java|1795|1807|StateManager|class|com.muzmod.state.StateManager
-      @|com\muzmod\MuzMod.java|1828|1842|MinecraftForge|class|net.minecraftforge.common.MinecraftForge
-      @|com\muzmod\MuzMod.java|1843|1852|EVENT_BUS|field|net.minecraftforge.common.MinecraftForge|EVENT_BUS
-      @|com\muzmod\MuzMod.java|1853|1861|register|method|net.minecraftforge.fml.common.eventhandler.EventBus|register|(Ljava/lang/Object;)V
-      @|com\muzmod\MuzMod.java|1866|1878|EventHandler|class|com.muzmod.handler.EventHandler
-      @|com\muzmod\MuzMod.java|1891|1905|MinecraftForge|class|net.minecraftforge.common.MinecraftForge
-      @|com\muzmod\MuzMod.java|1906|1915|EVENT_BUS|field|net.minecraftforge.common.MinecraftForge|EVENT_BUS
-      @|com\muzmod\MuzMod.java|1916|1924|register|method|net.minecraftforge.fml.common.eventhandler.EventBus|register|(Ljava/lang/Object;)V
-      @|com\muzmod\MuzMod.java|1929|1943|KeyBindHandler|class|com.muzmod.handler.KeyBindHandler
-      @|com\muzmod\MuzMod.java|1956|1970|MinecraftForge|class|net.minecraftforge.common.MinecraftForge
-      @|com\muzmod\MuzMod.java|1971|1980|EVENT_BUS|field|net.minecraftforge.common.MinecraftForge|EVENT_BUS
-      @|com\muzmod\MuzMod.java|1981|1989|register|method|net.minecraftforge.fml.common.eventhandler.EventBus|register|(Ljava/lang/Object;)V
-      @|com\muzmod\MuzMod.java|1990|2002|stateManager|field|com.muzmod.MuzMod|stateManager
-      @|com\muzmod\MuzMod.java|2022|2036|KeyBindHandler|class|com.muzmod.handler.KeyBindHandler
-      @|com\muzmod\MuzMod.java|2037|2053|registerKeyBinds|method|com.muzmod.handler.KeyBindHandler|registerKeyBinds|()V
+      @|com\muzmod\MuzMod.java|1677|1681|init|method|com.muzmod.MuzMod|init|(Lnet/minecraftforge/fml/common/event/FMLInitializationEvent;)V
+      @|com\muzmod\MuzMod.java|1682|1704|FMLInitializationEvent|class|net.minecraftforge.fml.common.event.FMLInitializationEvent
+      @|com\muzmod\MuzMod.java|1705|1710|event|param|com.muzmod.MuzMod|init|(Lnet/minecraftforge/fml/common/event/FMLInitializationEvent;)V|event|0
+      @|com\muzmod\MuzMod.java|1722|1728|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\MuzMod.java|1729|1733|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
+      @|com\muzmod\MuzMod.java|1777|1789|stateManager|field|com.muzmod.MuzMod|stateManager
+      @|com\muzmod\MuzMod.java|1796|1808|StateManager|class|com.muzmod.state.StateManager
+      @|com\muzmod\MuzMod.java|1829|1843|MinecraftForge|class|net.minecraftforge.common.MinecraftForge
+      @|com\muzmod\MuzMod.java|1844|1853|EVENT_BUS|field|net.minecraftforge.common.MinecraftForge|EVENT_BUS
+      @|com\muzmod\MuzMod.java|1854|1862|register|method|net.minecraftforge.fml.common.eventhandler.EventBus|register|(Ljava/lang/Object;)V
+      @|com\muzmod\MuzMod.java|1867|1879|EventHandler|class|com.muzmod.handler.EventHandler
+      @|com\muzmod\MuzMod.java|1892|1906|MinecraftForge|class|net.minecraftforge.common.MinecraftForge
+      @|com\muzmod\MuzMod.java|1907|1916|EVENT_BUS|field|net.minecraftforge.common.MinecraftForge|EVENT_BUS
+      @|com\muzmod\MuzMod.java|1917|1925|register|method|net.minecraftforge.fml.common.eventhandler.EventBus|register|(Ljava/lang/Object;)V
+      @|com\muzmod\MuzMod.java|1930|1944|KeyBindHandler|class|com.muzmod.handler.KeyBindHandler
+      @|com\muzmod\MuzMod.java|1957|1971|MinecraftForge|class|net.minecraftforge.common.MinecraftForge
+      @|com\muzmod\MuzMod.java|1972|1981|EVENT_BUS|field|net.minecraftforge.common.MinecraftForge|EVENT_BUS
+      @|com\muzmod\MuzMod.java|1982|1990|register|method|net.minecraftforge.fml.common.eventhandler.EventBus|register|(Ljava/lang/Object;)V
+      @|com\muzmod\MuzMod.java|1991|2003|stateManager|field|com.muzmod.MuzMod|stateManager
+      @|com\muzmod\MuzMod.java|2023|2037|KeyBindHandler|class|com.muzmod.handler.KeyBindHandler
+      @|com\muzmod\MuzMod.java|2038|2054|registerKeyBinds|method|com.muzmod.handler.KeyBindHandler|registerKeyBinds|()V
    Method End: init(Lnet/minecraftforge/fml/common/event/FMLInitializationEvent;)V
    Method Start: postInit(Lnet/minecraftforge/fml/common/event/FMLPostInitializationEvent;)V
-      @|com\muzmod\MuzMod.java|2106|2114|postInit|method|com.muzmod.MuzMod|postInit|(Lnet/minecraftforge/fml/common/event/FMLPostInitializationEvent;)V
-      @|com\muzmod\MuzMod.java|2115|2141|FMLPostInitializationEvent|class|net.minecraftforge.fml.common.event.FMLPostInitializationEvent
-      @|com\muzmod\MuzMod.java|2142|2147|event|param|com.muzmod.MuzMod|postInit|(Lnet/minecraftforge/fml/common/event/FMLPostInitializationEvent;)V|event|0
-      @|com\muzmod\MuzMod.java|2159|2165|LOGGER|field|com.muzmod.MuzMod|LOGGER
-      @|com\muzmod\MuzMod.java|2166|2170|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
+      @|com\muzmod\MuzMod.java|2107|2115|postInit|method|com.muzmod.MuzMod|postInit|(Lnet/minecraftforge/fml/common/event/FMLPostInitializationEvent;)V
+      @|com\muzmod\MuzMod.java|2116|2142|FMLPostInitializationEvent|class|net.minecraftforge.fml.common.event.FMLPostInitializationEvent
+      @|com\muzmod\MuzMod.java|2143|2148|event|param|com.muzmod.MuzMod|postInit|(Lnet/minecraftforge/fml/common/event/FMLPostInitializationEvent;)V|event|0
+      @|com\muzmod\MuzMod.java|2160|2166|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\MuzMod.java|2167|2171|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
    Method End: postInit(Lnet/minecraftforge/fml/common/event/FMLPostInitializationEvent;)V
    Method Start: getStateManager()Lcom/muzmod/state/StateManager;
-      @|com\muzmod\MuzMod.java|2246|2261|getStateManager|method|com.muzmod.MuzMod|getStateManager|()Lcom/muzmod/state/StateManager;
-      @|com\muzmod\MuzMod.java|2233|2245|StateManager|class|com.muzmod.state.StateManager
-      @|com\muzmod\MuzMod.java|2281|2293|stateManager|field|com.muzmod.MuzMod|stateManager
+      @|com\muzmod\MuzMod.java|2247|2262|getStateManager|method|com.muzmod.MuzMod|getStateManager|()Lcom/muzmod/state/StateManager;
+      @|com\muzmod\MuzMod.java|2234|2246|StateManager|class|com.muzmod.state.StateManager
+      @|com\muzmod\MuzMod.java|2282|2294|stateManager|field|com.muzmod.MuzMod|stateManager
    Method End: getStateManager()Lcom/muzmod/state/StateManager;
    Method Start: getConfig()Lcom/muzmod/config/ModConfig;
-      @|com\muzmod\MuzMod.java|2327|2336|getConfig|method|com.muzmod.MuzMod|getConfig|()Lcom/muzmod/config/ModConfig;
-      @|com\muzmod\MuzMod.java|2317|2326|ModConfig|class|com.muzmod.config.ModConfig
-      @|com\muzmod\MuzMod.java|2356|2362|config|field|com.muzmod.MuzMod|config
+      @|com\muzmod\MuzMod.java|2328|2337|getConfig|method|com.muzmod.MuzMod|getConfig|()Lcom/muzmod/config/ModConfig;
+      @|com\muzmod\MuzMod.java|2318|2327|ModConfig|class|com.muzmod.config.ModConfig
+      @|com\muzmod\MuzMod.java|2357|2363|config|field|com.muzmod.MuzMod|config
    Method End: getConfig()Lcom/muzmod/config/ModConfig;
    Method Start: getScheduleManager()Lcom/muzmod/schedule/ScheduleManager;
-      @|com\muzmod\MuzMod.java|2402|2420|getScheduleManager|method|com.muzmod.MuzMod|getScheduleManager|()Lcom/muzmod/schedule/ScheduleManager;
-      @|com\muzmod\MuzMod.java|2386|2401|ScheduleManager|class|com.muzmod.schedule.ScheduleManager
-      @|com\muzmod\MuzMod.java|2440|2455|scheduleManager|field|com.muzmod.MuzMod|scheduleManager
+      @|com\muzmod\MuzMod.java|2403|2421|getScheduleManager|method|com.muzmod.MuzMod|getScheduleManager|()Lcom/muzmod/schedule/ScheduleManager;
+      @|com\muzmod\MuzMod.java|2387|2402|ScheduleManager|class|com.muzmod.schedule.ScheduleManager
+      @|com\muzmod\MuzMod.java|2441|2456|scheduleManager|field|com.muzmod.MuzMod|scheduleManager
    Method End: getScheduleManager()Lcom/muzmod/schedule/ScheduleManager;
    Method Start: isBotEnabled()Z
-      @|com\muzmod\MuzMod.java|2487|2499|isBotEnabled|method|com.muzmod.MuzMod|isBotEnabled|()Z
-      @|com\muzmod\MuzMod.java|2519|2529|botEnabled|field|com.muzmod.MuzMod|botEnabled
+      @|com\muzmod\MuzMod.java|2488|2500|isBotEnabled|method|com.muzmod.MuzMod|isBotEnabled|()Z
+      @|com\muzmod\MuzMod.java|2520|2530|botEnabled|field|com.muzmod.MuzMod|botEnabled
    Method End: isBotEnabled()Z
    Method Start: setBotEnabled(Z)V
-      @|com\muzmod\MuzMod.java|2558|2571|setBotEnabled|method|com.muzmod.MuzMod|setBotEnabled|(Z)V
-      @|com\muzmod\MuzMod.java|2580|2587|enabled|param|com.muzmod.MuzMod|setBotEnabled|(Z)V|enabled|0
-      @|com\muzmod\MuzMod.java|2604|2614|botEnabled|field|com.muzmod.MuzMod|botEnabled
-      @|com\muzmod\MuzMod.java|2617|2624|enabled|param|com.muzmod.MuzMod|setBotEnabled|(Z)V|enabled|0
-      @|com\muzmod\MuzMod.java|2638|2645|enabled|param|com.muzmod.MuzMod|setBotEnabled|(Z)V|enabled|0
-      @|com\muzmod\MuzMod.java|2661|2667|LOGGER|field|com.muzmod.MuzMod|LOGGER
-      @|com\muzmod\MuzMod.java|2668|2672|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
-      @|com\muzmod\MuzMod.java|2718|2724|LOGGER|field|com.muzmod.MuzMod|LOGGER
-      @|com\muzmod\MuzMod.java|2725|2729|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
-      @|com\muzmod\MuzMod.java|2759|2771|stateManager|field|com.muzmod.MuzMod|stateManager
-      @|com\muzmod\MuzMod.java|2772|2788|stopCurrentState|method|com.muzmod.state.StateManager|stopCurrentState|()V
+      @|com\muzmod\MuzMod.java|2559|2572|setBotEnabled|method|com.muzmod.MuzMod|setBotEnabled|(Z)V
+      @|com\muzmod\MuzMod.java|2581|2588|enabled|param|com.muzmod.MuzMod|setBotEnabled|(Z)V|enabled|0
+      @|com\muzmod\MuzMod.java|2605|2615|botEnabled|field|com.muzmod.MuzMod|botEnabled
+      @|com\muzmod\MuzMod.java|2618|2625|enabled|param|com.muzmod.MuzMod|setBotEnabled|(Z)V|enabled|0
+      @|com\muzmod\MuzMod.java|2639|2646|enabled|param|com.muzmod.MuzMod|setBotEnabled|(Z)V|enabled|0
+      @|com\muzmod\MuzMod.java|2662|2668|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\MuzMod.java|2669|2673|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
+      @|com\muzmod\MuzMod.java|2719|2725|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\MuzMod.java|2726|2730|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
+      @|com\muzmod\MuzMod.java|2760|2772|stateManager|field|com.muzmod.MuzMod|stateManager
+      @|com\muzmod\MuzMod.java|2773|2789|stopCurrentState|method|com.muzmod.state.StateManager|stopCurrentState|()V
    Method End: setBotEnabled(Z)V
    Method Start: toggleBot()V
-      @|com\muzmod\MuzMod.java|2829|2838|toggleBot|method|com.muzmod.MuzMod|toggleBot|()V
-      @|com\muzmod\MuzMod.java|2851|2864|setBotEnabled|method|com.muzmod.MuzMod|setBotEnabled|(Z)V
-      @|com\muzmod\MuzMod.java|2866|2876|botEnabled|field|com.muzmod.MuzMod|botEnabled
+      @|com\muzmod\MuzMod.java|2830|2839|toggleBot|method|com.muzmod.MuzMod|toggleBot|()V
+      @|com\muzmod\MuzMod.java|2852|2865|setBotEnabled|method|com.muzmod.MuzMod|setBotEnabled|(Z)V
+      @|com\muzmod\MuzMod.java|2867|2877|botEnabled|field|com.muzmod.MuzMod|botEnabled
    Method End: toggleBot()V
 Class End  : com.muzmod.MuzMod
 endProcessing com\muzmod\MuzMod.java
@@ -5959,158 +5959,158 @@ Class Start: com.muzmod.schedule.ScheduleManager
       @|com\muzmod\schedule\ScheduleManager.java|8811|8832|createDefaultSchedule|method|com.muzmod.schedule.ScheduleManager|createDefaultSchedule|()V
       @|com\muzmod\schedule\ScheduleManager.java|8845|8852|entries|field|com.muzmod.schedule.ScheduleManager|entries
       @|com\muzmod\schedule\ScheduleManager.java|8853|8858|clear|method|java.util.Collection|clear|()V
-      @|com\muzmod\schedule\ScheduleManager.java|9045|9052|entries|field|com.muzmod.schedule.ScheduleManager|entries
-      @|com\muzmod\schedule\ScheduleManager.java|9053|9056|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
-      @|com\muzmod\schedule\ScheduleManager.java|9061|9074|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
-      @|com\muzmod\schedule\ScheduleManager.java|9094|9117|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
-      @|com\muzmod\schedule\ScheduleManager.java|9118|9124|MINING|field|com.muzmod.schedule.ScheduleEntry.EventType|MINING
-      @|com\muzmod\schedule\ScheduleManager.java|9140|9147|entries|field|com.muzmod.schedule.ScheduleManager|entries
-      @|com\muzmod\schedule\ScheduleManager.java|9148|9151|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
-      @|com\muzmod\schedule\ScheduleManager.java|9156|9169|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
-      @|com\muzmod\schedule\ScheduleManager.java|9191|9214|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
-      @|com\muzmod\schedule\ScheduleManager.java|9215|9221|MINING|field|com.muzmod.schedule.ScheduleEntry.EventType|MINING
-      @|com\muzmod\schedule\ScheduleManager.java|9237|9244|entries|field|com.muzmod.schedule.ScheduleManager|entries
-      @|com\muzmod\schedule\ScheduleManager.java|9245|9248|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
-      @|com\muzmod\schedule\ScheduleManager.java|9253|9266|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
-      @|com\muzmod\schedule\ScheduleManager.java|9288|9311|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
-      @|com\muzmod\schedule\ScheduleManager.java|9312|9318|MINING|field|com.muzmod.schedule.ScheduleEntry.EventType|MINING
-      @|com\muzmod\schedule\ScheduleManager.java|9334|9341|entries|field|com.muzmod.schedule.ScheduleManager|entries
-      @|com\muzmod\schedule\ScheduleManager.java|9342|9345|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
-      @|com\muzmod\schedule\ScheduleManager.java|9350|9363|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
-      @|com\muzmod\schedule\ScheduleManager.java|9384|9407|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
-      @|com\muzmod\schedule\ScheduleManager.java|9408|9414|MINING|field|com.muzmod.schedule.ScheduleEntry.EventType|MINING
-      @|com\muzmod\schedule\ScheduleManager.java|9565|9572|entries|field|com.muzmod.schedule.ScheduleManager|entries
-      @|com\muzmod\schedule\ScheduleManager.java|9573|9576|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
-      @|com\muzmod\schedule\ScheduleManager.java|9581|9594|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
-      @|com\muzmod\schedule\ScheduleManager.java|9614|9637|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
-      @|com\muzmod\schedule\ScheduleManager.java|9638|9644|MINING|field|com.muzmod.schedule.ScheduleEntry.EventType|MINING
-      @|com\muzmod\schedule\ScheduleManager.java|9660|9667|entries|field|com.muzmod.schedule.ScheduleManager|entries
-      @|com\muzmod\schedule\ScheduleManager.java|9668|9671|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
-      @|com\muzmod\schedule\ScheduleManager.java|9676|9689|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
-      @|com\muzmod\schedule\ScheduleManager.java|9711|9734|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
-      @|com\muzmod\schedule\ScheduleManager.java|9735|9741|MINING|field|com.muzmod.schedule.ScheduleEntry.EventType|MINING
-      @|com\muzmod\schedule\ScheduleManager.java|9757|9764|entries|field|com.muzmod.schedule.ScheduleManager|entries
-      @|com\muzmod\schedule\ScheduleManager.java|9765|9768|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
-      @|com\muzmod\schedule\ScheduleManager.java|9773|9786|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
-      @|com\muzmod\schedule\ScheduleManager.java|9808|9831|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
-      @|com\muzmod\schedule\ScheduleManager.java|9832|9838|MINING|field|com.muzmod.schedule.ScheduleEntry.EventType|MINING
-      @|com\muzmod\schedule\ScheduleManager.java|9854|9861|entries|field|com.muzmod.schedule.ScheduleManager|entries
-      @|com\muzmod\schedule\ScheduleManager.java|9862|9865|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
-      @|com\muzmod\schedule\ScheduleManager.java|9870|9883|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
-      @|com\muzmod\schedule\ScheduleManager.java|9905|9928|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
-      @|com\muzmod\schedule\ScheduleManager.java|9929|9935|MINING|field|com.muzmod.schedule.ScheduleEntry.EventType|MINING
-      @|com\muzmod\schedule\ScheduleManager.java|9951|9958|entries|field|com.muzmod.schedule.ScheduleManager|entries
-      @|com\muzmod\schedule\ScheduleManager.java|9959|9962|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
-      @|com\muzmod\schedule\ScheduleManager.java|9967|9980|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
-      @|com\muzmod\schedule\ScheduleManager.java|10001|10024|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
-      @|com\muzmod\schedule\ScheduleManager.java|10025|10031|MINING|field|com.muzmod.schedule.ScheduleEntry.EventType|MINING
-      @|com\muzmod\schedule\ScheduleManager.java|10212|10219|entries|field|com.muzmod.schedule.ScheduleManager|entries
-      @|com\muzmod\schedule\ScheduleManager.java|10220|10223|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
-      @|com\muzmod\schedule\ScheduleManager.java|10228|10241|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
-      @|com\muzmod\schedule\ScheduleManager.java|10262|10285|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
-      @|com\muzmod\schedule\ScheduleManager.java|10286|10288|OX|field|com.muzmod.schedule.ScheduleEntry.EventType|OX
-      @|com\muzmod\schedule\ScheduleManager.java|10304|10311|entries|field|com.muzmod.schedule.ScheduleManager|entries
-      @|com\muzmod\schedule\ScheduleManager.java|10312|10315|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
-      @|com\muzmod\schedule\ScheduleManager.java|10320|10333|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
-      @|com\muzmod\schedule\ScheduleManager.java|10352|10375|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
-      @|com\muzmod\schedule\ScheduleManager.java|10376|10378|OX|field|com.muzmod.schedule.ScheduleEntry.EventType|OX
-      @|com\muzmod\schedule\ScheduleManager.java|10510|10517|entries|field|com.muzmod.schedule.ScheduleManager|entries
-      @|com\muzmod\schedule\ScheduleManager.java|10518|10521|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
-      @|com\muzmod\schedule\ScheduleManager.java|10526|10539|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
-      @|com\muzmod\schedule\ScheduleManager.java|10560|10583|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
-      @|com\muzmod\schedule\ScheduleManager.java|10584|10586|OX|field|com.muzmod.schedule.ScheduleEntry.EventType|OX
-      @|com\muzmod\schedule\ScheduleManager.java|10602|10609|entries|field|com.muzmod.schedule.ScheduleManager|entries
-      @|com\muzmod\schedule\ScheduleManager.java|10610|10613|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
-      @|com\muzmod\schedule\ScheduleManager.java|10618|10631|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
-      @|com\muzmod\schedule\ScheduleManager.java|10652|10675|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
-      @|com\muzmod\schedule\ScheduleManager.java|10676|10678|OX|field|com.muzmod.schedule.ScheduleEntry.EventType|OX
-      @|com\muzmod\schedule\ScheduleManager.java|10694|10701|entries|field|com.muzmod.schedule.ScheduleManager|entries
-      @|com\muzmod\schedule\ScheduleManager.java|10702|10705|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
-      @|com\muzmod\schedule\ScheduleManager.java|10710|10723|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
-      @|com\muzmod\schedule\ScheduleManager.java|10742|10765|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
-      @|com\muzmod\schedule\ScheduleManager.java|10766|10768|OX|field|com.muzmod.schedule.ScheduleEntry.EventType|OX
-      @|com\muzmod\schedule\ScheduleManager.java|10799|10803|save|method|com.muzmod.schedule.ScheduleManager|save|()V
-      @|com\muzmod\schedule\ScheduleManager.java|10815|10821|MuzMod|class|com.muzmod.MuzMod
-      @|com\muzmod\schedule\ScheduleManager.java|10822|10828|LOGGER|field|com.muzmod.MuzMod|LOGGER
-      @|com\muzmod\schedule\ScheduleManager.java|10829|10833|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
+      @|com\muzmod\schedule\ScheduleManager.java|9075|9082|entries|field|com.muzmod.schedule.ScheduleManager|entries
+      @|com\muzmod\schedule\ScheduleManager.java|9083|9086|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
+      @|com\muzmod\schedule\ScheduleManager.java|9091|9104|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
+      @|com\muzmod\schedule\ScheduleManager.java|9123|9146|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
+      @|com\muzmod\schedule\ScheduleManager.java|9147|9153|MINING|field|com.muzmod.schedule.ScheduleEntry.EventType|MINING
+      @|com\muzmod\schedule\ScheduleManager.java|9187|9194|entries|field|com.muzmod.schedule.ScheduleManager|entries
+      @|com\muzmod\schedule\ScheduleManager.java|9195|9198|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
+      @|com\muzmod\schedule\ScheduleManager.java|9203|9216|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
+      @|com\muzmod\schedule\ScheduleManager.java|9237|9260|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
+      @|com\muzmod\schedule\ScheduleManager.java|9261|9267|MINING|field|com.muzmod.schedule.ScheduleEntry.EventType|MINING
+      @|com\muzmod\schedule\ScheduleManager.java|9299|9306|entries|field|com.muzmod.schedule.ScheduleManager|entries
+      @|com\muzmod\schedule\ScheduleManager.java|9307|9310|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
+      @|com\muzmod\schedule\ScheduleManager.java|9315|9328|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
+      @|com\muzmod\schedule\ScheduleManager.java|9349|9372|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
+      @|com\muzmod\schedule\ScheduleManager.java|9373|9379|MINING|field|com.muzmod.schedule.ScheduleEntry.EventType|MINING
+      @|com\muzmod\schedule\ScheduleManager.java|9411|9418|entries|field|com.muzmod.schedule.ScheduleManager|entries
+      @|com\muzmod\schedule\ScheduleManager.java|9419|9422|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
+      @|com\muzmod\schedule\ScheduleManager.java|9427|9440|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
+      @|com\muzmod\schedule\ScheduleManager.java|9460|9483|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
+      @|com\muzmod\schedule\ScheduleManager.java|9484|9490|MINING|field|com.muzmod.schedule.ScheduleEntry.EventType|MINING
+      @|com\muzmod\schedule\ScheduleManager.java|9678|9685|entries|field|com.muzmod.schedule.ScheduleManager|entries
+      @|com\muzmod\schedule\ScheduleManager.java|9686|9689|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
+      @|com\muzmod\schedule\ScheduleManager.java|9694|9707|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
+      @|com\muzmod\schedule\ScheduleManager.java|9726|9749|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
+      @|com\muzmod\schedule\ScheduleManager.java|9750|9756|MINING|field|com.muzmod.schedule.ScheduleEntry.EventType|MINING
+      @|com\muzmod\schedule\ScheduleManager.java|9790|9797|entries|field|com.muzmod.schedule.ScheduleManager|entries
+      @|com\muzmod\schedule\ScheduleManager.java|9798|9801|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
+      @|com\muzmod\schedule\ScheduleManager.java|9806|9819|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
+      @|com\muzmod\schedule\ScheduleManager.java|9840|9863|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
+      @|com\muzmod\schedule\ScheduleManager.java|9864|9870|MINING|field|com.muzmod.schedule.ScheduleEntry.EventType|MINING
+      @|com\muzmod\schedule\ScheduleManager.java|9902|9909|entries|field|com.muzmod.schedule.ScheduleManager|entries
+      @|com\muzmod\schedule\ScheduleManager.java|9910|9913|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
+      @|com\muzmod\schedule\ScheduleManager.java|9918|9931|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
+      @|com\muzmod\schedule\ScheduleManager.java|9952|9975|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
+      @|com\muzmod\schedule\ScheduleManager.java|9976|9982|MINING|field|com.muzmod.schedule.ScheduleEntry.EventType|MINING
+      @|com\muzmod\schedule\ScheduleManager.java|10014|10021|entries|field|com.muzmod.schedule.ScheduleManager|entries
+      @|com\muzmod\schedule\ScheduleManager.java|10022|10025|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
+      @|com\muzmod\schedule\ScheduleManager.java|10030|10043|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
+      @|com\muzmod\schedule\ScheduleManager.java|10064|10087|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
+      @|com\muzmod\schedule\ScheduleManager.java|10088|10094|MINING|field|com.muzmod.schedule.ScheduleEntry.EventType|MINING
+      @|com\muzmod\schedule\ScheduleManager.java|10126|10133|entries|field|com.muzmod.schedule.ScheduleManager|entries
+      @|com\muzmod\schedule\ScheduleManager.java|10134|10137|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
+      @|com\muzmod\schedule\ScheduleManager.java|10142|10155|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
+      @|com\muzmod\schedule\ScheduleManager.java|10175|10198|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
+      @|com\muzmod\schedule\ScheduleManager.java|10199|10205|MINING|field|com.muzmod.schedule.ScheduleEntry.EventType|MINING
+      @|com\muzmod\schedule\ScheduleManager.java|10432|10439|entries|field|com.muzmod.schedule.ScheduleManager|entries
+      @|com\muzmod\schedule\ScheduleManager.java|10440|10443|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
+      @|com\muzmod\schedule\ScheduleManager.java|10448|10461|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
+      @|com\muzmod\schedule\ScheduleManager.java|10480|10503|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
+      @|com\muzmod\schedule\ScheduleManager.java|10504|10506|OX|field|com.muzmod.schedule.ScheduleEntry.EventType|OX
+      @|com\muzmod\schedule\ScheduleManager.java|10541|10548|entries|field|com.muzmod.schedule.ScheduleManager|entries
+      @|com\muzmod\schedule\ScheduleManager.java|10549|10552|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
+      @|com\muzmod\schedule\ScheduleManager.java|10557|10570|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
+      @|com\muzmod\schedule\ScheduleManager.java|10592|10615|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
+      @|com\muzmod\schedule\ScheduleManager.java|10616|10618|OX|field|com.muzmod.schedule.ScheduleEntry.EventType|OX
+      @|com\muzmod\schedule\ScheduleManager.java|10786|10793|entries|field|com.muzmod.schedule.ScheduleManager|entries
+      @|com\muzmod\schedule\ScheduleManager.java|10794|10797|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
+      @|com\muzmod\schedule\ScheduleManager.java|10802|10815|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
+      @|com\muzmod\schedule\ScheduleManager.java|10834|10857|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
+      @|com\muzmod\schedule\ScheduleManager.java|10858|10860|OX|field|com.muzmod.schedule.ScheduleEntry.EventType|OX
+      @|com\muzmod\schedule\ScheduleManager.java|10895|10902|entries|field|com.muzmod.schedule.ScheduleManager|entries
+      @|com\muzmod\schedule\ScheduleManager.java|10903|10906|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
+      @|com\muzmod\schedule\ScheduleManager.java|10911|10924|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
+      @|com\muzmod\schedule\ScheduleManager.java|10946|10969|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
+      @|com\muzmod\schedule\ScheduleManager.java|10970|10972|OX|field|com.muzmod.schedule.ScheduleEntry.EventType|OX
+      @|com\muzmod\schedule\ScheduleManager.java|11004|11011|entries|field|com.muzmod.schedule.ScheduleManager|entries
+      @|com\muzmod\schedule\ScheduleManager.java|11012|11015|add|method|java.util.Collection|add|(Ljava/lang/Object;)Z
+      @|com\muzmod\schedule\ScheduleManager.java|11020|11033|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
+      @|com\muzmod\schedule\ScheduleManager.java|11055|11078|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
+      @|com\muzmod\schedule\ScheduleManager.java|11079|11081|OX|field|com.muzmod.schedule.ScheduleEntry.EventType|OX
+      @|com\muzmod\schedule\ScheduleManager.java|11128|11132|save|method|com.muzmod.schedule.ScheduleManager|save|()V
+      @|com\muzmod\schedule\ScheduleManager.java|11144|11150|MuzMod|class|com.muzmod.MuzMod
+      @|com\muzmod\schedule\ScheduleManager.java|11151|11157|LOGGER|field|com.muzmod.MuzMod|LOGGER
+      @|com\muzmod\schedule\ScheduleManager.java|11158|11162|info|method|org.apache.logging.log4j.Logger|info|(Ljava/lang/String;)V
    Method End: createDefaultSchedule()V
    Method Start: isScheduleEnabled()Z
-      @|com\muzmod\schedule\ScheduleManager.java|10955|10972|isScheduleEnabled|method|com.muzmod.schedule.ScheduleManager|isScheduleEnabled|()Z
-      @|com\muzmod\schedule\ScheduleManager.java|10984|10999|scheduleEnabled|field|com.muzmod.schedule.ScheduleManager|scheduleEnabled
+      @|com\muzmod\schedule\ScheduleManager.java|11284|11301|isScheduleEnabled|method|com.muzmod.schedule.ScheduleManager|isScheduleEnabled|()Z
+      @|com\muzmod\schedule\ScheduleManager.java|11313|11328|scheduleEnabled|field|com.muzmod.schedule.ScheduleManager|scheduleEnabled
    Method End: isScheduleEnabled()Z
    Method Start: setScheduleEnabled(Z)V
-      @|com\muzmod\schedule\ScheduleManager.java|11019|11037|setScheduleEnabled|method|com.muzmod.schedule.ScheduleManager|setScheduleEnabled|(Z)V
-      @|com\muzmod\schedule\ScheduleManager.java|11046|11053|enabled|param|com.muzmod.schedule.ScheduleManager|setScheduleEnabled|(Z)V|enabled|0
-      @|com\muzmod\schedule\ScheduleManager.java|11071|11086|scheduleEnabled|field|com.muzmod.schedule.ScheduleManager|scheduleEnabled
-      @|com\muzmod\schedule\ScheduleManager.java|11089|11096|enabled|param|com.muzmod.schedule.ScheduleManager|setScheduleEnabled|(Z)V|enabled|0
-      @|com\muzmod\schedule\ScheduleManager.java|11107|11111|save|method|com.muzmod.schedule.ScheduleManager|save|()V
+      @|com\muzmod\schedule\ScheduleManager.java|11348|11366|setScheduleEnabled|method|com.muzmod.schedule.ScheduleManager|setScheduleEnabled|(Z)V
+      @|com\muzmod\schedule\ScheduleManager.java|11375|11382|enabled|param|com.muzmod.schedule.ScheduleManager|setScheduleEnabled|(Z)V|enabled|0
+      @|com\muzmod\schedule\ScheduleManager.java|11400|11415|scheduleEnabled|field|com.muzmod.schedule.ScheduleManager|scheduleEnabled
+      @|com\muzmod\schedule\ScheduleManager.java|11418|11425|enabled|param|com.muzmod.schedule.ScheduleManager|setScheduleEnabled|(Z)V|enabled|0
+      @|com\muzmod\schedule\ScheduleManager.java|11436|11440|save|method|com.muzmod.schedule.ScheduleManager|save|()V
    Method End: setScheduleEnabled(Z)V
    Method Start: isAutoAfkWhenIdle()Z
-      @|com\muzmod\schedule\ScheduleManager.java|11145|11162|isAutoAfkWhenIdle|method|com.muzmod.schedule.ScheduleManager|isAutoAfkWhenIdle|()Z
-      @|com\muzmod\schedule\ScheduleManager.java|11174|11189|autoAfkWhenIdle|field|com.muzmod.schedule.ScheduleManager|autoAfkWhenIdle
+      @|com\muzmod\schedule\ScheduleManager.java|11474|11491|isAutoAfkWhenIdle|method|com.muzmod.schedule.ScheduleManager|isAutoAfkWhenIdle|()Z
+      @|com\muzmod\schedule\ScheduleManager.java|11503|11518|autoAfkWhenIdle|field|com.muzmod.schedule.ScheduleManager|autoAfkWhenIdle
    Method End: isAutoAfkWhenIdle()Z
    Method Start: setAutoAfkWhenIdle(Z)V
-      @|com\muzmod\schedule\ScheduleManager.java|11209|11227|setAutoAfkWhenIdle|method|com.muzmod.schedule.ScheduleManager|setAutoAfkWhenIdle|(Z)V
-      @|com\muzmod\schedule\ScheduleManager.java|11236|11243|autoAfk|param|com.muzmod.schedule.ScheduleManager|setAutoAfkWhenIdle|(Z)V|autoAfk|0
-      @|com\muzmod\schedule\ScheduleManager.java|11261|11276|autoAfkWhenIdle|field|com.muzmod.schedule.ScheduleManager|autoAfkWhenIdle
-      @|com\muzmod\schedule\ScheduleManager.java|11279|11286|autoAfk|param|com.muzmod.schedule.ScheduleManager|setAutoAfkWhenIdle|(Z)V|autoAfk|0
-      @|com\muzmod\schedule\ScheduleManager.java|11297|11301|save|method|com.muzmod.schedule.ScheduleManager|save|()V
+      @|com\muzmod\schedule\ScheduleManager.java|11538|11556|setAutoAfkWhenIdle|method|com.muzmod.schedule.ScheduleManager|setAutoAfkWhenIdle|(Z)V
+      @|com\muzmod\schedule\ScheduleManager.java|11565|11572|autoAfk|param|com.muzmod.schedule.ScheduleManager|setAutoAfkWhenIdle|(Z)V|autoAfk|0
+      @|com\muzmod\schedule\ScheduleManager.java|11590|11605|autoAfkWhenIdle|field|com.muzmod.schedule.ScheduleManager|autoAfkWhenIdle
+      @|com\muzmod\schedule\ScheduleManager.java|11608|11615|autoAfk|param|com.muzmod.schedule.ScheduleManager|setAutoAfkWhenIdle|(Z)V|autoAfk|0
+      @|com\muzmod\schedule\ScheduleManager.java|11626|11630|save|method|com.muzmod.schedule.ScheduleManager|save|()V
    Method End: setAutoAfkWhenIdle(Z)V
    Method Start: getDefaultAfkWarp()Ljava/lang/String;
-      @|com\muzmod\schedule\ScheduleManager.java|11334|11351|getDefaultAfkWarp|method|com.muzmod.schedule.ScheduleManager|getDefaultAfkWarp|()Ljava/lang/String;
-      @|com\muzmod\schedule\ScheduleManager.java|11327|11333|String|class|java.lang.String
-      @|com\muzmod\schedule\ScheduleManager.java|11363|11377|defaultAfkWarp|field|com.muzmod.schedule.ScheduleManager|defaultAfkWarp
+      @|com\muzmod\schedule\ScheduleManager.java|11663|11680|getDefaultAfkWarp|method|com.muzmod.schedule.ScheduleManager|getDefaultAfkWarp|()Ljava/lang/String;
+      @|com\muzmod\schedule\ScheduleManager.java|11656|11662|String|class|java.lang.String
+      @|com\muzmod\schedule\ScheduleManager.java|11692|11706|defaultAfkWarp|field|com.muzmod.schedule.ScheduleManager|defaultAfkWarp
    Method End: getDefaultAfkWarp()Ljava/lang/String;
    Method Start: setDefaultAfkWarp(Ljava/lang/String;)V
-      @|com\muzmod\schedule\ScheduleManager.java|11397|11414|setDefaultAfkWarp|method|com.muzmod.schedule.ScheduleManager|setDefaultAfkWarp|(Ljava/lang/String;)V
-      @|com\muzmod\schedule\ScheduleManager.java|11415|11421|String|class|java.lang.String
-      @|com\muzmod\schedule\ScheduleManager.java|11422|11426|warp|param|com.muzmod.schedule.ScheduleManager|setDefaultAfkWarp|(Ljava/lang/String;)V|warp|0
-      @|com\muzmod\schedule\ScheduleManager.java|11444|11458|defaultAfkWarp|field|com.muzmod.schedule.ScheduleManager|defaultAfkWarp
-      @|com\muzmod\schedule\ScheduleManager.java|11461|11465|warp|param|com.muzmod.schedule.ScheduleManager|setDefaultAfkWarp|(Ljava/lang/String;)V|warp|0
-      @|com\muzmod\schedule\ScheduleManager.java|11476|11480|save|method|com.muzmod.schedule.ScheduleManager|save|()V
+      @|com\muzmod\schedule\ScheduleManager.java|11726|11743|setDefaultAfkWarp|method|com.muzmod.schedule.ScheduleManager|setDefaultAfkWarp|(Ljava/lang/String;)V
+      @|com\muzmod\schedule\ScheduleManager.java|11744|11750|String|class|java.lang.String
+      @|com\muzmod\schedule\ScheduleManager.java|11751|11755|warp|param|com.muzmod.schedule.ScheduleManager|setDefaultAfkWarp|(Ljava/lang/String;)V|warp|0
+      @|com\muzmod\schedule\ScheduleManager.java|11773|11787|defaultAfkWarp|field|com.muzmod.schedule.ScheduleManager|defaultAfkWarp
+      @|com\muzmod\schedule\ScheduleManager.java|11790|11794|warp|param|com.muzmod.schedule.ScheduleManager|setDefaultAfkWarp|(Ljava/lang/String;)V|warp|0
+      @|com\muzmod\schedule\ScheduleManager.java|11805|11809|save|method|com.muzmod.schedule.ScheduleManager|save|()V
    Method End: setDefaultAfkWarp(Ljava/lang/String;)V
    Method Start: getDefaultMiningWarp()Ljava/lang/String;
-      @|com\muzmod\schedule\ScheduleManager.java|11513|11533|getDefaultMiningWarp|method|com.muzmod.schedule.ScheduleManager|getDefaultMiningWarp|()Ljava/lang/String;
-      @|com\muzmod\schedule\ScheduleManager.java|11506|11512|String|class|java.lang.String
-      @|com\muzmod\schedule\ScheduleManager.java|11545|11562|defaultMiningWarp|field|com.muzmod.schedule.ScheduleManager|defaultMiningWarp
+      @|com\muzmod\schedule\ScheduleManager.java|11842|11862|getDefaultMiningWarp|method|com.muzmod.schedule.ScheduleManager|getDefaultMiningWarp|()Ljava/lang/String;
+      @|com\muzmod\schedule\ScheduleManager.java|11835|11841|String|class|java.lang.String
+      @|com\muzmod\schedule\ScheduleManager.java|11874|11891|defaultMiningWarp|field|com.muzmod.schedule.ScheduleManager|defaultMiningWarp
    Method End: getDefaultMiningWarp()Ljava/lang/String;
    Method Start: setDefaultMiningWarp(Ljava/lang/String;)V
-      @|com\muzmod\schedule\ScheduleManager.java|11582|11602|setDefaultMiningWarp|method|com.muzmod.schedule.ScheduleManager|setDefaultMiningWarp|(Ljava/lang/String;)V
-      @|com\muzmod\schedule\ScheduleManager.java|11603|11609|String|class|java.lang.String
-      @|com\muzmod\schedule\ScheduleManager.java|11610|11614|warp|param|com.muzmod.schedule.ScheduleManager|setDefaultMiningWarp|(Ljava/lang/String;)V|warp|0
-      @|com\muzmod\schedule\ScheduleManager.java|11632|11649|defaultMiningWarp|field|com.muzmod.schedule.ScheduleManager|defaultMiningWarp
-      @|com\muzmod\schedule\ScheduleManager.java|11652|11656|warp|param|com.muzmod.schedule.ScheduleManager|setDefaultMiningWarp|(Ljava/lang/String;)V|warp|0
-      @|com\muzmod\schedule\ScheduleManager.java|11667|11671|save|method|com.muzmod.schedule.ScheduleManager|save|()V
+      @|com\muzmod\schedule\ScheduleManager.java|11911|11931|setDefaultMiningWarp|method|com.muzmod.schedule.ScheduleManager|setDefaultMiningWarp|(Ljava/lang/String;)V
+      @|com\muzmod\schedule\ScheduleManager.java|11932|11938|String|class|java.lang.String
+      @|com\muzmod\schedule\ScheduleManager.java|11939|11943|warp|param|com.muzmod.schedule.ScheduleManager|setDefaultMiningWarp|(Ljava/lang/String;)V|warp|0
+      @|com\muzmod\schedule\ScheduleManager.java|11961|11978|defaultMiningWarp|field|com.muzmod.schedule.ScheduleManager|defaultMiningWarp
+      @|com\muzmod\schedule\ScheduleManager.java|11981|11985|warp|param|com.muzmod.schedule.ScheduleManager|setDefaultMiningWarp|(Ljava/lang/String;)V|warp|0
+      @|com\muzmod\schedule\ScheduleManager.java|11996|12000|save|method|com.muzmod.schedule.ScheduleManager|save|()V
    Method End: setDefaultMiningWarp(Ljava/lang/String;)V
    Method Start: getLastScheduledType()Lcom/muzmod/schedule/ScheduleEntry$EventType;
-      @|com\muzmod\schedule\ScheduleManager.java|11721|11741|getLastScheduledType|method|com.muzmod.schedule.ScheduleManager|getLastScheduledType|()Lcom/muzmod/schedule/ScheduleEntry$EventType;
-      @|com\muzmod\schedule\ScheduleManager.java|11697|11720|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
-      @|com\muzmod\schedule\ScheduleManager.java|11753|11770|lastScheduledType|field|com.muzmod.schedule.ScheduleManager|lastScheduledType
+      @|com\muzmod\schedule\ScheduleManager.java|12050|12070|getLastScheduledType|method|com.muzmod.schedule.ScheduleManager|getLastScheduledType|()Lcom/muzmod/schedule/ScheduleEntry$EventType;
+      @|com\muzmod\schedule\ScheduleManager.java|12026|12049|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
+      @|com\muzmod\schedule\ScheduleManager.java|12082|12099|lastScheduledType|field|com.muzmod.schedule.ScheduleManager|lastScheduledType
    Method End: getLastScheduledType()Lcom/muzmod/schedule/ScheduleEntry$EventType;
    Method Start: setLastScheduledType(Lcom/muzmod/schedule/ScheduleEntry$EventType;)V
-      @|com\muzmod\schedule\ScheduleManager.java|11790|11810|setLastScheduledType|method|com.muzmod.schedule.ScheduleManager|setLastScheduledType|(Lcom/muzmod/schedule/ScheduleEntry$EventType;)V
-      @|com\muzmod\schedule\ScheduleManager.java|11811|11834|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
-      @|com\muzmod\schedule\ScheduleManager.java|11835|11839|type|param|com.muzmod.schedule.ScheduleManager|setLastScheduledType|(Lcom/muzmod/schedule/ScheduleEntry$EventType;)V|type|0
-      @|com\muzmod\schedule\ScheduleManager.java|11857|11874|lastScheduledType|field|com.muzmod.schedule.ScheduleManager|lastScheduledType
-      @|com\muzmod\schedule\ScheduleManager.java|11877|11881|type|param|com.muzmod.schedule.ScheduleManager|setLastScheduledType|(Lcom/muzmod/schedule/ScheduleEntry$EventType;)V|type|0
-      @|com\muzmod\schedule\ScheduleManager.java|11897|11915|lastTypeChangeTime|field|com.muzmod.schedule.ScheduleManager|lastTypeChangeTime
-      @|com\muzmod\schedule\ScheduleManager.java|11918|11924|System|class|java.lang.System
-      @|com\muzmod\schedule\ScheduleManager.java|11925|11942|currentTimeMillis|method|java.lang.System|currentTimeMillis|()J
+      @|com\muzmod\schedule\ScheduleManager.java|12119|12139|setLastScheduledType|method|com.muzmod.schedule.ScheduleManager|setLastScheduledType|(Lcom/muzmod/schedule/ScheduleEntry$EventType;)V
+      @|com\muzmod\schedule\ScheduleManager.java|12140|12163|ScheduleEntry.EventType|class|com.muzmod.schedule.ScheduleEntry.EventType
+      @|com\muzmod\schedule\ScheduleManager.java|12164|12168|type|param|com.muzmod.schedule.ScheduleManager|setLastScheduledType|(Lcom/muzmod/schedule/ScheduleEntry$EventType;)V|type|0
+      @|com\muzmod\schedule\ScheduleManager.java|12186|12203|lastScheduledType|field|com.muzmod.schedule.ScheduleManager|lastScheduledType
+      @|com\muzmod\schedule\ScheduleManager.java|12206|12210|type|param|com.muzmod.schedule.ScheduleManager|setLastScheduledType|(Lcom/muzmod/schedule/ScheduleEntry$EventType;)V|type|0
+      @|com\muzmod\schedule\ScheduleManager.java|12226|12244|lastTypeChangeTime|field|com.muzmod.schedule.ScheduleManager|lastTypeChangeTime
+      @|com\muzmod\schedule\ScheduleManager.java|12247|12253|System|class|java.lang.System
+      @|com\muzmod\schedule\ScheduleManager.java|12254|12271|currentTimeMillis|method|java.lang.System|currentTimeMillis|()J
    Method End: setLastScheduledType(Lcom/muzmod/schedule/ScheduleEntry$EventType;)V
    Method Start: getLastTypeChangeTime()J
-      @|com\muzmod\schedule\ScheduleManager.java|11973|11994|getLastTypeChangeTime|method|com.muzmod.schedule.ScheduleManager|getLastTypeChangeTime|()J
-      @|com\muzmod\schedule\ScheduleManager.java|12006|12024|lastTypeChangeTime|field|com.muzmod.schedule.ScheduleManager|lastTypeChangeTime
+      @|com\muzmod\schedule\ScheduleManager.java|12302|12323|getLastTypeChangeTime|method|com.muzmod.schedule.ScheduleManager|getLastTypeChangeTime|()J
+      @|com\muzmod\schedule\ScheduleManager.java|12335|12353|lastTypeChangeTime|field|com.muzmod.schedule.ScheduleManager|lastTypeChangeTime
    Method End: getLastTypeChangeTime()J
    Class Start: com.muzmod.schedule.ScheduleManager.ScheduleData
-      @|com\muzmod\schedule\ScheduleManager.java|12108|12121|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
-      @|com\muzmod\schedule\ScheduleManager.java|12103|12107|List|class|java.util.List
-      @|com\muzmod\schedule\ScheduleManager.java|12123|12130|entries|field|com.muzmod.schedule.ScheduleManager.ScheduleData|entries|
-      @|com\muzmod\schedule\ScheduleManager.java|12148|12163|scheduleEnabled|field|com.muzmod.schedule.ScheduleManager.ScheduleData|scheduleEnabled|
-      @|com\muzmod\schedule\ScheduleManager.java|12181|12196|autoAfkWhenIdle|field|com.muzmod.schedule.ScheduleManager.ScheduleData|autoAfkWhenIdle|
-      @|com\muzmod\schedule\ScheduleManager.java|12206|12212|String|class|java.lang.String
-      @|com\muzmod\schedule\ScheduleManager.java|12213|12227|defaultAfkWarp|field|com.muzmod.schedule.ScheduleManager.ScheduleData|defaultAfkWarp|
-      @|com\muzmod\schedule\ScheduleManager.java|12237|12243|String|class|java.lang.String
-      @|com\muzmod\schedule\ScheduleManager.java|12244|12261|defaultMiningWarp|field|com.muzmod.schedule.ScheduleManager.ScheduleData|defaultMiningWarp|
+      @|com\muzmod\schedule\ScheduleManager.java|12437|12450|ScheduleEntry|class|com.muzmod.schedule.ScheduleEntry
+      @|com\muzmod\schedule\ScheduleManager.java|12432|12436|List|class|java.util.List
+      @|com\muzmod\schedule\ScheduleManager.java|12452|12459|entries|field|com.muzmod.schedule.ScheduleManager.ScheduleData|entries|
+      @|com\muzmod\schedule\ScheduleManager.java|12477|12492|scheduleEnabled|field|com.muzmod.schedule.ScheduleManager.ScheduleData|scheduleEnabled|
+      @|com\muzmod\schedule\ScheduleManager.java|12510|12525|autoAfkWhenIdle|field|com.muzmod.schedule.ScheduleManager.ScheduleData|autoAfkWhenIdle|
+      @|com\muzmod\schedule\ScheduleManager.java|12535|12541|String|class|java.lang.String
+      @|com\muzmod\schedule\ScheduleManager.java|12542|12556|defaultAfkWarp|field|com.muzmod.schedule.ScheduleManager.ScheduleData|defaultAfkWarp|
+      @|com\muzmod\schedule\ScheduleManager.java|12566|12572|String|class|java.lang.String
+      @|com\muzmod\schedule\ScheduleManager.java|12573|12590|defaultMiningWarp|field|com.muzmod.schedule.ScheduleManager.ScheduleData|defaultMiningWarp|
    Class End  : com.muzmod.schedule.ScheduleManager.ScheduleData
 Class End  : com.muzmod.schedule.ScheduleManager
 endProcessing com\muzmod\schedule\ScheduleManager.java

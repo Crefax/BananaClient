@@ -283,36 +283,36 @@ public class ScheduleManager {
     private void createDefaultSchedule() {
         entries.clear();
         
-        // Mining saatleri (yaklaşık 1.5 saat süreli)
-        // Hafta içi (Pzt-Cum, 0-4): 03:40, 15:40, 21:40, 23:40
+        // Mining saatleri (1 dk erken git + 20 dk kal = 21 dk)
+        // Hafta içi (Pzt-Cum, 0-4): 03:40, 15:40, 21:40, 23:40 -> 1 dk erken başla
         for (int day = 0; day < 5; day++) {
-            entries.add(new ScheduleEntry(day, 3, 40, 5, 10, ScheduleEntry.EventType.MINING));
-            entries.add(new ScheduleEntry(day, 15, 40, 17, 10, ScheduleEntry.EventType.MINING));
-            entries.add(new ScheduleEntry(day, 21, 40, 23, 10, ScheduleEntry.EventType.MINING));
-            entries.add(new ScheduleEntry(day, 23, 40, 1, 10, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 3, 39, 4, 0, ScheduleEntry.EventType.MINING));   // 03:40 eventi
+            entries.add(new ScheduleEntry(day, 15, 39, 16, 0, ScheduleEntry.EventType.MINING)); // 15:40 eventi
+            entries.add(new ScheduleEntry(day, 21, 39, 22, 0, ScheduleEntry.EventType.MINING)); // 21:40 eventi
+            entries.add(new ScheduleEntry(day, 23, 39, 0, 0, ScheduleEntry.EventType.MINING));  // 23:40 eventi
         }
         
-        // Hafta sonu (Cmt-Paz, 5-6): 03:40, 11:40, 15:40, 21:40, 23:40
+        // Hafta sonu (Cmt-Paz, 5-6): 03:40, 11:40, 15:40, 21:40, 23:40 -> 1 dk erken başla
         for (int day = 5; day < 7; day++) {
-            entries.add(new ScheduleEntry(day, 3, 40, 5, 10, ScheduleEntry.EventType.MINING));
-            entries.add(new ScheduleEntry(day, 11, 40, 13, 10, ScheduleEntry.EventType.MINING));
-            entries.add(new ScheduleEntry(day, 15, 40, 17, 10, ScheduleEntry.EventType.MINING));
-            entries.add(new ScheduleEntry(day, 21, 40, 23, 10, ScheduleEntry.EventType.MINING));
-            entries.add(new ScheduleEntry(day, 23, 40, 1, 10, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 3, 39, 4, 0, ScheduleEntry.EventType.MINING));   // 03:40 eventi
+            entries.add(new ScheduleEntry(day, 11, 39, 12, 0, ScheduleEntry.EventType.MINING)); // 11:40 eventi
+            entries.add(new ScheduleEntry(day, 15, 39, 16, 0, ScheduleEntry.EventType.MINING)); // 15:40 eventi
+            entries.add(new ScheduleEntry(day, 21, 39, 22, 0, ScheduleEntry.EventType.MINING)); // 21:40 eventi
+            entries.add(new ScheduleEntry(day, 23, 39, 0, 0, ScheduleEntry.EventType.MINING));  // 23:40 eventi
         }
         
-        // OX Event saatleri (yaklaşık 15 dakika süreli)
-        // Hafta içi (Pzt-Cum): 17:50, 00:05
+        // OX Event saatleri (1 dk erken git + 20 dk kal = 21 dk)
+        // Hafta içi (Pzt-Cum): 17:50, 00:05 -> 1 dk erken başla
         for (int day = 0; day < 5; day++) {
-            entries.add(new ScheduleEntry(day, 17, 50, 18, 5, ScheduleEntry.EventType.OX));
-            entries.add(new ScheduleEntry(day, 0, 5, 0, 20, ScheduleEntry.EventType.OX));
+            entries.add(new ScheduleEntry(day, 0, 4, 0, 25, ScheduleEntry.EventType.OX));    // 00:05 eventi
+            entries.add(new ScheduleEntry(day, 17, 49, 18, 10, ScheduleEntry.EventType.OX)); // 17:50 eventi
         }
         
-        // Hafta sonu (Cmt-Paz): 11:00, 17:50, 00:05
+        // Hafta sonu (Cmt-Paz): 11:00, 17:50, 00:05 -> 1 dk erken başla
         for (int day = 5; day < 7; day++) {
-            entries.add(new ScheduleEntry(day, 11, 0, 11, 15, ScheduleEntry.EventType.OX));
-            entries.add(new ScheduleEntry(day, 17, 50, 18, 5, ScheduleEntry.EventType.OX));
-            entries.add(new ScheduleEntry(day, 0, 5, 0, 20, ScheduleEntry.EventType.OX));
+            entries.add(new ScheduleEntry(day, 0, 4, 0, 25, ScheduleEntry.EventType.OX));    // 00:05 eventi
+            entries.add(new ScheduleEntry(day, 10, 59, 11, 20, ScheduleEntry.EventType.OX)); // 11:00 eventi
+            entries.add(new ScheduleEntry(day, 17, 49, 18, 10, ScheduleEntry.EventType.OX)); // 17:50 eventi
         }
         
         save();
