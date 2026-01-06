@@ -283,21 +283,40 @@ public class ScheduleManager {
     private void createDefaultSchedule() {
         entries.clear();
         
-        // Hafta içi (Pzt-Cum): 2 maden eventi
+        // Mining saatleri (yaklaşık 1.5 saat süreli)
+        // Hafta içi (Pzt-Cum, 0-4): 03:40, 15:40, 21:40, 23:40
         for (int day = 0; day < 5; day++) {
-            entries.add(new ScheduleEntry(day, 10, 0, 12, 0, ScheduleEntry.EventType.MINING));
-            entries.add(new ScheduleEntry(day, 20, 0, 22, 0, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 3, 40, 5, 10, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 15, 40, 17, 10, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 21, 40, 23, 10, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 23, 40, 1, 10, ScheduleEntry.EventType.MINING));
         }
         
-        // Hafta sonu (Cmt-Paz): 3 maden eventi
+        // Hafta sonu (Cmt-Paz, 5-6): 03:40, 11:40, 15:40, 21:40, 23:40
         for (int day = 5; day < 7; day++) {
-            entries.add(new ScheduleEntry(day, 10, 0, 12, 0, ScheduleEntry.EventType.MINING));
-            entries.add(new ScheduleEntry(day, 15, 0, 17, 0, ScheduleEntry.EventType.MINING));
-            entries.add(new ScheduleEntry(day, 20, 0, 23, 0, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 3, 40, 5, 10, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 11, 40, 13, 10, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 15, 40, 17, 10, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 21, 40, 23, 10, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 23, 40, 1, 10, ScheduleEntry.EventType.MINING));
+        }
+        
+        // OX Event saatleri (yaklaşık 15 dakika süreli)
+        // Hafta içi (Pzt-Cum): 17:50, 00:05
+        for (int day = 0; day < 5; day++) {
+            entries.add(new ScheduleEntry(day, 17, 50, 18, 5, ScheduleEntry.EventType.OX));
+            entries.add(new ScheduleEntry(day, 0, 5, 0, 20, ScheduleEntry.EventType.OX));
+        }
+        
+        // Hafta sonu (Cmt-Paz): 11:00, 17:50, 00:05
+        for (int day = 5; day < 7; day++) {
+            entries.add(new ScheduleEntry(day, 11, 0, 11, 15, ScheduleEntry.EventType.OX));
+            entries.add(new ScheduleEntry(day, 17, 50, 18, 5, ScheduleEntry.EventType.OX));
+            entries.add(new ScheduleEntry(day, 0, 5, 0, 20, ScheduleEntry.EventType.OX));
         }
         
         save();
-        MuzMod.LOGGER.info("[Schedule] Created default schedule");
+        MuzMod.LOGGER.info("[Schedule] Created default schedule with Mining and OX events");
     }
     
     // Getters & Setters
