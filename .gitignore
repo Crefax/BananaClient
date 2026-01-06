@@ -1,0 +1,26 @@
+﻿# Build outputs
+build/
+out/
+bin/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.launch
+
+# Gradle
+.gradle/
+gradle/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

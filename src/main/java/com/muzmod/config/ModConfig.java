@@ -26,9 +26,16 @@ public class ModConfig {
     // Pathfinding Settings
     private int oreSearchRadius = 50; // Chunk arama yarıçapı
     private int initialWalkDistance = 45; // İlk yürüme mesafesi (south)
-    private double walkYawVariation = 20.0; // Yürürken yaw varyasyonu (sol-sağ)
+    private double walkYawVariation = 10.0; // Yürürken yaw varyasyonu (sol-sağ)
     private boolean enablePathfinding = true;
     private int maxMoveDistance = 15; // Ore'a giderken max mesafe
+    
+    // İkinci yürüyüş ayarları (east/west)
+    private boolean secondWalkEnabled = true; // İkinci yürüyüş aktif mi
+    private int secondWalkDistanceMin = 10; // Minimum ikinci yürüyüş mesafesi
+    private int secondWalkDistanceMax = 30; // Maximum ikinci yürüyüş mesafesi
+    private float secondWalkAngleVariation = 20.0f; // East/West'e +/- açı varyasyonu
+    private boolean secondWalkRandomDirection = true; // Rastgele east/west seçimi
     
     // Anti-AFK Rotation Settings (mining sırasında hafif dönüşler)
     private float antiAfkYawMin = 0.5f;   // Minimum yaw dönüş (derece)
@@ -82,6 +89,7 @@ public class ModConfig {
     // Minecraft yaw: 0=South, 90=West, 180/-180=North, -90/270=East
     private float oxLimeYaw = 90.0f;  // West (Batı) - Yeşil taraf
     private float oxRedYaw = -90.0f;  // East (Doğu) - Kırmızı taraf
+    private int oxMinPlayers = 5;     // Minimum oyuncu sayısı
     
     public ModConfig(File configFile) {
         config = new Configuration(configFile);
@@ -120,12 +128,24 @@ public class ModConfig {
                 "Radius to search for ores (blocks)");
             initialWalkDistance = config.getInt("initialWalkDistance", "pathfinding", 45, 5, 100,
                 "Distance to walk south when searching for ores");
-            walkYawVariation = config.getFloat("walkYawVariation", "pathfinding", 20.0f, 0.0f, 45.0f,
+            walkYawVariation = config.getFloat("walkYawVariation", "pathfinding", 10.0f, 0.0f, 45.0f,
                 "Random yaw variation when walking (degrees left-right)");
             enablePathfinding = config.getBoolean("enablePathfinding", "pathfinding", true,
                 "Enable pathfinding to avoid obstacles");
             maxMoveDistance = config.getInt("maxMoveDistance", "pathfinding", 15, 5, 50,
                 "Maximum distance to walk towards an ore");
+            
+            // Second Walk Category (ikinci yürüyüş - east/west)
+            secondWalkEnabled = config.getBoolean("secondWalkEnabled", "secondwalk", true,
+                "Enable second walk after initial walk (east/west direction)");
+            secondWalkDistanceMin = config.getInt("secondWalkDistanceMin", "secondwalk", 10, 1, 100,
+                "Minimum distance for second walk");
+            secondWalkDistanceMax = config.getInt("secondWalkDistanceMax", "secondwalk", 30, 1, 100,
+                "Maximum distance for second walk");
+            secondWalkAngleVariation = config.getFloat("secondWalkAngleVariation", "secondwalk", 20.0f, 0.0f, 45.0f,
+                "Angle variation from east/west direction (degrees)");
+            secondWalkRandomDirection = config.getBoolean("secondWalkRandomDirection", "secondwalk", true,
+                "Randomly choose between east and west (false = always west)");
             
             // Anti-AFK Rotation Category (kazarken hafif dönüşler)
             antiAfkYawMin = config.getFloat("antiAfkYawMin", "antiafk", 0.5f, 0.1f, 100.0f,
@@ -214,6 +234,8 @@ public class ModConfig {
                 "Yaw direction for LIME side (default: 90 = West)");
             oxRedYaw = config.getFloat("redYaw", "ox", -90.0f, -180.0f, 180.0f,
                 "Yaw direction for RED side (default: -90 = East)");
+            oxMinPlayers = config.getInt("minPlayers", "ox", 5, 1, 50,
+                "Minimum players required to start OX event");
             
         } catch (Exception e) {
             MuzMod.LOGGER.error("Error loading config", e);
@@ -269,6 +291,45 @@ public class ModConfig {
     public long getAdjustSmoothSpeed() { return adjustSmoothSpeed; }
     public boolean isBlockLockEnabled() { return enableBlockLock; }
     
+    // Second Walk Getters
+    public boolean isSecondWalkEnabled() { return secondWalkEnabled; }
+    public int getSecondWalkDistanceMin() { return secondWalkDistanceMin; }
+    public int getSecondWalkDistanceMax() { return secondWalkDistanceMax; }
+    public float getSecondWalkAngleVariation() { return secondWalkAngleVariation; }
+    public boolean isSecondWalkRandomDirection() { return secondWalkRandomDirection; }
+    
+    // Second Walk Setters
+    public void setSecondWalkEnabled(boolean enabled) {
+        this.secondWalkEnabled = enabled;
+        config.get("secondwalk", "secondWalkEnabled", true).set(enabled);
+    }
+    public void setSecondWalkDistanceMin(int dist) {
+        this.secondWalkDistanceMin = dist;
+        config.get("secondwalk", "secondWalkDistanceMin", 10).set(dist);
+    }
+    public void setSecondWalkDistanceMax(int dist) {
+        this.secondWalkDistanceMax = dist;
+        config.get("secondwalk", "secondWalkDistanceMax", 30).set(dist);
+    }
+    public void setSecondWalkAngleVariation(float angle) {
+        this.secondWalkAngleVariation = angle;
+        config.get("secondwalk", "secondWalkAngleVariation", 20.0f).set(angle);
+    }
+    public void setSecondWalkRandomDirection(boolean random) {
+        this.secondWalkRandomDirection = random;
+        config.get("secondwalk", "secondWalkRandomDirection", true).set(random);
+    }
+    
+    // Initial Walk Setters
+    public void setInitialWalkDistance(int dist) {
+        this.initialWalkDistance = dist;
+        config.get("pathfinding", "initialWalkDistance", 45).set(dist);
+    }
+    public void setWalkYawVariation(double variation) {
+        this.walkYawVariation = variation;
+        config.get("pathfinding", "walkYawVariation", 20.0f).set((float)variation);
+    }
+    
     // AFK Getters
     public String getAfkWarpCommand() { return afkWarpCommand; }
     public int getAfkStartHour() { return afkStartHour; }
@@ -315,6 +376,14 @@ public class ModConfig {
     public void setOxRedYaw(float yaw) {
         this.oxRedYaw = yaw;
         config.get("ox", "redYaw", -90.0f).set(yaw);
+        save();
+    }
+    
+    public int getOxMinPlayers() { return oxMinPlayers; }
+    
+    public void setOxMinPlayers(int minPlayers) {
+        this.oxMinPlayers = minPlayers;
+        config.get("ox", "minPlayers", 5).set(minPlayers);
         save();
     }
     
@@ -395,12 +464,7 @@ public class ModConfig {
         save();
     }
     
-    // Pathfinding Setters
-    public void setInitialWalkDistance(int distance) {
-        this.initialWalkDistance = distance;
-        config.get("pathfinding", "initialWalkDistance", 45).set(distance);
-        save();
-    }
+    // Pathfinding Setters (setInitialWalkDistance already defined above in mining section)
     
     public void setMaxMoveDistance(int distance) {
         this.maxMoveDistance = distance;
