@@ -4612,10 +4612,10 @@ Class Start: com.muzmod.render.OverlayRenderer
       @|com\muzmod\render\OverlayRenderer.java|8562|8564|OX|field|com.muzmod.schedule.ScheduleEntry.EventType|OX
    Method End: getEventIcon(Lcom/muzmod/schedule/ScheduleEntry$EventType;)Ljava/lang/String;
    Method Start: getStateColor(Ljava/lang/String;)I
-      @|com\muzmod\render\OverlayRenderer.java|8653|8666|getStateColor|method|com.muzmod.render.OverlayRenderer|getStateColor|(Ljava/lang/String;)I
-      @|com\muzmod\render\OverlayRenderer.java|8667|8673|String|class|java.lang.String
-      @|com\muzmod\render\OverlayRenderer.java|8674|8683|stateName|param|com.muzmod.render.OverlayRenderer|getStateColor|(Ljava/lang/String;)I|stateName|0
-      @|com\muzmod\render\OverlayRenderer.java|8703|8712|stateName|param|com.muzmod.render.OverlayRenderer|getStateColor|(Ljava/lang/String;)I|stateName|0
+      @|com\muzmod\render\OverlayRenderer.java|8652|8665|getStateColor|method|com.muzmod.render.OverlayRenderer|getStateColor|(Ljava/lang/String;)I
+      @|com\muzmod\render\OverlayRenderer.java|8666|8672|String|class|java.lang.String
+      @|com\muzmod\render\OverlayRenderer.java|8673|8682|stateName|param|com.muzmod.render.OverlayRenderer|getStateColor|(Ljava/lang/String;)I|stateName|0
+      @|com\muzmod\render\OverlayRenderer.java|8702|8711|stateName|param|com.muzmod.render.OverlayRenderer|getStateColor|(Ljava/lang/String;)I|stateName|0
    Method End: getStateColor(Ljava/lang/String;)I
 Class End  : com.muzmod.render.OverlayRenderer
 endProcessing com\muzmod\render\OverlayRenderer.java
