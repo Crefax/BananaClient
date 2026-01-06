@@ -1,5 +1,5 @@
 Symbol range map extraction starting
-Processing 25 files
+Processing 27 files
 processing com\muzmod\MuzMod.java
 processing com\muzmod\config\ModConfig.java
 processing com\muzmod\gui\ModernGuiUtils.java
@@ -12,6 +12,8 @@ processing com\muzmod\render\WorldRenderer.java
 processing com\muzmod\rotation\AntiAfkRotation.java
 processing com\muzmod\rotation\PositionAdjuster.java
 processing com\muzmod\rotation\SmoothRotation.java
+processing com\muzmod\schedule\ScheduleEntry.java
+processing com\muzmod\schedule\ScheduleManager.java
 processing com\muzmod\state\AbstractState.java
 processing com\muzmod\state\IState.java
 processing com\muzmod\state\StateManager.java

@@ -1,6 +1,8 @@
 package com.muzmod.state;
 
 import com.muzmod.MuzMod;
+import com.muzmod.schedule.ScheduleEntry;
+import com.muzmod.schedule.ScheduleManager;
 import com.muzmod.state.impl.AFKState;
 import com.muzmod.state.impl.IdleState;
 import com.muzmod.state.impl.MiningState;
@@ -10,6 +12,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.List;
 
@@ -30,6 +33,10 @@ public class StateManager {
     
     private int tickCounter = 0;
     private static final int CHECK_INTERVAL = 20; // Check every second (20 ticks)
+    
+    // Schedule tabanlı state geçişi
+    private boolean useScheduleBasedTransition = true;
+    private ScheduleEntry.EventType lastScheduleType = null;
     
     public StateManager() {
         initStates();
@@ -94,6 +101,13 @@ public class StateManager {
             }
         }
         
+        // Schedule tabanlı geçiş
+        if (useScheduleBasedTransition) {
+            checkScheduleBasedTransition();
+            return;
+        }
+        
+        // Eski mantık (schedule kapalıyken)
         IState newState = null;
         
         // Find highest priority state that should activate
@@ -112,6 +126,64 @@ public class StateManager {
         // Transition if different state
         if (newState != currentState) {
             transitionTo(newState);
+        }
+    }
+    
+    /**
+     * Schedule'a göre state geçişi yap
+     */
+    private void checkScheduleBasedTransition() {
+        ScheduleManager schedule = MuzMod.instance.getScheduleManager();
+        if (schedule == null || !schedule.isScheduleEnabled()) {
+            // Schedule kapalı, eski mantığa dön
+            useScheduleBasedTransition = false;
+            return;
+        }
+        
+        // Şu anki zamanı al
+        Calendar cal = Calendar.getInstance();
+        int timeOffset = MuzMod.instance.getConfig().getTimeOffsetHours();
+        int hour = (cal.get(Calendar.HOUR_OF_DAY) + timeOffset + 24) % 24;
+        int minute = cal.get(Calendar.MINUTE);
+        // Java Calendar: Pazar=1, Pazartesi=2, ... Cumartesi=7
+        // Bizim sistem: Pazartesi=0, ... Pazar=6
+        int javaDow = cal.get(Calendar.DAY_OF_WEEK);
+        int dayOfWeek = (javaDow == Calendar.SUNDAY) ? 6 : javaDow - 2;
+        
+        // Schedule'dan aktif event tipini al
+        ScheduleEntry.EventType scheduledType = schedule.getCurrentScheduledType(dayOfWeek, hour, minute);
+        
+        // RepairState'e geçiş gerekiyorsa öncelikli kontrol
+        if (repairState.shouldActivate() && scheduledType == ScheduleEntry.EventType.MINING) {
+            if (!(currentState instanceof RepairState)) {
+                transitionTo(repairState);
+            }
+            return;
+        }
+        
+        // Tip değiştiyse yeni state'e geç
+        if (scheduledType != lastScheduleType) {
+            lastScheduleType = scheduledType;
+            schedule.setLastScheduledType(scheduledType);
+            
+            IState targetState = getStateForEventType(scheduledType);
+            if (targetState != null && targetState != currentState) {
+                MuzMod.LOGGER.info("[Schedule] Event type changed: " + scheduledType.getDisplayName());
+                transitionTo(targetState);
+            }
+        }
+    }
+    
+    /**
+     * EventType'a göre state döndür
+     */
+    private IState getStateForEventType(ScheduleEntry.EventType type) {
+        switch (type) {
+            case MINING: return miningState;
+            case AFK: return afkState;
+            case REPAIR: return repairState;
+            case IDLE: 
+            default: return idleState;
         }
     }
     
@@ -216,5 +288,20 @@ public class StateManager {
     
     public String getCurrentStateStatus() {
         return currentState != null ? currentState.getStatus() : "";
+    }
+    
+    public boolean isUseScheduleBasedTransition() {
+        return useScheduleBasedTransition;
+    }
+    
+    public void setUseScheduleBasedTransition(boolean use) {
+        this.useScheduleBasedTransition = use;
+        if (use) {
+            lastScheduleType = null; // Reset to force check
+        }
+    }
+    
+    public ScheduleEntry.EventType getLastScheduleType() {
+        return lastScheduleType;
     }
 }

@@ -2,10 +2,10 @@
 {
   "modid": "muzmod",
   "name": "MuzMod",
-  "description": "Automated task management mod with state system",
+  "description": "Advanced mining bot with schedule system - Day by day event scheduling",
   "version": "${version}",
   "mcversion": "${mcversion}",
-  "url": "",
+  "url": "https://github.com/Crefax/MuzClient",
   "updateUrl": "",
   "authorList": ["Crefax"],
   "credits": "",
