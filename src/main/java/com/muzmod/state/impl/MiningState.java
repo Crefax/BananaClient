@@ -75,6 +75,12 @@ public class MiningState extends AbstractState {
     private long playerBlockingStartTime = 0; // Oyuncu ne zamandır engelliyor
     private float avoidanceTargetYaw = 0; // Smooth kaçış için hedef yaw
     private boolean isAvoidanceRotating = false; // Smooth dönüş yapılıyor mu
+    private boolean avoidanceGoLeft = false; // Kaçış yönü: true=sol, false=sağ
+    
+    // Variable smooth rotation
+    private float currentRotationSpeed = 7.0f; // Mevcut dönüş hızı (4-11 arası)
+    private int rotationSpeedTickCounter = 0; // Hız değişim sayacı
+    private static final int ROTATION_SPEED_CHANGE_INTERVAL = 5; // Her 5 tick'te bir hız değişir
     
     // Marked ores for rendering
     private Set<BlockPos> markedOres = new HashSet<>();
@@ -303,14 +309,8 @@ public class MiningState extends AbstractState {
             return;
         }
         
-        // Look in walk direction with slight downward pitch
-        if (config.isBlockLockEnabled()) {
-            RotationUtils.smoothLookAt(mc.thePlayer, walkYaw, 20, 0.1f);
-        } else {
-            // Direct rotation without smooth
-            mc.thePlayer.rotationYaw = walkYaw;
-            mc.thePlayer.rotationPitch = 20;
-        }
+        // Look in walk direction with slight downward pitch - always smooth
+        smoothRotateTo(walkYaw, 20);
         
         // Walk forward
         InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
@@ -525,16 +525,10 @@ public class MiningState extends AbstractState {
             return;
         }
         
-        // Walk towards safe spot
+        // Walk towards safe spot - always smooth
         float[] rotations = RotationUtils.getRotationsToBlock(mc.thePlayer, safeSpot);
         float targetPitch = Math.max(MIN_PITCH, Math.min(MAX_PITCH, rotations[1]));
-        
-        if (config.isBlockLockEnabled()) {
-            RotationUtils.smoothLookAt(mc.thePlayer, rotations[0], targetPitch, 0.15f);
-        } else {
-            mc.thePlayer.rotationYaw = rotations[0];
-            mc.thePlayer.rotationPitch = targetPitch;
-        }
+        smoothRotateTo(rotations[0], targetPitch);
         
         InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
         
@@ -561,44 +555,76 @@ public class MiningState extends AbstractState {
         
         if (nearbyPlayers.isEmpty()) {
             isAvoidanceRotating = false;
+            InputSimulator.releaseKey(mc.gameSettings.keyBindForward);
             setPhase(MiningPhase.FINDING_ORE);
+            setStatus("Oyuncu gitti, ore aranıyor...");
             return;
         }
         
-        // Smooth rotation kullanılıyorsa
-        if (config.isSmoothPlayerAvoidance() && isAvoidanceRotating) {
-            // Hedef yaw'a doğru smooth dön
-            float currentYaw = mc.thePlayer.rotationYaw;
-            float diff = RotationUtils.getAngleDistance(currentYaw, avoidanceTargetYaw);
+        // Kaçış yönünü hesapla (henüz hesaplanmadıysa)
+        if (!isAvoidanceRotating) {
+            // Rastgele sağ veya sol seç
+            avoidanceGoLeft = random.nextBoolean();
             
-            if (Math.abs(diff) < 5) {
-                // Dönüş tamamlandı
-                isAvoidanceRotating = false;
-                MuzMod.LOGGER.info("[Mining] Smooth dönüş tamamlandı");
+            // Oyuncunun ters yönüne bak, sonra sağ veya sol seç
+            float escapeYaw = PlayerDetector.getEscapeDirection(mc.thePlayer, config.getPlayerDetectionRadius());
+            
+            // Sağ veya sol yöne 30-60 derece sapma ekle
+            float deviation = 30 + random.nextFloat() * 30; // 30-60 arası
+            if (avoidanceGoLeft) {
+                avoidanceTargetYaw = escapeYaw - deviation;
             } else {
-                // Smooth dönüş - yavaş ve doğal
-                float rotationSpeed = 2.0f; // Derece/tick
-                float step = Math.signum(diff) * Math.min(Math.abs(diff), rotationSpeed);
-                mc.thePlayer.rotationYaw += step;
-                setStatus("Dönülüyor...");
-                return;
+                avoidanceTargetYaw = escapeYaw + deviation;
             }
+            
+            // Başlangıç hızını ayarla
+            currentRotationSpeed = 4.0f + random.nextFloat() * 3.0f; // 4-7 arası başla
+            rotationSpeedTickCounter = 0;
+            
+            isAvoidanceRotating = true;
+            MuzMod.LOGGER.info("[Mining] Kaçış yönü belirlendi: " + avoidanceTargetYaw + " (" + (avoidanceGoLeft ? "sol" : "sağ") + ")");
         }
         
-        // Find escape direction (opposite of nearest player)
-        float escapeYaw = PlayerDetector.getEscapeDirection(mc.thePlayer, config.getPlayerDetectionRadius());
+        // Değişken hız güncelle (her 5 tick'te bir)
+        rotationSpeedTickCounter++;
+        if (rotationSpeedTickCounter >= ROTATION_SPEED_CHANGE_INTERVAL) {
+            rotationSpeedTickCounter = 0;
+            // Hızı 4-11 arasında değiştir, ama ani değişim olmasın (±2 range)
+            float change = (random.nextFloat() - 0.5f) * 4.0f; // -2 ile +2 arası
+            currentRotationSpeed = Math.max(4.0f, Math.min(11.0f, currentRotationSpeed + change));
+        }
         
-        // Calculate safe spot (not too far)
-        double rad = Math.toRadians(escapeYaw);
-        int distance = 5 + random.nextInt(5);
-        safeSpot = new BlockPos(
-            mc.thePlayer.posX - Math.sin(rad) * distance,
-            mc.thePlayer.posY,
-            mc.thePlayer.posZ + Math.cos(rad) * distance
-        );
+        // Smooth rotation - dönerken yürü
+        float currentYaw = mc.thePlayer.rotationYaw;
+        float diff = RotationUtils.getAngleDistance(currentYaw, avoidanceTargetYaw);
         
-        setPhase(MiningPhase.RELOCATING);
-        setStatus("Güvenli alan bulunuyor...");
+        if (Math.abs(diff) > 2) {
+            // Hala dönmemiz gerekiyor - değişken hızla
+            float step = Math.signum(diff) * Math.min(Math.abs(diff), currentRotationSpeed);
+            mc.thePlayer.rotationYaw += step;
+            
+            // Dönerken ileri yürü
+            InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
+            
+            setStatus(String.format("Kaçılıyor (%s)... %.0f°", avoidanceGoLeft ? "←" : "→", Math.abs(diff)));
+        } else {
+            // Dönüş tamamlandı - INSTANT YOK, smooth bitir
+            // Yürümeye devam et
+            InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
+            
+            // Safe spot'u şu anki yöne göre belirle
+            double rad = Math.toRadians(mc.thePlayer.rotationYaw);
+            int distance = 5 + random.nextInt(5);
+            safeSpot = new BlockPos(
+                mc.thePlayer.posX - Math.sin(rad) * distance,
+                mc.thePlayer.posY,
+                mc.thePlayer.posZ + Math.cos(rad) * distance
+            );
+            
+            isAvoidanceRotating = false;
+            setPhase(MiningPhase.RELOCATING);
+            MuzMod.LOGGER.info("[Mining] Dönüş tamamlandı, güvenli alana gidiliyor");
+        }
     }
     
     /**
@@ -689,23 +715,12 @@ public class MiningState extends AbstractState {
                 long timeout = config.getPlayerBlockingTimeout();
                 
                 if (blockingDuration >= timeout) {
-                    // Timeout doldu, smooth dönüş ile kaç
-                    if (config.isSmoothPlayerAvoidance()) {
-                        // Smooth kaçış başlat
-                        float escapeYaw = PlayerDetector.getEscapeDirection(mc.thePlayer, config.getPlayerDetectionRadius());
-                        avoidanceTargetYaw = escapeYaw;
-                        isAvoidanceRotating = true;
-                        
-                        InputSimulator.releaseLeftClick();
-                        setPhase(MiningPhase.FINDING_SAFE_SPOT);
-                        setStatus("Oyuncu önde! Dönülüyor...");
-                        MuzMod.LOGGER.info("[Mining] Timeout doldu, smooth kaçış başlıyor");
-                    } else {
-                        // Instant dönüş
-                        InputSimulator.releaseLeftClick();
-                        setPhase(MiningPhase.FINDING_SAFE_SPOT);
-                        setStatus("Oyuncu önde!");
-                    }
+                    // Timeout doldu, kaçış moduna geç
+                    InputSimulator.releaseLeftClick();
+                    isAvoidanceRotating = false; // Reset - FINDING_SAFE_SPOT'ta yeniden hesaplanacak
+                    setPhase(MiningPhase.FINDING_SAFE_SPOT);
+                    setStatus("Oyuncu önde! Kaçılıyor...");
+                    MuzMod.LOGGER.info("[Mining] Timeout doldu, kaçış başlıyor");
                 } else {
                     // Hala bekliyoruz
                     long remaining = timeout - blockingDuration;
@@ -821,6 +836,33 @@ public class MiningState extends AbstractState {
             }
         }
         return null;
+    }
+    
+    /**
+     * Smooth rotation helper - değişken hızla hedef açıya döner
+     * Tüm instant rotasyonlar yerine bu kullanılmalı
+     */
+    private void smoothRotateTo(float targetYaw, float targetPitch) {
+        float currentYaw = mc.thePlayer.rotationYaw;
+        float currentPitch = mc.thePlayer.rotationPitch;
+        
+        float yawDiff = RotationUtils.getAngleDistance(currentYaw, targetYaw);
+        float pitchDiff = targetPitch - currentPitch;
+        
+        // Değişken hız kullan (4-11 arası)
+        float speed = currentRotationSpeed;
+        
+        // Yaw smooth
+        if (Math.abs(yawDiff) > 1) {
+            float step = Math.signum(yawDiff) * Math.min(Math.abs(yawDiff), speed);
+            mc.thePlayer.rotationYaw += step;
+        }
+        
+        // Pitch smooth (biraz daha yavaş)
+        if (Math.abs(pitchDiff) > 1) {
+            float step = Math.signum(pitchDiff) * Math.min(Math.abs(pitchDiff), speed * 0.7f);
+            mc.thePlayer.rotationPitch += step;
+        }
     }
     
     private void setPhase(MiningPhase newPhase) {
