@@ -301,18 +301,18 @@ public class ScheduleManager {
             entries.add(new ScheduleEntry(day, 23, 39, 0, 0, ScheduleEntry.EventType.MINING));  // 23:40 eventi
         }
         
-        // OX Event saatleri (1 dk erken git + 20 dk kal = 21 dk)
-        // Hafta içi (Pzt-Cum): 17:50, 00:05 -> 1 dk erken başla
+        // OX Event saatleri (1 dk erken git + 10 dk kal = :49 - :59)
+        // Hafta içi (Pzt-Cum): 17:50, 00:05 -> 1 dk erken başla, 10 dk
         for (int day = 0; day < 5; day++) {
-            entries.add(new ScheduleEntry(day, 0, 4, 0, 25, ScheduleEntry.EventType.OX));    // 00:05 eventi
-            entries.add(new ScheduleEntry(day, 17, 49, 18, 10, ScheduleEntry.EventType.OX)); // 17:50 eventi
+            entries.add(new ScheduleEntry(day, 0, 4, 0, 14, ScheduleEntry.EventType.OX));    // 00:05 eventi -> 00:04-00:14
+            entries.add(new ScheduleEntry(day, 17, 49, 17, 59, ScheduleEntry.EventType.OX)); // 17:50 eventi -> 17:49-17:59
         }
         
-        // Hafta sonu (Cmt-Paz): 11:00, 17:50, 00:05 -> 1 dk erken başla
+        // Hafta sonu (Cmt-Paz): 11:00, 17:50, 00:05 -> 1 dk erken başla, 10 dk
         for (int day = 5; day < 7; day++) {
-            entries.add(new ScheduleEntry(day, 0, 4, 0, 25, ScheduleEntry.EventType.OX));    // 00:05 eventi
-            entries.add(new ScheduleEntry(day, 10, 59, 11, 20, ScheduleEntry.EventType.OX)); // 11:00 eventi
-            entries.add(new ScheduleEntry(day, 17, 49, 18, 10, ScheduleEntry.EventType.OX)); // 17:50 eventi
+            entries.add(new ScheduleEntry(day, 0, 4, 0, 14, ScheduleEntry.EventType.OX));    // 00:05 eventi -> 00:04-00:14
+            entries.add(new ScheduleEntry(day, 10, 59, 11, 9, ScheduleEntry.EventType.OX));  // 11:00 eventi -> 10:59-11:09
+            entries.add(new ScheduleEntry(day, 17, 49, 17, 59, ScheduleEntry.EventType.OX)); // 17:50 eventi -> 17:49-17:59
         }
         
         save();

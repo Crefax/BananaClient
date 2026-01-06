@@ -256,14 +256,16 @@ public class OXState implements IState {
     }
     
     private void handleMovingToSide(EntityPlayerSP player) {
-        // Hedef tarafa doğru yürü
+        // Hedef tarafa doğru koş
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), true);
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), true);
         
         // Doğru blokta mıyız kontrol et
         Boolean currentSide = getCurrentSide(player);
         
         if (currentSide != null && currentSide == targetSide) {
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), false);
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), false);
             isRotating = false;
             currentStep = STEP_ON_POSITION;
             stepStartTime = System.currentTimeMillis();
@@ -378,8 +380,8 @@ public class OXState implements IState {
         
         MuzMod.LOGGER.info("[OXState] Rotating to " + (goToLime ? "LIME" : "RED") + " (yaw: " + targetYaw + ")");
         
-        // Rastgele hız
-        maxRotationSpeed = 5.0f + random.nextFloat() * 6.0f; // 5-11 derece/tick
+        // Hızlı dönüş
+        maxRotationSpeed = 12.0f + random.nextFloat() * 8.0f; // 12-20 derece/tick
         currentRotationSpeed = 0;
         isRotating = true;
     }
@@ -401,13 +403,13 @@ public class OXState implements IState {
             return;
         }
         
-        // Hızlanma/yavaşlama
-        if (Math.abs(diff) > 30) {
+        // Hızlanma/yavaşlama (daha hızlı)
+        if (Math.abs(diff) > 20) {
             // Uzaktaysa hızlan
-            currentRotationSpeed = Math.min(currentRotationSpeed + 0.5f, maxRotationSpeed);
+            currentRotationSpeed = Math.min(currentRotationSpeed + 1.5f, maxRotationSpeed);
         } else {
             // Yaklaştıysa yavaşla
-            currentRotationSpeed = Math.max(currentRotationSpeed - 0.3f, 2.0f);
+            currentRotationSpeed = Math.max(currentRotationSpeed - 0.5f, 5.0f);
         }
         
         // Dönüşü uygula
@@ -420,6 +422,7 @@ public class OXState implements IState {
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindBack.getKeyCode(), false);
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindLeft.getKeyCode(), false);
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindRight.getKeyCode(), false);
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), false);
     }
     
     // Getters/Setters
