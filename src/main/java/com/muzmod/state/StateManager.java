@@ -165,14 +165,16 @@ public class StateManager {
             return;
         }
         
-        // Tip değiştiyse yeni state'e geç
-        if (scheduledType != lastScheduleType) {
+        // Hedef state'i belirle
+        IState targetState = getStateForEventType(scheduledType);
+        
+        // Tip değiştiyse veya mevcut state hedefle uyuşmuyorsa geçiş yap
+        if (scheduledType != lastScheduleType || (targetState != null && targetState != currentState && !(currentState instanceof RepairState))) {
             lastScheduleType = scheduledType;
             schedule.setLastScheduledType(scheduledType);
             
-            IState targetState = getStateForEventType(scheduledType);
             if (targetState != null && targetState != currentState) {
-                MuzMod.LOGGER.info("[Schedule] Event type changed: " + scheduledType.getDisplayName());
+                MuzMod.LOGGER.info("[Schedule] Transitioning to: " + scheduledType.getDisplayName() + " (current state: " + (currentState != null ? currentState.getName() : "null") + ")");
                 transitionTo(targetState);
             }
         }

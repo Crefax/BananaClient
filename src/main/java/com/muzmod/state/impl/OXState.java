@@ -208,12 +208,10 @@ public class OXState implements IState {
             stepStartTime = now;
             analyzePlayerPositions(player);
             
-            // Eğer belirgin bir çoğunluk varsa hareket et
-            if (playersOnLime > 0 || playersOnRed > 0) {
-                int total = playersOnLime + playersOnRed;
-                if (total >= 3) { // En az 3 oyuncu analiz edilmeli
-                    currentStep = STEP_ANALYZING;
-                }
+            // Herhangi bir oyuncu varsa hemen çoğunluğa git
+            int total = playersOnLime + playersOnRed;
+            if (total >= 1) {
+                currentStep = STEP_ANALYZING;
             }
         }
         
@@ -224,12 +222,12 @@ public class OXState implements IState {
         analyzePlayerPositions(player);
         
         int total = playersOnLime + playersOnRed;
-        if (total < 2) {
+        if (total < 1) {
             status = "Oyuncu bekleniyor...";
             return;
         }
         
-        // Çoğunluğu belirle
+        // Çoğunluğu belirle - eşitlikte yeşile git
         boolean shouldGoLime = playersOnLime >= playersOnRed;
         
         // Şu an hangi taraftayız?
@@ -238,8 +236,14 @@ public class OXState implements IState {
         status = "Analiz: L=" + playersOnLime + " R=" + playersOnRed + 
                  " -> " + (shouldGoLime ? "YEŞİL" : "KIRMIZI");
         
-        // Eğer yanlış taraftaysak veya ortadaysak hareket et
-        if (currentSide == null || currentSide != shouldGoLime) {
+        // Eğer hiç taraf seçmediyse veya ortadaysa hareket et
+        if (currentSide == null) {
+            targetSide = shouldGoLime;
+            startSmoothRotation(player, shouldGoLime);
+            currentStep = STEP_MOVING_TO_SIDE;
+            MuzMod.LOGGER.info("[OXState] Moving to " + (shouldGoLime ? "LIME" : "RED") + " side (initial)");
+        } else if (currentSide != shouldGoLime) {
+            // Yanlış taraftayız - çoğunluğa git
             targetSide = shouldGoLime;
             startSmoothRotation(player, shouldGoLime);
             currentStep = STEP_MOVING_TO_SIDE;
@@ -276,16 +280,27 @@ public class OXState implements IState {
             stepStartTime = now;
             analyzePlayerPositions(player);
             
-            // Çoğunluk değiştiyse yeniden hareket et
+            // Sadece diğer taraf FAZLA olunca yer değiştir (eşitlikte kalma)
             if (playersOnLime > 0 || playersOnRed > 0) {
-                boolean shouldGoLime = playersOnLime >= playersOnRed;
                 Boolean currentSide = getCurrentSide(player);
                 
-                if (currentSide != null && currentSide != shouldGoLime) {
-                    targetSide = shouldGoLime;
-                    startSmoothRotation(player, shouldGoLime);
-                    currentStep = STEP_MOVING_TO_SIDE;
-                    MuzMod.LOGGER.info("[OXState] Majority changed! Moving to " + (shouldGoLime ? "LIME" : "RED"));
+                if (currentSide != null) {
+                    // Yeşildeysek, sadece kırmızı > yeşil olunca değiş
+                    // Kırmızıdaysak, sadece yeşil > kırmızı olunca değiş
+                    boolean shouldSwitch = false;
+                    if (currentSide) { // Yeşildeyiz
+                        shouldSwitch = playersOnRed > playersOnLime;
+                    } else { // Kırmızıdayız
+                        shouldSwitch = playersOnLime > playersOnRed;
+                    }
+                    
+                    if (shouldSwitch) {
+                        targetSide = !currentSide; // Diğer tarafa git
+                        startSmoothRotation(player, targetSide);
+                        currentStep = STEP_MOVING_TO_SIDE;
+                        MuzMod.LOGGER.info("[OXState] Majority changed! Moving to " + (targetSide ? "LIME" : "RED") + 
+                                          " (L:" + playersOnLime + " R:" + playersOnRed + ")");
+                    }
                 }
             }
         }
