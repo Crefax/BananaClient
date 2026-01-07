@@ -1,6 +1,7 @@
 package com.muzmod.state;
 
 import com.muzmod.MuzMod;
+import com.muzmod.navigation.NavigationManager;
 import com.muzmod.schedule.ScheduleEntry;
 import com.muzmod.schedule.ScheduleManager;
 import com.muzmod.state.impl.AFKState;
@@ -80,6 +81,9 @@ public class StateManager {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         
         tickCounter++;
+        
+        // Update navigation system
+        NavigationManager.getInstance().update();
         
         // Check for state transitions periodically
         if (tickCounter >= CHECK_INTERVAL) {

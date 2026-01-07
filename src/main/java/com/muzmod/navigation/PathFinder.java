@@ -1,0 +1,336 @@
+package com.muzmod.navigation;
+
+import com.muzmod.MuzMod;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.BlockPos;
+
+import java.util.*;
+
+/**
+ * Basit A* Pathfinding
+ * 
+ * Minecraft dünyasında yol bulma algoritması.
+ * Engelleri aşmaya çalışır, yoksa direkt yol verir.
+ */
+public class PathFinder {
+    
+    private final Minecraft mc = Minecraft.getMinecraft();
+    
+    // Pathfinding limitleri
+    private static final int MAX_ITERATIONS = 1000;
+    private static final int MAX_PATH_LENGTH = 200;
+    private static final int SEARCH_RADIUS = 64;
+    
+    // Yürünebilir olmayan bloklar
+    private static final Set<Block> BLOCKED_BLOCKS = new HashSet<>(Arrays.asList(
+        Blocks.lava,
+        Blocks.flowing_lava,
+        Blocks.fire,
+        Blocks.cactus,
+        Blocks.web
+    ));
+    
+    /**
+     * İki nokta arasında yol bul (A* algoritması)
+     */
+    public List<BlockPos> findPath(BlockPos start, BlockPos end) {
+        if (mc.theWorld == null) return null;
+        
+        // Çok uzaksa null dön
+        double distance = getDistance(start, end);
+        if (distance > SEARCH_RADIUS) {
+            // Uzak hedef için ara noktalar oluştur
+            return getSimplePath(start, end);
+        }
+        
+        // Direkt yol açık mı kontrol et
+        if (isDirectPathClear(start, end)) {
+            List<BlockPos> directPath = new ArrayList<>();
+            directPath.add(start);
+            directPath.add(end);
+            return directPath;
+        }
+        
+        // A* algoritması
+        PriorityQueue<Node> openSet = new PriorityQueue<>(Comparator.comparingDouble(n -> n.fCost));
+        Map<BlockPos, Node> allNodes = new HashMap<>();
+        Set<BlockPos> closedSet = new HashSet<>();
+        
+        Node startNode = new Node(start, null, 0, heuristic(start, end));
+        openSet.add(startNode);
+        allNodes.put(start, startNode);
+        
+        int iterations = 0;
+        
+        while (!openSet.isEmpty() && iterations < MAX_ITERATIONS) {
+            iterations++;
+            
+            Node current = openSet.poll();
+            
+            // Hedefe ulaştık mı?
+            if (getDistance(current.pos, end) < 2) {
+                return reconstructPath(current);
+            }
+            
+            closedSet.add(current.pos);
+            
+            // Komşuları kontrol et
+            for (BlockPos neighbor : getNeighbors(current.pos)) {
+                if (closedSet.contains(neighbor)) continue;
+                
+                double tentativeG = current.gCost + getDistance(current.pos, neighbor);
+                
+                Node neighborNode = allNodes.get(neighbor);
+                
+                if (neighborNode == null) {
+                    neighborNode = new Node(neighbor, current, tentativeG, heuristic(neighbor, end));
+                    allNodes.put(neighbor, neighborNode);
+                    openSet.add(neighborNode);
+                } else if (tentativeG < neighborNode.gCost) {
+                    openSet.remove(neighborNode);
+                    neighborNode.parent = current;
+                    neighborNode.gCost = tentativeG;
+                    neighborNode.fCost = tentativeG + heuristic(neighbor, end);
+                    openSet.add(neighborNode);
+                }
+            }
+        }
+        
+        // Yol bulunamadı, basit yol dön
+        MuzMod.LOGGER.warn("[PathFinder] A* failed after " + iterations + " iterations, using simple path");
+        return getSimplePath(start, end);
+    }
+    
+    /**
+     * Basit düz çizgi yolu (waypoint'lerle)
+     */
+    public List<BlockPos> getSimplePath(BlockPos start, BlockPos end) {
+        List<BlockPos> path = new ArrayList<>();
+        path.add(start);
+        
+        double totalDistance = getDistance(start, end);
+        int numWaypoints = (int) Math.ceil(totalDistance / 10.0); // Her 10 blokta bir waypoint
+        
+        if (numWaypoints <= 1) {
+            path.add(end);
+            return path;
+        }
+        
+        double dx = (end.getX() - start.getX()) / (double) numWaypoints;
+        double dy = (end.getY() - start.getY()) / (double) numWaypoints;
+        double dz = (end.getZ() - start.getZ()) / (double) numWaypoints;
+        
+        for (int i = 1; i < numWaypoints; i++) {
+            int x = start.getX() + (int) (dx * i);
+            int y = start.getY() + (int) (dy * i);
+            int z = start.getZ() + (int) (dz * i);
+            
+            // Y koordinatını zemine ayarla
+            BlockPos waypoint = findGround(new BlockPos(x, y, z));
+            if (waypoint != null) {
+                path.add(waypoint);
+            }
+        }
+        
+        path.add(end);
+        return path;
+    }
+    
+    /**
+     * Direkt yol açık mı kontrol et (engel var mı)
+     */
+    public boolean isDirectPathClear(BlockPos start, BlockPos end) {
+        int steps = (int) Math.ceil(getDistance(start, end));
+        
+        double dx = (end.getX() - start.getX()) / (double) steps;
+        double dy = (end.getY() - start.getY()) / (double) steps;
+        double dz = (end.getZ() - start.getZ()) / (double) steps;
+        
+        for (int i = 0; i <= steps; i++) {
+            int x = start.getX() + (int) (dx * i);
+            int y = start.getY() + (int) (dy * i);
+            int z = start.getZ() + (int) (dz * i);
+            
+            BlockPos checkPos = new BlockPos(x, y, z);
+            
+            if (!isWalkable(checkPos)) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Bir pozisyona yürünebilir mi?
+     */
+    public boolean isWalkable(BlockPos pos) {
+        if (mc.theWorld == null) return false;
+        
+        Block blockAtFeet = mc.theWorld.getBlockState(pos).getBlock();
+        Block blockAtHead = mc.theWorld.getBlockState(pos.up()).getBlock();
+        Block blockBelow = mc.theWorld.getBlockState(pos.down()).getBlock();
+        
+        // Ayak ve baş seviyesi boş olmalı
+        boolean feetClear = blockAtFeet.isPassable(mc.theWorld, pos) || mc.theWorld.isAirBlock(pos);
+        boolean headClear = blockAtHead.isPassable(mc.theWorld, pos.up()) || mc.theWorld.isAirBlock(pos.up());
+        
+        // Ayağın altında zemin olmalı (veya zıplayarak geçilebilir)
+        boolean hasGround = !mc.theWorld.isAirBlock(pos.down()) && 
+                           !blockBelow.isPassable(mc.theWorld, pos.down());
+        
+        // Tehlikeli blok kontrolü
+        boolean notDangerous = !BLOCKED_BLOCKS.contains(blockAtFeet) && 
+                               !BLOCKED_BLOCKS.contains(blockBelow);
+        
+        return feetClear && headClear && notDangerous;
+    }
+    
+    /**
+     * Zemin bul (havadaysa aşağı in)
+     */
+    private BlockPos findGround(BlockPos pos) {
+        if (mc.theWorld == null) return pos;
+        
+        // Yukarı veya aşağı zemin ara
+        for (int dy = 0; dy <= 10; dy++) {
+            BlockPos checkDown = pos.down(dy);
+            BlockPos checkUp = pos.up(dy);
+            
+            if (isWalkable(checkDown)) {
+                return checkDown;
+            }
+            if (isWalkable(checkUp)) {
+                return checkUp;
+            }
+        }
+        
+        return pos;
+    }
+    
+    /**
+     * Komşu blokları al (8 yön + yukarı/aşağı)
+     */
+    private List<BlockPos> getNeighbors(BlockPos pos) {
+        List<BlockPos> neighbors = new ArrayList<>();
+        
+        // 8 yatay yön
+        int[][] directions = {
+            {1, 0}, {-1, 0}, {0, 1}, {0, -1},  // 4 ana yön
+            {1, 1}, {1, -1}, {-1, 1}, {-1, -1} // 4 çapraz
+        };
+        
+        for (int[] dir : directions) {
+            // Aynı seviye
+            BlockPos neighbor = pos.add(dir[0], 0, dir[1]);
+            if (isWalkable(neighbor)) {
+                neighbors.add(neighbor);
+            }
+            
+            // Bir yukarı (merdiven/zıplama)
+            BlockPos neighborUp = pos.add(dir[0], 1, dir[1]);
+            if (isWalkable(neighborUp) && canClimbTo(pos, neighborUp)) {
+                neighbors.add(neighborUp);
+            }
+            
+            // Bir aşağı (düşme)
+            BlockPos neighborDown = pos.add(dir[0], -1, dir[1]);
+            if (isWalkable(neighborDown)) {
+                neighbors.add(neighborDown);
+            }
+        }
+        
+        return neighbors;
+    }
+    
+    /**
+     * Yukarı tırmanılabilir mi?
+     */
+    private boolean canClimbTo(BlockPos from, BlockPos to) {
+        // Bir blok yukarı zıplayabilir miyiz?
+        int heightDiff = to.getY() - from.getY();
+        if (heightDiff > 1) return false;
+        
+        // Baş üstü boş mu?
+        return mc.theWorld.isAirBlock(from.up().up());
+    }
+    
+    /**
+     * Yolu reconstruct et (A* sonucu)
+     */
+    private List<BlockPos> reconstructPath(Node endNode) {
+        List<BlockPos> path = new ArrayList<>();
+        Node current = endNode;
+        
+        while (current != null) {
+            path.add(0, current.pos);
+            current = current.parent;
+        }
+        
+        // Yolu sadeleştir (gereksiz waypoint'leri kaldır)
+        return simplifyPath(path);
+    }
+    
+    /**
+     * Yolu sadeleştir - düz çizgideki ara noktaları kaldır
+     */
+    private List<BlockPos> simplifyPath(List<BlockPos> path) {
+        if (path.size() <= 2) return path;
+        
+        List<BlockPos> simplified = new ArrayList<>();
+        simplified.add(path.get(0));
+        
+        int i = 0;
+        while (i < path.size() - 1) {
+            // En uzak görünür noktayı bul
+            int farthest = i + 1;
+            for (int j = i + 2; j < path.size(); j++) {
+                if (isDirectPathClear(path.get(i), path.get(j))) {
+                    farthest = j;
+                }
+            }
+            
+            simplified.add(path.get(farthest));
+            i = farthest;
+        }
+        
+        return simplified;
+    }
+    
+    /**
+     * İki nokta arası mesafe
+     */
+    private double getDistance(BlockPos a, BlockPos b) {
+        double dx = a.getX() - b.getX();
+        double dy = a.getY() - b.getY();
+        double dz = a.getZ() - b.getZ();
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+    
+    /**
+     * Heuristic fonksiyonu (A*)
+     */
+    private double heuristic(BlockPos a, BlockPos b) {
+        // Euclidean distance
+        return getDistance(a, b);
+    }
+    
+    /**
+     * A* Node sınıfı
+     */
+    private static class Node {
+        final BlockPos pos;
+        Node parent;
+        double gCost; // Start'tan bu noktaya maliyet
+        double fCost; // gCost + heuristic
+        
+        Node(BlockPos pos, Node parent, double gCost, double hCost) {
+            this.pos = pos;
+            this.parent = parent;
+            this.gCost = gCost;
+            this.fCost = gCost + hCost;
+        }
+    }
+}

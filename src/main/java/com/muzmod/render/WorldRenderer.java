@@ -1,6 +1,7 @@
 package com.muzmod.render;
 
 import com.muzmod.MuzMod;
+import com.muzmod.navigation.NavigationManager;
 import com.muzmod.state.impl.MiningState;
 import com.muzmod.util.PlayerDetector;
 import net.minecraft.client.Minecraft;
@@ -13,7 +14,7 @@ import org.lwjgl.opengl.GL11;
 import java.util.Set;
 
 /**
- * Renders in-world elements (ore highlights, player detection circle)
+ * Renders in-world elements (ore highlights, player detection circle, navigation path)
  */
 public class WorldRenderer {
     
@@ -30,6 +31,9 @@ public class WorldRenderer {
         
         // Render player detection radius
         renderDetectionRadius(renderX, renderY, renderZ, partialTicks);
+        
+        // Render navigation path
+        NavigationManager.getInstance().getRenderer().render(partialTicks);
         
         // Render ore highlights if mining
         if (MuzMod.instance.getStateManager().getCurrentState() instanceof MiningState) {

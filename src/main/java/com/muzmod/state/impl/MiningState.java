@@ -2,6 +2,8 @@ package com.muzmod.state.impl;
 
 import com.muzmod.MuzMod;
 import com.muzmod.config.ModConfig;
+import com.muzmod.navigation.Direction;
+import com.muzmod.navigation.NavigationManager;
 import com.muzmod.rotation.AntiAfkRotation;
 import com.muzmod.rotation.PositionAdjuster;
 import com.muzmod.state.AbstractState;
@@ -99,6 +101,10 @@ public class MiningState extends AbstractState {
     private boolean isStrafing = false;
     private boolean strafeLeft = true; // Sağ-sol değişimi için
     
+    // Navigation system reference
+    private final NavigationManager nav = NavigationManager.getInstance();
+    private boolean usingNavigation = false; // NavigationManager kullanılıyor mu
+    
     // Mining progress tracking (manuel durdurma algılama)
     private long lastActualMiningTime = 0; // Gerçekten kazıldığı son zaman
     private BlockPos lastMinedBlockPos = null; // Son kazılan bloğun pozisyonu
@@ -167,6 +173,10 @@ public class MiningState extends AbstractState {
         playerInRadius = false;
         playerBlocking = false;
         markedOres.clear();
+        usingNavigation = false;
+        
+        // Stop any existing navigation
+        nav.stop();
         
         // Reset rotation systems
         antiAfkRotation.reset();
@@ -193,6 +203,10 @@ public class MiningState extends AbstractState {
         referenceOre = null;
         markedOres.clear();
         phase = MiningPhase.WARPING;
+        
+        // Stop navigation
+        nav.stop();
+        usingNavigation = false;
         
         // Reset rotation systems
         antiAfkRotation.reset();
@@ -269,8 +283,15 @@ public class MiningState extends AbstractState {
                 break;
         }
         
-        // Player detection (except during warping/initial walk)
-        if (phase != MiningPhase.WARPING && phase != MiningPhase.INITIAL_WALK && config.shouldAvoidPlayers()) {
+        // Player detection - SADECE ore bulma ve mining fazlarında aktif
+        // Yürüyüş ve dönüş fazlarında player kaçış devre dışı (path bozulmasın)
+        boolean isWalkingPhase = phase == MiningPhase.WARPING || 
+                                 phase == MiningPhase.INITIAL_ROTATION ||
+                                 phase == MiningPhase.INITIAL_WALK ||
+                                 phase == MiningPhase.SECOND_ROTATION ||
+                                 phase == MiningPhase.SECOND_WALK;
+        
+        if (!isWalkingPhase && config.shouldAvoidPlayers()) {
             handlePlayerDetection(config);
         }
         
@@ -339,6 +360,7 @@ public class MiningState extends AbstractState {
             rotationComplete = true;
             setPhase(MiningPhase.INITIAL_WALK);
             walkStartPos = null;
+            usingNavigation = false; // Reset for walk phase
             setStatus("Yön ayarlandı, yürüyüş başlıyor...");
             MuzMod.LOGGER.info("[Mining] Initial rotation complete, yaw: " + walkYaw);
             return;
@@ -370,41 +392,46 @@ public class MiningState extends AbstractState {
     }
     
     private void handleInitialWalkPhase(ModConfig config) {
-        // Initialize walk start position
-        if (walkStartPos == null) {
+        // NavigationManager ile yürüyüş başlat
+        if (!usingNavigation) {
+            InputSimulator.releaseAll();
             walkStartPos = mc.thePlayer.getPosition();
-            InputSimulator.releaseAll();
-            setStatus("Ore'lara yürünüyor...");
-        }
-        
-        // Calculate walked distance
-        double dx = mc.thePlayer.posX - walkStartPos.getX();
-        double dz = mc.thePlayer.posZ - walkStartPos.getZ();
-        walkedDistance = Math.sqrt(dx * dx + dz * dz);
-        
-        // Check if we've walked enough
-        if (walkedDistance >= targetWalkDistance) {
-            InputSimulator.releaseAll();
             
-            // İkinci yürüyüş aktifse, önce dönüş yap
-            if (config.isSecondWalkEnabled() && secondWalkDistance > 0) {
-                setPhase(MiningPhase.SECOND_ROTATION);
-                rotationComplete = false;
-                String dir = secondWalkGoEast ? "East" : "West";
-                MuzMod.LOGGER.info("[Mining] Initial walk complete, starting second rotation to " + dir);
-                setStatus("İkinci yön ayarlanıyor (" + dir + ")...");
-            } else {
-                setPhase(MiningPhase.FINDING_ORE);
-                setStatus("Ore aranıyor...");
-            }
+            // NavigationManager ile yön ve mesafe belirle
+            nav.goForward((int)targetWalkDistance, (int)targetWalkDistance)
+               .onComplete(() -> {
+                   usingNavigation = false;
+                   InputSimulator.releaseAll();
+                   
+                   // İkinci yürüyüş aktifse, önce dönüş yap
+                   if (config.isSecondWalkEnabled() && secondWalkDistance > 0) {
+                       setPhase(MiningPhase.SECOND_ROTATION);
+                       rotationComplete = false;
+                       String dir = secondWalkGoEast ? "East" : "West";
+                       MuzMod.LOGGER.info("[Mining] Initial walk complete via NavManager, starting second rotation to " + dir);
+                       setStatus("İkinci yön ayarlanıyor (" + dir + ")...");
+                   } else {
+                       setPhase(MiningPhase.FINDING_ORE);
+                       setStatus("Ore aranıyor...");
+                   }
+               })
+               .onFailed(() -> {
+                   usingNavigation = false;
+                   InputSimulator.releaseAll();
+                   MuzMod.LOGGER.warn("[Mining] Navigation failed, falling back to FINDING_ORE");
+                   setPhase(MiningPhase.FINDING_ORE);
+               });
+            
+            usingNavigation = true;
+            setStatus("Ore'lara yürünüyor (NavManager)...");
+            MuzMod.LOGGER.info("[Mining] Started initial walk via NavigationManager, target: " + targetWalkDistance + " blocks");
             return;
         }
         
-        // Yürürken yönü koru
-        smoothRotateTo(walkYaw, 20);
-        
-        // Walk forward
-        InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
+        // NavigationManager aktifken mesafe hesapla ve göster
+        double dx = mc.thePlayer.posX - walkStartPos.getX();
+        double dz = mc.thePlayer.posZ - walkStartPos.getZ();
+        walkedDistance = Math.sqrt(dx * dx + dz * dz);
         
         // Mine while walking if enabled
         if (config.shouldMineWhileMoving()) {
@@ -447,6 +474,7 @@ public class MiningState extends AbstractState {
             rotationComplete = true;
             setPhase(MiningPhase.SECOND_WALK);
             secondWalkStartPos = null;
+            usingNavigation = false; // Reset for second walk phase
             String dir = secondWalkGoEast ? "East" : "West";
             setStatus("İkinci yürüyüş başlıyor (" + dir + ")...");
             MuzMod.LOGGER.info("[Mining] Second rotation complete, yaw: " + secondWalkYaw);
@@ -466,33 +494,40 @@ public class MiningState extends AbstractState {
     }
     
     private void handleSecondWalkPhase(ModConfig config) {
-        // Initialize walk start position
-        if (secondWalkStartPos == null) {
+        // NavigationManager ile ikinci yürüyüş başlat
+        if (!usingNavigation) {
+            InputSimulator.releaseAll();
             secondWalkStartPos = mc.thePlayer.getPosition();
-            InputSimulator.releaseAll();
-            String dir = secondWalkGoEast ? "East" : "West";
-            setStatus("İkinci yürüyüş (" + dir + ")...");
-        }
-        
-        // Calculate walked distance
-        double dx = mc.thePlayer.posX - secondWalkStartPos.getX();
-        double dz = mc.thePlayer.posZ - secondWalkStartPos.getZ();
-        secondWalkedDistance = Math.sqrt(dx * dx + dz * dz);
-        
-        // Check if we've walked enough
-        if (secondWalkedDistance >= secondWalkDistance) {
-            InputSimulator.releaseAll();
-            setPhase(MiningPhase.FINDING_ORE);
-            setStatus("Ore aranıyor...");
-            MuzMod.LOGGER.info("[Mining] Second walk complete, walked: " + secondWalkedDistance + " blocks");
+            
+            // East veya West yönüne git
+            Direction dir = secondWalkGoEast ? Direction.EAST : Direction.WEST;
+            String dirName = secondWalkGoEast ? "East" : "West";
+            
+            nav.goDirection(dir, (int)secondWalkDistance)
+               .onComplete(() -> {
+                   usingNavigation = false;
+                   InputSimulator.releaseAll();
+                   setPhase(MiningPhase.FINDING_ORE);
+                   setStatus("Ore aranıyor...");
+                   MuzMod.LOGGER.info("[Mining] Second walk complete via NavManager, walked: " + secondWalkDistance + " blocks to " + dirName);
+               })
+               .onFailed(() -> {
+                   usingNavigation = false;
+                   InputSimulator.releaseAll();
+                   MuzMod.LOGGER.warn("[Mining] Second walk navigation failed, falling back to FINDING_ORE");
+                   setPhase(MiningPhase.FINDING_ORE);
+               });
+            
+            usingNavigation = true;
+            setStatus("İkinci yürüyüş (" + dirName + ") (NavManager)...");
+            MuzMod.LOGGER.info("[Mining] Started second walk via NavigationManager to " + dirName + ", distance: " + secondWalkDistance);
             return;
         }
         
-        // Yürürken yönü koru
-        smoothRotateTo(secondWalkYaw, 20);
-        
-        // Walk forward
-        InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
+        // NavigationManager aktifken mesafe hesapla
+        double dx = mc.thePlayer.posX - secondWalkStartPos.getX();
+        double dz = mc.thePlayer.posZ - secondWalkStartPos.getZ();
+        secondWalkedDistance = Math.sqrt(dx * dx + dz * dz);
         
         // Mine while walking if enabled
         if (config.shouldMineWhileMoving()) {
@@ -774,12 +809,15 @@ public class MiningState extends AbstractState {
             currentRotationSpeed = Math.max(4.0f, Math.min(11.0f, currentRotationSpeed + change));
         }
         
-        // Smooth rotation - dönerken yürü
+        // Smooth rotation - dönerken yürü (en kısa yönden dön)
         float currentYaw = mc.thePlayer.rotationYaw;
-        float diff = RotationUtils.getAngleDistance(currentYaw, avoidanceTargetYaw);
+        float diff = avoidanceTargetYaw - currentYaw;
+        // Normalize to -180 to 180 for shortest path
+        while (diff > 180) diff -= 360;
+        while (diff < -180) diff += 360;
         
         if (Math.abs(diff) > 2) {
-            // Hala dönmemiz gerekiyor - değişken hızla
+            // Hala dönmemiz gerekiyor - değişken hızla, en kısa yönden
             float step = Math.signum(diff) * Math.min(Math.abs(diff), currentRotationSpeed);
             mc.thePlayer.rotationYaw += step;
             
@@ -1021,18 +1059,24 @@ public class MiningState extends AbstractState {
     /**
      * Smooth rotation helper - değişken hızla hedef açıya döner
      * Tüm instant rotasyonlar yerine bu kullanılmalı
+     * En kısa yönden döner (360 derece tur atmaz)
      */
     private void smoothRotateTo(float targetYaw, float targetPitch) {
         float currentYaw = mc.thePlayer.rotationYaw;
         float currentPitch = mc.thePlayer.rotationPitch;
         
-        float yawDiff = RotationUtils.getAngleDistance(currentYaw, targetYaw);
+        // En kısa yönü hesapla (yönlü fark, -180 ile 180 arası)
+        float yawDiff = targetYaw - currentYaw;
+        // Normalize to -180 to 180 range for shortest path
+        while (yawDiff > 180) yawDiff -= 360;
+        while (yawDiff < -180) yawDiff += 360;
+        
         float pitchDiff = targetPitch - currentPitch;
         
         // Değişken hız kullan (4-11 arası)
         float speed = currentRotationSpeed;
         
-        // Yaw smooth
+        // Yaw smooth - en kısa yönden dön
         if (Math.abs(yawDiff) > 1) {
             float step = Math.signum(yawDiff) * Math.min(Math.abs(yawDiff), speed);
             mc.thePlayer.rotationYaw += step;
