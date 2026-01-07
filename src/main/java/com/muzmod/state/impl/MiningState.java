@@ -105,6 +105,12 @@ public class MiningState extends AbstractState {
     private final NavigationManager nav = NavigationManager.getInstance();
     private boolean usingNavigation = false; // NavigationManager kullanılıyor mu
     
+    // Mining center - yürüyüş tamamlandıktan sonra burası merkez olur
+    // Player avoidance ve ore bulunamadığında bu merkeze döneriz
+    private BlockPos miningCenter = null;
+    private static final int MAX_DISTANCE_FROM_CENTER = 30; // Merkezden maksimum uzaklık
+    private long lastCenterCheckTime = 0;
+    
     // Mining progress tracking (manuel durdurma algılama)
     private long lastActualMiningTime = 0; // Gerçekten kazıldığı son zaman
     private BlockPos lastMinedBlockPos = null; // Son kazılan bloğun pozisyonu
@@ -174,6 +180,7 @@ public class MiningState extends AbstractState {
         playerBlocking = false;
         markedOres.clear();
         usingNavigation = false;
+        miningCenter = null;
         
         // Stop any existing navigation
         nav.stop();
@@ -411,6 +418,9 @@ public class MiningState extends AbstractState {
                        MuzMod.LOGGER.info("[Mining] Initial walk complete via NavManager, starting second rotation to " + dir);
                        setStatus("İkinci yön ayarlanıyor (" + dir + ")...");
                    } else {
+                       // İkinci yürüyüş yoksa, burası mining merkezi
+                       miningCenter = mc.thePlayer.getPosition();
+                       MuzMod.LOGGER.info("[Mining] Mining center set at: " + miningCenter);
                        setPhase(MiningPhase.FINDING_ORE);
                        setStatus("Ore aranıyor...");
                    }
@@ -507,6 +517,11 @@ public class MiningState extends AbstractState {
                .onComplete(() -> {
                    usingNavigation = false;
                    InputSimulator.releaseAll();
+                   
+                   // Mining merkezi olarak bu pozisyonu kaydet
+                   miningCenter = mc.thePlayer.getPosition();
+                   MuzMod.LOGGER.info("[Mining] Mining center set at: " + miningCenter);
+                   
                    setPhase(MiningPhase.FINDING_ORE);
                    setStatus("Ore aranıyor...");
                    MuzMod.LOGGER.info("[Mining] Second walk complete via NavManager, walked: " + secondWalkDistance + " blocks to " + dirName);
@@ -577,7 +592,20 @@ public class MiningState extends AbstractState {
                 MuzMod.LOGGER.info("Reference ore set: " + referenceOre);
             }
         } else {
-            // No ore found, need to adjust position
+            // No ore found - merkeze uzaklığı kontrol et
+            if (miningCenter != null) {
+                double distToCenter = mc.thePlayer.getPosition().distanceSq(miningCenter);
+                if (distToCenter > MAX_DISTANCE_FROM_CENTER * MAX_DISTANCE_FROM_CENTER) {
+                    // Merkezden çok uzaklaştık, geri dön
+                    MuzMod.LOGGER.info("[Mining] Too far from center (" + Math.sqrt(distToCenter) + " blocks), returning...");
+                    safeSpot = miningCenter;
+                    setPhase(MiningPhase.RELOCATING);
+                    setStatus("Merkeze dönülüyor...");
+                    return;
+                }
+            }
+            
+            // Normal pozisyon ayarlama
             setPhase(MiningPhase.ADJUSTING);
             startPositionAdjustment(config);
             setStatus("Ore bulunamadı, pozisyon ayarlanıyor...");
@@ -778,11 +806,38 @@ public class MiningState extends AbstractState {
         
         // Kaçış yönünü hesapla (henüz hesaplanmadıysa)
         if (!isAvoidanceRotating) {
+            // Mining merkezi varsa, merkeze doğru kaçmayı tercih et
+            float escapeYaw;
+            if (miningCenter != null) {
+                // Merkeze olan yönü hesapla
+                float[] toCenter = RotationUtils.getRotationsToBlock(mc.thePlayer, miningCenter);
+                float centerYaw = toCenter[0];
+                
+                // Oyuncudan kaçış yönü
+                float playerEscapeYaw = PlayerDetector.getEscapeDirection(mc.thePlayer, config.getPlayerDetectionRadius());
+                
+                // Merkeze dönük yön ile kaçış yönü arasındaki farkı kontrol et
+                float diffToCenter = centerYaw - playerEscapeYaw;
+                while (diffToCenter > 180) diffToCenter -= 360;
+                while (diffToCenter < -180) diffToCenter += 360;
+                
+                // Eğer kaçış yönü merkeze yakınsa (±90 derece içinde), onu kullan
+                // Değilse, merkeze doğru git
+                if (Math.abs(diffToCenter) < 90) {
+                    escapeYaw = playerEscapeYaw;
+                    MuzMod.LOGGER.info("[Mining] Kaçış yönü merkeze uygun, player escape kullanılıyor");
+                } else {
+                    // Merkeze doğru git, ama biraz sapma ekle
+                    escapeYaw = centerYaw;
+                    MuzMod.LOGGER.info("[Mining] Kaçış yönü merkeze doğru yönlendirildi");
+                }
+            } else {
+                // Merkez yok, normal kaçış
+                escapeYaw = PlayerDetector.getEscapeDirection(mc.thePlayer, config.getPlayerDetectionRadius());
+            }
+            
             // Rastgele sağ veya sol seç
             avoidanceGoLeft = random.nextBoolean();
-            
-            // Oyuncunun ters yönüne bak, sonra sağ veya sol seç
-            float escapeYaw = PlayerDetector.getEscapeDirection(mc.thePlayer, config.getPlayerDetectionRadius());
             
             // Sağ veya sol yöne 30-60 derece sapma ekle
             float deviation = 30 + random.nextFloat() * 30; // 30-60 arası

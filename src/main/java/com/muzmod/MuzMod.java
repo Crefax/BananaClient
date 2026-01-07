@@ -19,7 +19,7 @@ import java.io.File;
 public class MuzMod {
     
     public static final String MODID = "muzmod";
-    public static final String VERSION = "2.7.0";
+    public static final String VERSION = "2.8.0";
     public static final Logger LOGGER = LogManager.getLogger(MODID);
     
     @Mod.Instance(MODID)
