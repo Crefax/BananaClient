@@ -55,7 +55,7 @@ public class MiningState extends AbstractState {
     
     // Mining tracking
     private long lastMiningProgressTime = 0;
-    private static final long STUCK_TIMEOUT = 5000; // 5 saniye
+    private static final long STUCK_TIMEOUT = 800; // 800ms - hızlı tespit
     
     // Movement - turnLeft and adjustmentCount moved to PositionAdjuster
     private boolean turnLeft = true;
@@ -711,10 +711,12 @@ public class MiningState extends AbstractState {
     /**
      * Pozisyon ayarlama başlat
      * - Yeni modüler PositionAdjuster kullan
+     * - Mining merkezi varsa önce merkeze doğru dön
      */
     private void startPositionAdjustment(ModConfig config) {
-        positionAdjuster.startAdjustment(referenceYaw, referencePitch, config);
-        MuzMod.LOGGER.info("Starting position adjustment #" + positionAdjuster.getAdjustmentCount());
+        positionAdjuster.startAdjustment(referenceYaw, referencePitch, config, miningCenter);
+        MuzMod.LOGGER.info("Starting position adjustment #" + positionAdjuster.getAdjustmentCount() + 
+            (miningCenter != null ? " (towards center)" : ""));
     }
     
     private void handleAdjustingPhase(ModConfig config) {

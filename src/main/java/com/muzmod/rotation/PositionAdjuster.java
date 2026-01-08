@@ -3,6 +3,7 @@ package com.muzmod.rotation;
 import com.muzmod.MuzMod;
 import com.muzmod.config.ModConfig;
 import com.muzmod.util.InputSimulator;
+import com.muzmod.util.RotationUtils;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
@@ -11,10 +12,11 @@ import net.minecraft.util.BlockPos;
 import java.util.Random;
 
 /**
- * Position Adjuster v1.4.0
+ * Position Adjuster v1.5.0
  * 
  * Handles position adjustments when mining gets stuck.
  * Uses smooth rotations and movement to find new ore positions.
+ * Now turns towards mining center first when available.
  */
 public class PositionAdjuster {
     
@@ -35,7 +37,7 @@ public class PositionAdjuster {
     // Config
     private static final float MIN_PITCH = 30f;  // Minimum 30 derece aşağı
     private static final float MAX_PITCH = 60f;  // Maximum 60 derece aşağı
-    private static final long ADJUSTMENT_DURATION = 3000; // 3 seconds per adjustment
+    private static final long ADJUSTMENT_DURATION = 2000; // 2 seconds per adjustment (hızlandırıldı)
     
     // Callback interface for when ore is found
     public interface OreFoundCallback {
@@ -45,13 +47,25 @@ public class PositionAdjuster {
     private OreFoundCallback callback;
     
     /**
-     * Start a position adjustment
+     * Start a position adjustment (backward compatibility - no mining center)
      * 
      * @param baseYaw   Base yaw to adjust from
      * @param basePitch Base pitch to adjust from
      * @param config    Mod config
      */
     public void startAdjustment(float baseYaw, float basePitch, ModConfig config) {
+        startAdjustment(baseYaw, basePitch, config, null);
+    }
+    
+    /**
+     * Start a position adjustment with optional mining center
+     * 
+     * @param baseYaw       Base yaw to adjust from
+     * @param basePitch     Base pitch to adjust from
+     * @param config        Mod config
+     * @param miningCenter  Mining center position (nullable) - önce buraya dönülür
+     */
+    public void startAdjustment(float baseYaw, float basePitch, ModConfig config, BlockPos miningCenter) {
         isAdjusting = true;
         adjustStartTime = System.currentTimeMillis();
         adjustmentCount++;
@@ -63,25 +77,60 @@ public class PositionAdjuster {
         float pitchMax = config.getAdjustPitchMax();
         long smoothSpeed = config.getAdjustSmoothSpeed();
         
-        // Calculate random angle within range
-        float yawAmount = yawMin + random.nextFloat() * (yawMax - yawMin);
-        float pitchAmount = pitchMin + random.nextFloat() * (pitchMax - pitchMin);
-        
-        // Alternate direction
         float yawOffset;
-        if (turnLeft) {
-            yawOffset = -yawAmount;
+        float pitchOffset;
+        
+        // Mining merkezi varsa, önce oraya doğru dön
+        if (miningCenter != null && mc.thePlayer != null) {
+            // Merkeze olan yönü hesapla
+            float[] toCenter = RotationUtils.getRotationsToBlock(mc.thePlayer, miningCenter);
+            float centerYaw = toCenter[0];
+            
+            // Mevcut yaw ile merkez yaw arasındaki fark
+            float diffToCenter = centerYaw - mc.thePlayer.rotationYaw;
+            while (diffToCenter > 180) diffToCenter -= 360;
+            while (diffToCenter < -180) diffToCenter += 360;
+            
+            // Merkeze doğru dön, ama tam üzerine değil - hafif sapma ekle
+            float deviation = 5 + random.nextFloat() * 15; // 5-20 derece sapma
+            if (random.nextBoolean()) deviation = -deviation;
+            
+            targetYaw = centerYaw + deviation;
+            yawOffset = targetYaw - baseYaw;
+            
+            // Pitch - hafif aşağı bak
+            pitchOffset = -5 + random.nextFloat() * 10; // -5 to +5
+            targetPitch = 40 + pitchOffset; // 35-45 arası
+            
+            MuzMod.LOGGER.info(String.format(
+                "Position adjustment #%d: turning towards center (yaw=%.2f°, offset=%.2f°)",
+                adjustmentCount, targetYaw, yawOffset
+            ));
         } else {
-            yawOffset = yawAmount;
+            // Normal rastgele ayarlama (merkez yoksa)
+            float yawAmount = yawMin + random.nextFloat() * (yawMax - yawMin);
+            float pitchAmount = pitchMin + random.nextFloat() * (pitchMax - pitchMin);
+            
+            // Alternate direction
+            if (turnLeft) {
+                yawOffset = -yawAmount;
+            } else {
+                yawOffset = yawAmount;
+            }
+            turnLeft = !turnLeft;
+            
+            // Random pitch direction
+            pitchOffset = (random.nextBoolean() ? 1 : -1) * pitchAmount;
+            
+            // Calculate target
+            targetYaw = baseYaw + yawOffset;
+            targetPitch = basePitch + pitchOffset;
+            
+            MuzMod.LOGGER.info(String.format(
+                "Position adjustment #%d: yaw=%.2f° (offset %.2f°), pitch=%.2f° (offset %.2f°)",
+                adjustmentCount, targetYaw, yawOffset, targetPitch, pitchOffset
+            ));
         }
-        turnLeft = !turnLeft;
-        
-        // Random pitch direction
-        float pitchOffset = (random.nextBoolean() ? 1 : -1) * pitchAmount;
-        
-        // Calculate target
-        targetYaw = baseYaw + yawOffset;
-        targetPitch = basePitch + pitchOffset;
         
         // Clamp pitch (30-60 derece arası)
         if (targetPitch < MIN_PITCH) targetPitch = MIN_PITCH;
@@ -89,11 +138,6 @@ public class PositionAdjuster {
         
         // Start smooth rotation
         smoother.startRotation(targetYaw, targetPitch, smoothSpeed);
-        
-        MuzMod.LOGGER.info(String.format(
-            "Position adjustment #%d: yaw=%.2f° (offset %.2f°), pitch=%.2f° (offset %.2f°)",
-            adjustmentCount, targetYaw, yawOffset, targetPitch, pitchOffset
-        ));
     }
     
     /**
