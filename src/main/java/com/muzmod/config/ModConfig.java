@@ -96,6 +96,14 @@ public class ModConfig {
     private float oxRedYaw = -90.0f;  // East (Doğu) - Kırmızı taraf
     private int oxMinPlayers = 5;     // Minimum oyuncu sayısı
     
+    // Obsidyen Settings
+    private int obsidianForwardMin = 30;  // İleri minimum mesafe
+    private int obsidianForwardMax = 50;  // İleri maksimum mesafe
+    private int obsidianSideMin = 30;     // Yan minimum mesafe
+    private int obsidianSideMax = 50;     // Yan maksimum mesafe
+    private boolean obsidianGoLeft = true; // true=sola, false=sağa
+    private String obsidianWarpCommand = "/warp atolye";
+    
     public ModConfig(File configFile) {
         config = new Configuration(configFile);
     }
@@ -246,6 +254,20 @@ public class ModConfig {
                 "Yaw direction for RED side (default: -90 = East)");
             oxMinPlayers = config.getInt("minPlayers", "ox", 5, 1, 50,
                 "Minimum players required to start OX event");
+            
+            // Obsidyen Category
+            obsidianForwardMin = config.getInt("forwardMin", "obsidian", 30, 1, 100,
+                "Minimum forward distance");
+            obsidianForwardMax = config.getInt("forwardMax", "obsidian", 50, 1, 100,
+                "Maximum forward distance");
+            obsidianSideMin = config.getInt("sideMin", "obsidian", 30, 1, 100,
+                "Minimum side distance");
+            obsidianSideMax = config.getInt("sideMax", "obsidian", 50, 1, 100,
+                "Maximum side distance");
+            obsidianGoLeft = config.getBoolean("goLeft", "obsidian", true,
+                "Go left (true) or right (false)");
+            obsidianWarpCommand = config.getString("warpCommand", "obsidian", "/warp atolye",
+                "Warp command for obsidian area");
             
         } catch (Exception e) {
             MuzMod.LOGGER.error("Error loading config", e);
@@ -412,6 +434,50 @@ public class ModConfig {
     public void setOxMinPlayers(int minPlayers) {
         this.oxMinPlayers = minPlayers;
         config.get("ox", "minPlayers", 5).set(minPlayers);
+        save();
+    }
+    
+    // Obsidyen Getters/Setters
+    public int getObsidianForwardMin() { return obsidianForwardMin; }
+    public int getObsidianForwardMax() { return obsidianForwardMax; }
+    public int getObsidianSideMin() { return obsidianSideMin; }
+    public int getObsidianSideMax() { return obsidianSideMax; }
+    public boolean isObsidianGoLeft() { return obsidianGoLeft; }
+    public String getObsidianWarpCommand() { return obsidianWarpCommand; }
+    
+    public void setObsidianForwardMin(int val) {
+        this.obsidianForwardMin = val;
+        config.get("obsidian", "forwardMin", 30).set(val);
+        save();
+    }
+    
+    public void setObsidianForwardMax(int val) {
+        this.obsidianForwardMax = val;
+        config.get("obsidian", "forwardMax", 50).set(val);
+        save();
+    }
+    
+    public void setObsidianSideMin(int val) {
+        this.obsidianSideMin = val;
+        config.get("obsidian", "sideMin", 30).set(val);
+        save();
+    }
+    
+    public void setObsidianSideMax(int val) {
+        this.obsidianSideMax = val;
+        config.get("obsidian", "sideMax", 50).set(val);
+        save();
+    }
+    
+    public void setObsidianGoLeft(boolean goLeft) {
+        this.obsidianGoLeft = goLeft;
+        config.get("obsidian", "goLeft", true).set(goLeft);
+        save();
+    }
+    
+    public void setObsidianWarpCommand(String cmd) {
+        this.obsidianWarpCommand = cmd;
+        config.get("obsidian", "warpCommand", "/warp atolye").set(cmd);
         save();
     }
     

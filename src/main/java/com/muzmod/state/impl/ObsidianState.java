@@ -4,6 +4,7 @@ import com.muzmod.MuzMod;
 import com.muzmod.config.ModConfig;
 import com.muzmod.state.AbstractState;
 import com.muzmod.util.InputSimulator;
+import com.muzmod.navigation.NavigationManager;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
@@ -16,12 +17,13 @@ import net.minecraft.util.Vec3;
 import java.util.*;
 
 /**
- * Obsidian Mining State v1.0.0
+ * Obsidian Mining State v1.1.0
  * 
  * Atolye bölgesinde obsidyen kazma sistemi.
  * 
  * Özellikler:
  * - /warp atolye ile ışınlanma
+ * - Config'den okunan ilk hareket (ileri + yan tek seferde)
  * - En üst obsidyen tabakasına gitme
  * - Obsidyenlerin dışına çıkmama
  * - Değişken patern ile kazma (aynı yönde sürekli gitmeme)
@@ -32,15 +34,19 @@ public class ObsidianState extends AbstractState {
     
     private final Minecraft mc = Minecraft.getMinecraft();
     private final Random random = new Random();
+    private final ModConfig config = MuzMod.instance.getConfig();
     
     // Fazlar
     private ObsidianPhase phase = ObsidianPhase.WARPING;
     private long phaseStartTime = 0;
     private long lastActionTime = 0;
     
-    // Warp ayarları
-    private String warpCommand = "/warp atolye";
+    // Warp ayarları (config'den okunacak)
     private static final long WARP_DELAY = 3000;
+    
+    // İlk hareket hedefi
+    private BlockPos initialTarget = null;
+    private boolean initialMoveCompleted = false;
     
     // Obsidyen alan bilgileri
     private BlockPos topLayerY = null;  // En üst obsidyen seviyesi
@@ -67,6 +73,7 @@ public class ObsidianState extends AbstractState {
     private enum ObsidianPhase {
         WARPING,           // Atolye'ye ışınlanma
         WAITING_WARP,      // Warp'ın tamamlanmasını bekle
+        INITIAL_MOVE,      // Config'den okunan ilk hareket (tek seferde)
         FINDING_TOP,       // En üst obsidyen tabakasını bul
         POSITIONING,       // Doğru pozisyona git
         DESCENDING,        // 1 blok aşağı in
@@ -97,12 +104,17 @@ public class ObsidianState extends AbstractState {
         miningCenter = null;
         obsidianBounds.clear();
         stuckCounter = 0;
+        initialTarget = null;
+        initialMoveCompleted = false;
         
         InputSimulator.releaseAll();
         setStatus("Obsidyen başlıyor");
         
         MuzMod.LOGGER.info("[Obsidian] =============================");
         MuzMod.LOGGER.info("[Obsidian] OBSIDIAN STATE BAŞLADI");
+        MuzMod.LOGGER.info("[Obsidian] Config: Forward=" + config.getObsidianForwardMin() + "-" + config.getObsidianForwardMax() +
+                          ", Side=" + config.getObsidianSideMin() + "-" + config.getObsidianSideMax() + 
+                          ", GoLeft=" + config.isObsidianGoLeft());
         MuzMod.LOGGER.info("[Obsidian] =============================");
     }
     
@@ -128,6 +140,9 @@ public class ObsidianState extends AbstractState {
                 break;
             case WAITING_WARP:
                 handleWaitingWarp(now);
+                break;
+            case INITIAL_MOVE:
+                handleInitialMove();
                 break;
             case FINDING_TOP:
                 handleFindingTop();
@@ -167,6 +182,7 @@ public class ObsidianState extends AbstractState {
         debugInfo = "Warp gönderiliyor...";
         setStatus(debugInfo);
         
+        String warpCommand = config.getObsidianWarpCommand();
         mc.thePlayer.sendChatMessage(warpCommand);
         MuzMod.LOGGER.info("[Obsidian] Warp komutu gönderildi: " + warpCommand);
         
@@ -179,9 +195,79 @@ public class ObsidianState extends AbstractState {
         setStatus(debugInfo);
         
         if (now - phaseStartTime >= WARP_DELAY) {
-            MuzMod.LOGGER.info("[Obsidian] Warp tamamlandı, üst tabaka aranıyor...");
-            setPhase(ObsidianPhase.FINDING_TOP);
+            MuzMod.LOGGER.info("[Obsidian] Warp tamamlandı, ilk hareket hesaplanıyor...");
+            setPhase(ObsidianPhase.INITIAL_MOVE);
         }
+    }
+    
+    /**
+     * İlk hareket - Config'den okunan ileri ve yan mesafeyi
+     * tek bir hedef olarak hesaplayıp NavigationManager'a gönder
+     */
+    private void handleInitialMove() {
+        NavigationManager nav = NavigationManager.getInstance();
+        
+        // Eğer henüz hedef hesaplanmadıysa hesapla
+        if (initialTarget == null) {
+            initialTarget = calculateInitialTarget();
+            MuzMod.LOGGER.info("[Obsidian] İlk hareket hedefi hesaplandı: " + initialTarget);
+            
+            debugInfo = "İlk pozisyona gidiliyor...";
+            setStatus(debugInfo);
+            
+            // Tek seferde hedefe git
+            nav.goTo(initialTarget).onComplete(() -> {
+                MuzMod.LOGGER.info("[Obsidian] İlk hareket tamamlandı!");
+                initialMoveCompleted = true;
+            });
+            return;
+        }
+        
+        // Navigation tamamlandı mı?
+        if (initialMoveCompleted || !nav.isNavigating()) {
+            MuzMod.LOGGER.info("[Obsidian] İlk hareket bitti, üst tabaka aranıyor...");
+            setPhase(ObsidianPhase.FINDING_TOP);
+            return;
+        }
+        
+        // Navigation devam ediyor
+        debugInfo = String.format("İlk pozisyona gidiliyor... (%.1f blok kaldı)", 
+            Math.sqrt(mc.thePlayer.getPosition().distanceSq(initialTarget)));
+        setStatus(debugInfo);
+    }
+    
+    /**
+     * Config'den okunan değerlerle ilk hareket hedefini hesapla
+     * 
+     * Oyuncu spawn'da güneye (Z+) bakıyor kabul ediyoruz.
+     * İleri = Z+ yönünde (güney)
+     * Sol = X- yönünde (batı)
+     * Sağ = X+ yönünde (doğu)
+     */
+    private BlockPos calculateInitialTarget() {
+        BlockPos playerPos = mc.thePlayer.getPosition();
+        
+        // Config'den değerleri al
+        int forwardMin = config.getObsidianForwardMin();
+        int forwardMax = config.getObsidianForwardMax();
+        int sideMin = config.getObsidianSideMin();
+        int sideMax = config.getObsidianSideMax();
+        boolean goLeft = config.isObsidianGoLeft();
+        
+        // Rastgele mesafeler belirle
+        int forwardDist = forwardMin + random.nextInt(Math.max(1, forwardMax - forwardMin + 1));
+        int sideDist = sideMin + random.nextInt(Math.max(1, sideMax - sideMin + 1));
+        
+        MuzMod.LOGGER.info("[Obsidian] Hesaplanan mesafeler: ileri=" + forwardDist + ", yan=" + sideDist + ", sol=" + goLeft);
+        
+        // Hedef pozisyonu hesapla
+        // İleri = Z+ (güney)
+        // Sol = X- (batı), Sağ = X+ (doğu)
+        int targetX = playerPos.getX() + (goLeft ? -sideDist : sideDist);
+        int targetZ = playerPos.getZ() + forwardDist;
+        int targetY = playerPos.getY();
+        
+        return new BlockPos(targetX, targetY, targetZ);
     }
     
     private void handleFindingTop() {

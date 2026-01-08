@@ -57,8 +57,8 @@ public class MuzModGuiModern extends GuiScreen {
     private String[] tabNames = {"Genel", "Zamanlama", "Ayarlar"};
     
     // Settings sub-tabs
-    private int settingsSubTab = 0; // 0=Genel, 1=Mining, 2=OX
-    private String[] settingsSubTabs = {"Genel", "Mining", "OX"};
+    private int settingsSubTab = 0; // 0=Genel, 1=Mining, 2=OX, 3=Obsidyen
+    private String[] settingsSubTabs = {"Genel", "Mining", "OX", "Obsidyen"};
     
     // Mining settings scroll
     private int miningSettingsScrollOffset = 0;
@@ -87,6 +87,12 @@ public class MuzModGuiModern extends GuiScreen {
     
     // OX settings fields
     private GuiTextField fieldOxMinPlayers;
+    
+    // Obsidyen settings fields
+    private GuiTextField fieldObsidianForwardMin, fieldObsidianForwardMax;
+    private GuiTextField fieldObsidianSideMin, fieldObsidianSideMax;
+    private boolean obsidianGoLeft = true;
+    private GuiTextField fieldObsidianWarpCommand;
     
     private List<GuiTextField> allFields = new ArrayList<>();
     
@@ -138,6 +144,14 @@ public class MuzModGuiModern extends GuiScreen {
         
         // OX settings fields
         fieldOxMinPlayers = createField(setX, setY, 50, String.valueOf(config.getOxMinPlayers()), 3);
+        
+        // Obsidyen settings fields
+        fieldObsidianForwardMin = createField(setX, setY, 50, String.valueOf(config.getObsidianForwardMin()), 4);
+        fieldObsidianForwardMax = createField(setX + 70, setY, 50, String.valueOf(config.getObsidianForwardMax()), 4);
+        fieldObsidianSideMin = createField(setX, setY + 28, 50, String.valueOf(config.getObsidianSideMin()), 4);
+        fieldObsidianSideMax = createField(setX + 70, setY + 28, 50, String.valueOf(config.getObsidianSideMax()), 4);
+        obsidianGoLeft = config.isObsidianGoLeft();
+        fieldObsidianWarpCommand = createField(setX, setY + 84, 150, config.getObsidianWarpCommand(), 50);
         
         // Legacy field for compatibility
         fieldWalkDist = fieldInitialWalkMin;
@@ -502,6 +516,7 @@ public class MuzModGuiModern extends GuiScreen {
             case 0: drawSettingsGeneral(mouseX, mouseY, config, schedule, y, labelX, fieldX); break;
             case 1: drawSettingsMining(mouseX, mouseY, config, y, labelX, fieldX); break;
             case 2: drawSettingsOX(mouseX, mouseY, config, y, labelX, fieldX); break;
+            case 3: drawSettingsObsidyen(mouseX, mouseY, config, y, labelX, fieldX); break;
         }
     }
     
@@ -771,6 +786,72 @@ public class MuzModGuiModern extends GuiScreen {
         drawString(fontRendererObj, "§8Yön Açıklaması:", labelX, y, TEXT_DARK);
         y += 12;
         drawString(fontRendererObj, "§8Kuzey=180° Doğu=-90° Güney=0° Batı=90°", labelX, y, TEXT_DARK);
+    }
+    
+    private void drawSettingsObsidyen(int mouseX, int mouseY, ModConfig config, int y, int labelX, int fieldX) {
+        drawString(fontRendererObj, "§5§lObsidyen Ayarları", labelX, y, ACCENT_PURPLE);
+        y += 20;
+        
+        // İleri mesafe (min-max)
+        drawString(fontRendererObj, "§7İleri Mesafe:", labelX, y + 3, TEXT_GRAY);
+        drawFieldBackground(fieldObsidianForwardMin, fieldX, y);
+        fieldObsidianForwardMin.xPosition = fieldX;
+        fieldObsidianForwardMin.yPosition = y;
+        fieldObsidianForwardMin.drawTextBox();
+        drawString(fontRendererObj, "§8-", fieldX + 55, y + 3, TEXT_DARK);
+        drawFieldBackground(fieldObsidianForwardMax, fieldX + 65, y);
+        fieldObsidianForwardMax.xPosition = fieldX + 65;
+        fieldObsidianForwardMax.yPosition = y;
+        fieldObsidianForwardMax.drawTextBox();
+        drawString(fontRendererObj, "§8blok", fieldX + 125, y + 3, TEXT_DARK);
+        
+        y += 26;
+        // Yan mesafe (min-max)
+        drawString(fontRendererObj, "§7Yan Mesafe:", labelX, y + 3, TEXT_GRAY);
+        drawFieldBackground(fieldObsidianSideMin, fieldX, y);
+        fieldObsidianSideMin.xPosition = fieldX;
+        fieldObsidianSideMin.yPosition = y;
+        fieldObsidianSideMin.drawTextBox();
+        drawString(fontRendererObj, "§8-", fieldX + 55, y + 3, TEXT_DARK);
+        drawFieldBackground(fieldObsidianSideMax, fieldX + 65, y);
+        fieldObsidianSideMax.xPosition = fieldX + 65;
+        fieldObsidianSideMax.yPosition = y;
+        fieldObsidianSideMax.drawTextBox();
+        drawString(fontRendererObj, "§8blok", fieldX + 125, y + 3, TEXT_DARK);
+        
+        y += 26;
+        // Yön seçimi (Sol/Sağ toggle)
+        drawString(fontRendererObj, "§7Yan Yön:", labelX, y + 3, TEXT_GRAY);
+        
+        // Sol buton
+        int leftBtnX = fieldX;
+        boolean leftSel = obsidianGoLeft;
+        boolean leftHov = mouseX >= leftBtnX && mouseX < leftBtnX + 60 && mouseY >= y && mouseY < y + 18;
+        drawRect(leftBtnX, y, leftBtnX + 60, y + 18, leftSel ? ACCENT_CYAN : (leftHov ? BG_BUTTON_HOVER : BG_BUTTON));
+        drawCenteredString(fontRendererObj, "Sol (Batı)", leftBtnX + 30, y + 5, TEXT_WHITE);
+        
+        // Sağ buton
+        int rightBtnX = fieldX + 65;
+        boolean rightSel = !obsidianGoLeft;
+        boolean rightHov = mouseX >= rightBtnX && mouseX < rightBtnX + 60 && mouseY >= y && mouseY < y + 18;
+        drawRect(rightBtnX, y, rightBtnX + 60, y + 18, rightSel ? ACCENT_CYAN : (rightHov ? BG_BUTTON_HOVER : BG_BUTTON));
+        drawCenteredString(fontRendererObj, "Sağ (Doğu)", rightBtnX + 30, y + 5, TEXT_WHITE);
+        
+        y += 30;
+        // Warp komutu
+        drawString(fontRendererObj, "§7Warp Komutu:", labelX, y + 3, TEXT_GRAY);
+        drawFieldBackground(fieldObsidianWarpCommand, fieldX, y);
+        fieldObsidianWarpCommand.xPosition = fieldX;
+        fieldObsidianWarpCommand.yPosition = y;
+        fieldObsidianWarpCommand.drawTextBox();
+        
+        y += 30;
+        // Açıklama
+        drawString(fontRendererObj, "§8Açıklama:", labelX, y, TEXT_DARK);
+        y += 12;
+        drawString(fontRendererObj, "§8Warp sonrası ileri + yan mesafe hesaplanır", labelX, y, TEXT_DARK);
+        y += 12;
+        drawString(fontRendererObj, "§8ve tek seferde o noktaya gidilir.", labelX, y, TEXT_DARK);
     }
     
     private int getDirectionIndex(float yaw) {
@@ -1109,6 +1190,30 @@ public class MuzModGuiModern extends GuiScreen {
                 // OX field click
                 fieldOxMinPlayers.mouseClicked(mouseX, mouseY, mouseButton);
             }
+            
+            // Obsidyen settings clicks
+            if (settingsSubTab == 3) {
+                // Field clicks
+                fieldObsidianForwardMin.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldObsidianForwardMax.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldObsidianSideMin.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldObsidianSideMax.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldObsidianWarpCommand.mouseClicked(mouseX, mouseY, mouseButton);
+                
+                // Yön butonları (Sol/Sağ toggle)
+                int obsYonY = y + 20 + 26 + 26; // İleri + Yan alanlarından sonra
+                int leftBtnX = fieldX;
+                int rightBtnX = fieldX + 65;
+                
+                if (mouseX >= leftBtnX && mouseX < leftBtnX + 60 && mouseY >= obsYonY && mouseY < obsYonY + 18) {
+                    obsidianGoLeft = true;
+                    config.setObsidianGoLeft(true);
+                }
+                if (mouseX >= rightBtnX && mouseX < rightBtnX + 60 && mouseY >= obsYonY && mouseY < obsYonY + 18) {
+                    obsidianGoLeft = false;
+                    config.setObsidianGoLeft(false);
+                }
+            }
         }
         
         // Save/Close buttons
@@ -1198,6 +1303,14 @@ public class MuzModGuiModern extends GuiScreen {
             
             // OX ayarları
             config.setOxMinPlayers(Integer.parseInt(fieldOxMinPlayers.getText()));
+            
+            // Obsidyen ayarları
+            config.setObsidianForwardMin(Integer.parseInt(fieldObsidianForwardMin.getText()));
+            config.setObsidianForwardMax(Integer.parseInt(fieldObsidianForwardMax.getText()));
+            config.setObsidianSideMin(Integer.parseInt(fieldObsidianSideMin.getText()));
+            config.setObsidianSideMax(Integer.parseInt(fieldObsidianSideMax.getText()));
+            config.setObsidianGoLeft(obsidianGoLeft);
+            config.setObsidianWarpCommand(fieldObsidianWarpCommand.getText());
             
             config.save();
             schedule.save();
