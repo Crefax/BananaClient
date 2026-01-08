@@ -1,7 +1,6 @@
 package com.muzmod.state.impl;
 
 import com.muzmod.MuzMod;
-import com.muzmod.config.ModConfig;
 import com.muzmod.state.AbstractState;
 import com.muzmod.util.InputSimulator;
 import net.minecraft.block.Block;
@@ -21,26 +20,27 @@ import org.lwjgl.opengl.GL11;
 import java.util.Random;
 
 /**
- * Obsidian Mining State v3.0.0
+ * Obsidian Mining State v3.1.0
  * 
- * Simple and effective obsidian mining system.
+ * Bot obsidyenlerin ÜSTÜNDE yürür (Y=5) ve ayağının altındaki
+ * Y=4'teki obsidyenleri kazarak ilerler.
  * 
  * Features:
- * - Works on 100x100 obsidian field at Y=4
- * - Counts obsidian ahead and picks random target (max-10 to max)
+ * - Player walks ON TOP of obsidian (Y=5, standing on Y=4 obsidian)
+ * - Mines obsidian blocks at Y=4 (under/in front of player)
  * - RED marker for current target
- * - YELLOW marker for next target
- * - Smooth aim while mining forward
+ * - YELLOW marker for next target  
+ * - Always moving forward while mining
  * - Auto turns to side with more obsidian
- * - Stair mining if Y drops below 4
  */
 public class ObsidianState extends AbstractState {
     
     private final Minecraft mc = Minecraft.getMinecraft();
     private final Random random = new Random();
     
-    // Target Y level for obsidian field
-    private static final int TARGET_Y = 4;
+    // Obsidian is at Y=4, player stands on it at Y=5
+    private static final int OBSIDIAN_Y = 4;
+    private static final int PLAYER_Y = 5;
     
     // Current phase
     private ObsidianPhase phase = ObsidianPhase.INIT;
@@ -49,30 +49,25 @@ public class ObsidianState extends AbstractState {
     private BlockPos redTarget = null;    // Current target (RED)
     private BlockPos yellowTarget = null; // Next target (YELLOW)
     
-    // Current mining target
+    // Current block being mined
     private BlockPos currentMiningBlock = null;
     
-    // Direction (0=North/-Z, 90=East/+X, 180=South/+Z, 270=West/-X)
+    // Direction
     private float currentYaw = 0;
+    private int dirX = 0;  // Direction vector X
+    private int dirZ = 0;  // Direction vector Z
     
     // Timing
     private long lastMineTime = 0;
-    private static final long MINE_DELAY = 50; // ms between mining attempts
-    
-    // Stuck detection
-    private BlockPos lastPos = null;
-    private long stuckTime = 0;
-    private static final long STUCK_THRESHOLD = 3000;
     
     // Debug info
     private String debugInfo = "";
     
     private enum ObsidianPhase {
-        INIT,           // Initialize, find direction
-        FIND_TARGET,    // Find red target ahead
-        MINING,         // Mining towards red target
-        TURNING,        // Turning to next direction
-        STAIR_UP,       // Building stairs to get back to Y=4
+        INIT,           // Initialize
+        FIND_TARGET,    // Find target ahead
+        MINING,         // Mining forward
+        TURNING,        // Turning to new direction
         DONE,
         FAILED
     }
@@ -90,27 +85,22 @@ public class ObsidianState extends AbstractState {
         yellowTarget = null;
         currentMiningBlock = null;
         currentYaw = 0;
+        dirX = 0;
+        dirZ = 0;
         lastMineTime = 0;
-        lastPos = null;
-        stuckTime = 0;
         
-        // Register for render events
         MinecraftForge.EVENT_BUS.register(this);
-        
-        MuzMod.LOGGER.info("[Obsidian] State enabled - v3.0.0");
+        MuzMod.LOGGER.info("[Obsidian] State enabled - v3.1.0");
     }
     
     @Override
     public void onDisable() {
         super.onDisable();
         InputSimulator.releaseAll();
-        
-        // Unregister render events
         MinecraftForge.EVENT_BUS.unregister(this);
-        
         redTarget = null;
         yellowTarget = null;
-        
+        currentMiningBlock = null;
         MuzMod.LOGGER.info("[Obsidian] State disabled");
     }
     
@@ -119,29 +109,6 @@ public class ObsidianState extends AbstractState {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         
         long now = System.currentTimeMillis();
-        
-        // Check Y level
-        int playerY = (int) Math.floor(mc.thePlayer.posY);
-        if (playerY < TARGET_Y && phase != ObsidianPhase.STAIR_UP && phase != ObsidianPhase.INIT) {
-            MuzMod.LOGGER.info("[Obsidian] Y dropped to " + playerY + ", switching to stair mode");
-            phase = ObsidianPhase.STAIR_UP;
-        }
-        
-        // Stuck detection
-        BlockPos currentPos = mc.thePlayer.getPosition();
-        if (lastPos != null && lastPos.equals(currentPos)) {
-            if (stuckTime == 0) stuckTime = now;
-            else if (now - stuckTime > STUCK_THRESHOLD && phase == ObsidianPhase.MINING) {
-                MuzMod.LOGGER.info("[Obsidian] Stuck detected, jumping");
-                InputSimulator.holdKey(mc.gameSettings.keyBindJump, true);
-                try { Thread.sleep(100); } catch (Exception ignored) {}
-                InputSimulator.releaseKey(mc.gameSettings.keyBindJump);
-                stuckTime = 0;
-            }
-        } else {
-            lastPos = currentPos;
-            stuckTime = 0;
-        }
         
         switch (phase) {
             case INIT:
@@ -156,9 +123,6 @@ public class ObsidianState extends AbstractState {
             case TURNING:
                 handleTurning();
                 break;
-            case STAIR_UP:
-                handleStairUp(now);
-                break;
             case DONE:
             case FAILED:
                 InputSimulator.releaseAll();
@@ -167,99 +131,144 @@ public class ObsidianState extends AbstractState {
     }
     
     /**
-     * Initialize - check Y level and set initial direction
+     * Initialize - set direction based on player facing
      */
     private void handleInit() {
         debugInfo = "Initializing...";
         setStatus(debugInfo);
         
-        int playerY = (int) Math.floor(mc.thePlayer.posY);
+        // Get current facing direction and snap to nearest 90 degrees
+        currentYaw = Math.round(mc.thePlayer.rotationYaw / 90f) * 90f;
+        mc.thePlayer.rotationYaw = currentYaw;
         
-        if (playerY != TARGET_Y) {
-            MuzMod.LOGGER.warn("[Obsidian] Player Y=" + playerY + ", expected Y=" + TARGET_Y);
-            // Continue anyway, will handle with stair mode if needed
-        }
+        // Calculate direction vector
+        updateDirectionVector();
         
-        // Use current facing direction
-        currentYaw = mc.thePlayer.rotationYaw;
-        // Normalize to nearest 90 degrees
-        currentYaw = Math.round(currentYaw / 90f) * 90f;
-        
-        MuzMod.LOGGER.info("[Obsidian] Initial direction: " + currentYaw);
+        MuzMod.LOGGER.info("[Obsidian] Init - Yaw: " + currentYaw + ", Dir: (" + dirX + ", " + dirZ + ")");
         
         phase = ObsidianPhase.FIND_TARGET;
     }
     
     /**
-     * Find target ahead - count obsidian and pick random target
+     * Update direction vector from yaw
+     */
+    private void updateDirectionVector() {
+        // Normalize yaw to 0-360
+        float yaw = currentYaw;
+        while (yaw < 0) yaw += 360;
+        while (yaw >= 360) yaw -= 360;
+        
+        // Convert to direction vector
+        // 0/360 = South (+Z), 90 = West (-X), 180 = North (-Z), 270 = East (+X)
+        if (yaw >= 315 || yaw < 45) {
+            dirX = 0; dirZ = 1;  // South
+        } else if (yaw >= 45 && yaw < 135) {
+            dirX = -1; dirZ = 0; // West
+        } else if (yaw >= 135 && yaw < 225) {
+            dirX = 0; dirZ = -1; // North
+        } else {
+            dirX = 1; dirZ = 0;  // East
+        }
+    }
+    
+    /**
+     * Find target - count obsidian ahead and set red target
      */
     private void handleFindTarget() {
         debugInfo = "Finding target...";
         setStatus(debugInfo);
         
-        // Count obsidian ahead
-        int obsidianCount = countObsidianAhead();
+        int playerX = (int) Math.floor(mc.thePlayer.posX);
+        int playerZ = (int) Math.floor(mc.thePlayer.posZ);
         
-        if (obsidianCount < 3) {
-            MuzMod.LOGGER.info("[Obsidian] Not enough obsidian ahead (" + obsidianCount + "), trying to turn");
+        // Count obsidian ahead at Y=4
+        int obsidianCount = countObsidianAhead(playerX, playerZ);
+        
+        MuzMod.LOGGER.info("[Obsidian] Found " + obsidianCount + " obsidian ahead");
+        
+        if (obsidianCount < 2) {
+            // Try turning
+            int leftCount = countObsidianInDirection(playerX, playerZ, -90);
+            int rightCount = countObsidianInDirection(playerX, playerZ, 90);
             
-            // Try turning to find more obsidian
-            int leftCount = countObsidianInDirection(currentYaw - 90);
-            int rightCount = countObsidianInDirection(currentYaw + 90);
+            MuzMod.LOGGER.info("[Obsidian] Left: " + leftCount + ", Right: " + rightCount);
             
-            if (leftCount > 3 || rightCount > 3) {
-                // Turn to the side with more obsidian
+            if (leftCount >= 2 || rightCount >= 2) {
                 if (leftCount > rightCount) {
                     currentYaw -= 90;
                 } else {
                     currentYaw += 90;
                 }
                 normalizeYaw();
+                updateDirectionVector();
                 mc.thePlayer.rotationYaw = currentYaw;
-                MuzMod.LOGGER.info("[Obsidian] Turned to " + currentYaw + " (left: " + leftCount + ", right: " + rightCount + ")");
-                return; // Will re-check in next update
+                MuzMod.LOGGER.info("[Obsidian] Turned to " + currentYaw);
+                return;
             } else {
-                MuzMod.LOGGER.info("[Obsidian] No obsidian in any direction, done");
+                MuzMod.LOGGER.info("[Obsidian] No obsidian found, done");
                 phase = ObsidianPhase.DONE;
                 return;
             }
         }
         
-        // Pick random target between (max-10) and max
-        int targetDistance = Math.max(3, obsidianCount - random.nextInt(Math.min(10, obsidianCount)));
+        // Pick target distance: between (count-10) and count
+        int minDist = Math.max(2, obsidianCount - 10);
+        int targetDist = minDist + random.nextInt(Math.min(11, obsidianCount - minDist + 1));
         
-        // Calculate target position
-        redTarget = getBlockInDirection(targetDistance);
+        // Set red target
+        redTarget = new BlockPos(playerX + dirX * targetDist, OBSIDIAN_Y, playerZ + dirZ * targetDist);
         
-        MuzMod.LOGGER.info("[Obsidian] Red target set at " + redTarget + " (distance: " + targetDistance + ", total ahead: " + obsidianCount + ")");
+        MuzMod.LOGGER.info("[Obsidian] Red target: " + redTarget + " (dist: " + targetDist + ")");
         
-        // Also calculate yellow target (next turn direction preview)
+        // Calculate yellow target (preview next direction)
         calculateYellowTarget();
         
         phase = ObsidianPhase.MINING;
     }
     
     /**
-     * Calculate yellow target (preview of next target after turning)
+     * Calculate yellow target for next turn preview
      */
     private void calculateYellowTarget() {
-        int leftCount = countObsidianInDirection(currentYaw - 90);
-        int rightCount = countObsidianInDirection(currentYaw + 90);
+        if (redTarget == null) {
+            yellowTarget = null;
+            return;
+        }
         
-        float nextYaw = (leftCount > rightCount) ? currentYaw - 90 : currentYaw + 90;
+        int leftCount = countObsidianInDirection(redTarget.getX(), redTarget.getZ(), -90);
+        int rightCount = countObsidianInDirection(redTarget.getX(), redTarget.getZ(), 90);
+        
         int nextCount = Math.max(leftCount, rightCount);
-        
-        if (nextCount > 3) {
-            int nextDistance = Math.max(3, nextCount - random.nextInt(Math.min(10, nextCount)));
-            yellowTarget = getBlockInDirectionFrom(redTarget, nextYaw, nextDistance);
-            MuzMod.LOGGER.info("[Obsidian] Yellow target preview at " + yellowTarget);
+        if (nextCount >= 2) {
+            // Get next direction
+            float nextYaw = currentYaw + (leftCount > rightCount ? -90 : 90);
+            float tempYaw = currentYaw;
+            currentYaw = nextYaw;
+            normalizeYaw();
+            updateDirectionVector();
+            
+            int minDist = Math.max(2, nextCount - 10);
+            int targetDist = minDist + random.nextInt(Math.min(11, nextCount - minDist + 1));
+            
+            yellowTarget = new BlockPos(
+                redTarget.getX() + dirX * targetDist,
+                OBSIDIAN_Y,
+                redTarget.getZ() + dirZ * targetDist
+            );
+            
+            // Restore direction
+            currentYaw = tempYaw;
+            normalizeYaw();
+            updateDirectionVector();
+            
+            MuzMod.LOGGER.info("[Obsidian] Yellow target: " + yellowTarget);
         } else {
             yellowTarget = null;
         }
     }
     
     /**
-     * Mining towards red target
+     * Mining - walk forward while mining obsidian under/ahead
      */
     private void handleMining(long now) {
         if (redTarget == null) {
@@ -267,11 +276,13 @@ public class ObsidianState extends AbstractState {
             return;
         }
         
-        // Check if reached red target
-        BlockPos playerPos = mc.thePlayer.getPosition();
+        int playerX = (int) Math.floor(mc.thePlayer.posX);
+        int playerZ = (int) Math.floor(mc.thePlayer.posZ);
+        
+        // Check if reached target
         double distToTarget = Math.sqrt(
-            Math.pow(playerPos.getX() - redTarget.getX(), 2) +
-            Math.pow(playerPos.getZ() - redTarget.getZ(), 2)
+            Math.pow(playerX - redTarget.getX(), 2) +
+            Math.pow(playerZ - redTarget.getZ(), 2)
         );
         
         if (distToTarget < 1.5) {
@@ -282,56 +293,91 @@ public class ObsidianState extends AbstractState {
             redTarget = yellowTarget;
             yellowTarget = null;
             
-            if (redTarget == null) {
-                // Need to find new direction
-                phase = ObsidianPhase.TURNING;
-            } else {
-                // Calculate new yellow
-                phase = ObsidianPhase.TURNING;
-            }
+            phase = ObsidianPhase.TURNING;
             return;
         }
         
         debugInfo = String.format("Mining... dist: %.1f", distToTarget);
         setStatus(debugInfo);
         
-        // Always hold W to move forward
-        InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
+        // Find obsidian to mine - check in front at Y=4 (under player level)
+        BlockPos toMine = findObsidianToMine(playerX, playerZ);
         
-        // Find next block to mine
-        BlockPos blockToMine = findBlockToMine();
-        
-        if (blockToMine != null) {
-            currentMiningBlock = blockToMine;
+        if (toMine != null) {
+            currentMiningBlock = toMine;
             
-            // Smooth aim to block
-            smoothLookAt(blockToMine);
+            // Look at the block
+            lookAtBlock(toMine);
             
-            // Mine
-            if (now - lastMineTime >= MINE_DELAY) {
-                InputSimulator.holdKey(mc.gameSettings.keyBindAttack, true);
-                lastMineTime = now;
-            }
+            // Mine it
+            InputSimulator.holdKey(mc.gameSettings.keyBindAttack, true);
+            
+            // Also walk forward
+            InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
         } else {
-            // No block to mine, just walk
-            InputSimulator.releaseKey(mc.gameSettings.keyBindAttack);
+            // No obsidian to mine, just walk
             currentMiningBlock = null;
+            InputSimulator.releaseKey(mc.gameSettings.keyBindAttack);
+            InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
             
             // Look forward
             mc.thePlayer.rotationYaw = currentYaw;
-            mc.thePlayer.rotationPitch = 0;
-        }
-        
-        // Jump if needed (obstacle or going up)
-        if (shouldJump()) {
-            InputSimulator.holdKey(mc.gameSettings.keyBindJump, true);
-        } else {
-            InputSimulator.releaseKey(mc.gameSettings.keyBindJump);
+            mc.thePlayer.rotationPitch = 45; // Look down slightly
         }
     }
     
     /**
-     * Turning to next direction
+     * Find obsidian block to mine in front of player at Y=4
+     */
+    private BlockPos findObsidianToMine(int playerX, int playerZ) {
+        // Check positions in front at Y=4 (obsidian level)
+        for (int dist = 0; dist <= 2; dist++) {
+            int checkX = playerX + dirX * dist;
+            int checkZ = playerZ + dirZ * dist;
+            
+            BlockPos checkPos = new BlockPos(checkX, OBSIDIAN_Y, checkZ);
+            Block block = mc.theWorld.getBlockState(checkPos).getBlock();
+            
+            if (block == Blocks.obsidian) {
+                return checkPos;
+            }
+        }
+        
+        // Also check directly below player
+        BlockPos below = new BlockPos(playerX, OBSIDIAN_Y, playerZ);
+        if (mc.theWorld.getBlockState(below).getBlock() == Blocks.obsidian) {
+            return below;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Look at a block position
+     */
+    private void lookAtBlock(BlockPos pos) {
+        double dx = pos.getX() + 0.5 - mc.thePlayer.posX;
+        double dy = pos.getY() + 0.5 - (mc.thePlayer.posY + mc.thePlayer.getEyeHeight());
+        double dz = pos.getZ() + 0.5 - mc.thePlayer.posZ;
+        
+        double dist = Math.sqrt(dx * dx + dz * dz);
+        float targetYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+        float targetPitch = (float) -Math.toDegrees(Math.atan2(dy, dist));
+        
+        // Clamp pitch
+        targetPitch = Math.max(-90, Math.min(90, targetPitch));
+        
+        // Smooth rotation
+        float yawDiff = targetYaw - mc.thePlayer.rotationYaw;
+        while (yawDiff > 180) yawDiff -= 360;
+        while (yawDiff < -180) yawDiff += 360;
+        
+        mc.thePlayer.rotationYaw += yawDiff * 0.5f;
+        mc.thePlayer.rotationPitch += (targetPitch - mc.thePlayer.rotationPitch) * 0.5f;
+    }
+    
+    /**
+     * Handle turning to new direction
      */
     private void handleTurning() {
         debugInfo = "Turning...";
@@ -339,16 +385,19 @@ public class ObsidianState extends AbstractState {
         
         InputSimulator.releaseAll();
         
-        // Check sides for obsidian
-        int leftCount = countObsidianInDirection(currentYaw - 90);
-        int rightCount = countObsidianInDirection(currentYaw + 90);
+        int playerX = (int) Math.floor(mc.thePlayer.posX);
+        int playerZ = (int) Math.floor(mc.thePlayer.posZ);
         
-        MuzMod.LOGGER.info("[Obsidian] Turning - left: " + leftCount + ", right: " + rightCount);
+        // Check sides
+        int leftCount = countObsidianInDirection(playerX, playerZ, -90);
+        int rightCount = countObsidianInDirection(playerX, playerZ, 90);
         
-        if (leftCount < 3 && rightCount < 3) {
+        MuzMod.LOGGER.info("[Obsidian] Turn check - Left: " + leftCount + ", Right: " + rightCount);
+        
+        if (leftCount < 2 && rightCount < 2) {
             // Check behind
-            int behindCount = countObsidianInDirection(currentYaw + 180);
-            if (behindCount > 3) {
+            int behindCount = countObsidianInDirection(playerX, playerZ, 180);
+            if (behindCount >= 2) {
                 currentYaw += 180;
                 MuzMod.LOGGER.info("[Obsidian] Turning back");
             } else {
@@ -365,83 +414,27 @@ public class ObsidianState extends AbstractState {
         }
         
         normalizeYaw();
+        updateDirectionVector();
         mc.thePlayer.rotationYaw = currentYaw;
         
         phase = ObsidianPhase.FIND_TARGET;
     }
     
     /**
-     * Stair up mode - mine stairs to get back to Y=4
+     * Count obsidian ahead in current direction at Y=4
      */
-    private void handleStairUp(long now) {
-        int playerY = (int) Math.floor(mc.thePlayer.posY);
-        
-        if (playerY >= TARGET_Y) {
-            MuzMod.LOGGER.info("[Obsidian] Back at Y=" + TARGET_Y);
-            phase = ObsidianPhase.FIND_TARGET;
-            return;
-        }
-        
-        debugInfo = "Stair up... Y=" + playerY;
-        setStatus(debugInfo);
-        
-        // Look up and forward to mine stair pattern
-        mc.thePlayer.rotationPitch = -45; // Look up
-        
-        // Find block above and ahead to mine
-        BlockPos ahead = mc.thePlayer.getPosition().offset(getEnumFacing(), 1);
-        BlockPos aheadUp = ahead.up();
-        
-        Block blockAhead = mc.theWorld.getBlockState(ahead).getBlock();
-        Block blockAheadUp = mc.theWorld.getBlockState(aheadUp).getBlock();
-        
-        if (blockAheadUp == Blocks.obsidian || blockAhead == Blocks.obsidian) {
-            // Mine the obsidian
-            BlockPos toMine = (blockAheadUp == Blocks.obsidian) ? aheadUp : ahead;
-            smoothLookAt(toMine);
-            InputSimulator.holdKey(mc.gameSettings.keyBindAttack, true);
-        } else {
-            InputSimulator.releaseKey(mc.gameSettings.keyBindAttack);
-        }
-        
-        // Move forward and jump
-        InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
-        InputSimulator.holdKey(mc.gameSettings.keyBindJump, true);
-    }
-    
-    /**
-     * Count obsidian blocks ahead in current direction
-     */
-    private int countObsidianAhead() {
-        return countObsidianInDirection(currentYaw);
-    }
-    
-    /**
-     * Count obsidian blocks in a specific direction
-     */
-    private int countObsidianInDirection(float yaw) {
+    private int countObsidianAhead(int startX, int startZ) {
         int count = 0;
-        BlockPos playerPos = mc.thePlayer.getPosition();
         
-        // Get direction vector
-        double radians = Math.toRadians(yaw);
-        int dx = (int) Math.round(-Math.sin(radians));
-        int dz = (int) Math.round(Math.cos(radians));
-        
-        // Count up to 100 blocks
-        for (int i = 1; i <= 100; i++) {
-            int x = playerPos.getX() + dx * i;
-            int z = playerPos.getZ() + dz * i;
+        for (int i = 0; i <= 100; i++) {
+            int x = startX + dirX * i;
+            int z = startZ + dirZ * i;
             
-            // Check at Y=4 level (obsidian floor)
-            BlockPos checkPos = new BlockPos(x, TARGET_Y, z);
+            BlockPos checkPos = new BlockPos(x, OBSIDIAN_Y, z);
             Block block = mc.theWorld.getBlockState(checkPos).getBlock();
             
             if (block == Blocks.obsidian) {
                 count++;
-            } else if (block != Blocks.air) {
-                // Hit something that's not obsidian or air, stop counting
-                break;
             }
         }
         
@@ -449,121 +442,27 @@ public class ObsidianState extends AbstractState {
     }
     
     /**
-     * Get block position at distance in current direction
+     * Count obsidian in a direction (relative to current direction)
      */
-    private BlockPos getBlockInDirection(int distance) {
-        return getBlockInDirectionFrom(mc.thePlayer.getPosition(), currentYaw, distance);
-    }
-    
-    /**
-     * Get block position at distance in direction from a position
-     */
-    private BlockPos getBlockInDirectionFrom(BlockPos from, float yaw, int distance) {
-        double radians = Math.toRadians(yaw);
-        int dx = (int) Math.round(-Math.sin(radians));
-        int dz = (int) Math.round(Math.cos(radians));
+    private int countObsidianInDirection(int startX, int startZ, float yawOffset) {
+        // Save current direction
+        int oldDirX = dirX;
+        int oldDirZ = dirZ;
+        float oldYaw = currentYaw;
         
-        return new BlockPos(
-            from.getX() + dx * distance,
-            TARGET_Y,
-            from.getZ() + dz * distance
-        );
-    }
-    
-    /**
-     * Find the next obsidian block to mine (in front of player)
-     */
-    private BlockPos findBlockToMine() {
-        BlockPos playerPos = mc.thePlayer.getPosition();
+        // Rotate direction
+        currentYaw += yawOffset;
+        normalizeYaw();
+        updateDirectionVector();
         
-        // Check blocks in front at various heights
-        EnumFacing facing = getEnumFacing();
+        int count = countObsidianAhead(startX, startZ);
         
-        for (int forward = 1; forward <= 2; forward++) {
-            for (int y = 0; y <= 2; y++) {
-                BlockPos checkPos = playerPos.offset(facing, forward).up(y);
-                Block block = mc.theWorld.getBlockState(checkPos).getBlock();
-                
-                if (block == Blocks.obsidian) {
-                    return checkPos;
-                }
-            }
-        }
+        // Restore direction
+        dirX = oldDirX;
+        dirZ = oldDirZ;
+        currentYaw = oldYaw;
         
-        // Check directly in front at player level
-        BlockPos front = playerPos.offset(facing, 1);
-        if (mc.theWorld.getBlockState(front).getBlock() == Blocks.obsidian) {
-            return front;
-        }
-        
-        // Check below in front (for walking on obsidian)
-        BlockPos frontDown = front.down();
-        if (mc.theWorld.getBlockState(frontDown).getBlock() == Blocks.obsidian) {
-            return frontDown;
-        }
-        
-        return null;
-    }
-    
-    /**
-     * Get EnumFacing from current yaw
-     */
-    private EnumFacing getEnumFacing() {
-        float yaw = currentYaw;
-        while (yaw < 0) yaw += 360;
-        while (yaw >= 360) yaw -= 360;
-        
-        if (yaw >= 315 || yaw < 45) return EnumFacing.SOUTH;
-        if (yaw >= 45 && yaw < 135) return EnumFacing.WEST;
-        if (yaw >= 135 && yaw < 225) return EnumFacing.NORTH;
-        return EnumFacing.EAST;
-    }
-    
-    /**
-     * Smooth look at a block position
-     */
-    private void smoothLookAt(BlockPos pos) {
-        double dx = pos.getX() + 0.5 - mc.thePlayer.posX;
-        double dy = pos.getY() + 0.5 - (mc.thePlayer.posY + mc.thePlayer.getEyeHeight());
-        double dz = pos.getZ() + 0.5 - mc.thePlayer.posZ;
-        
-        double dist = Math.sqrt(dx * dx + dz * dz);
-        float targetYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
-        float targetPitch = (float) -Math.toDegrees(Math.atan2(dy, dist));
-        
-        // Smooth interpolation
-        float yawDiff = targetYaw - mc.thePlayer.rotationYaw;
-        while (yawDiff > 180) yawDiff -= 360;
-        while (yawDiff < -180) yawDiff += 360;
-        
-        float pitchDiff = targetPitch - mc.thePlayer.rotationPitch;
-        
-        // Faster smoothing for mining
-        float smoothFactor = 0.4f;
-        mc.thePlayer.rotationYaw += yawDiff * smoothFactor;
-        mc.thePlayer.rotationPitch += pitchDiff * smoothFactor;
-    }
-    
-    /**
-     * Check if player should jump
-     */
-    private boolean shouldJump() {
-        BlockPos playerPos = mc.thePlayer.getPosition();
-        EnumFacing facing = getEnumFacing();
-        BlockPos ahead = playerPos.offset(facing, 1);
-        
-        // Jump if there's a block at feet level
-        Block blockAhead = mc.theWorld.getBlockState(ahead).getBlock();
-        if (blockAhead != Blocks.air && blockAhead != Blocks.obsidian) {
-            return true;
-        }
-        
-        // Jump if there's obsidian at feet level (need to climb over)
-        if (blockAhead == Blocks.obsidian) {
-            return true;
-        }
-        
-        return false;
+        return count;
     }
     
     /**
@@ -582,24 +481,24 @@ public class ObsidianState extends AbstractState {
         
         // Render red target
         if (redTarget != null) {
-            renderTargetBlock(redTarget, 1.0f, 0.0f, 0.0f, 0.5f); // Red
+            renderBlock(redTarget, 1.0f, 0.0f, 0.0f, 0.6f); // RED
         }
         
         // Render yellow target
         if (yellowTarget != null) {
-            renderTargetBlock(yellowTarget, 1.0f, 1.0f, 0.0f, 0.4f); // Yellow
+            renderBlock(yellowTarget, 1.0f, 1.0f, 0.0f, 0.4f); // YELLOW
         }
         
         // Render current mining block
         if (currentMiningBlock != null) {
-            renderTargetBlock(currentMiningBlock, 0.0f, 1.0f, 0.0f, 0.3f); // Green
+            renderBlock(currentMiningBlock, 0.0f, 1.0f, 0.0f, 0.5f); // GREEN
         }
     }
     
     /**
      * Render a highlighted block
      */
-    private void renderTargetBlock(BlockPos pos, float r, float g, float b, float alpha) {
+    private void renderBlock(BlockPos pos, float r, float g, float b, float alpha) {
         double x = pos.getX() - mc.getRenderManager().viewerPosX;
         double y = pos.getY() - mc.getRenderManager().viewerPosY;
         double z = pos.getZ() - mc.getRenderManager().viewerPosZ;
@@ -611,70 +510,70 @@ public class ObsidianState extends AbstractState {
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         
         Tessellator tessellator = Tessellator.getInstance();
-        WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+        WorldRenderer wr = tessellator.getWorldRenderer();
         
         // Draw filled box
-        worldRenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+        wr.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
         
-        // Bottom face
-        worldRenderer.pos(x, y, z).color(r, g, b, alpha).endVertex();
-        worldRenderer.pos(x + 1, y, z).color(r, g, b, alpha).endVertex();
-        worldRenderer.pos(x + 1, y, z + 1).color(r, g, b, alpha).endVertex();
-        worldRenderer.pos(x, y, z + 1).color(r, g, b, alpha).endVertex();
+        // Bottom
+        wr.pos(x, y, z).color(r, g, b, alpha).endVertex();
+        wr.pos(x + 1, y, z).color(r, g, b, alpha).endVertex();
+        wr.pos(x + 1, y, z + 1).color(r, g, b, alpha).endVertex();
+        wr.pos(x, y, z + 1).color(r, g, b, alpha).endVertex();
         
-        // Top face
-        worldRenderer.pos(x, y + 1, z).color(r, g, b, alpha).endVertex();
-        worldRenderer.pos(x, y + 1, z + 1).color(r, g, b, alpha).endVertex();
-        worldRenderer.pos(x + 1, y + 1, z + 1).color(r, g, b, alpha).endVertex();
-        worldRenderer.pos(x + 1, y + 1, z).color(r, g, b, alpha).endVertex();
+        // Top
+        wr.pos(x, y + 1, z).color(r, g, b, alpha).endVertex();
+        wr.pos(x, y + 1, z + 1).color(r, g, b, alpha).endVertex();
+        wr.pos(x + 1, y + 1, z + 1).color(r, g, b, alpha).endVertex();
+        wr.pos(x + 1, y + 1, z).color(r, g, b, alpha).endVertex();
         
-        // North face
-        worldRenderer.pos(x, y, z).color(r, g, b, alpha).endVertex();
-        worldRenderer.pos(x, y + 1, z).color(r, g, b, alpha).endVertex();
-        worldRenderer.pos(x + 1, y + 1, z).color(r, g, b, alpha).endVertex();
-        worldRenderer.pos(x + 1, y, z).color(r, g, b, alpha).endVertex();
+        // North
+        wr.pos(x, y, z).color(r, g, b, alpha).endVertex();
+        wr.pos(x, y + 1, z).color(r, g, b, alpha).endVertex();
+        wr.pos(x + 1, y + 1, z).color(r, g, b, alpha).endVertex();
+        wr.pos(x + 1, y, z).color(r, g, b, alpha).endVertex();
         
-        // South face
-        worldRenderer.pos(x, y, z + 1).color(r, g, b, alpha).endVertex();
-        worldRenderer.pos(x + 1, y, z + 1).color(r, g, b, alpha).endVertex();
-        worldRenderer.pos(x + 1, y + 1, z + 1).color(r, g, b, alpha).endVertex();
-        worldRenderer.pos(x, y + 1, z + 1).color(r, g, b, alpha).endVertex();
+        // South
+        wr.pos(x, y, z + 1).color(r, g, b, alpha).endVertex();
+        wr.pos(x + 1, y, z + 1).color(r, g, b, alpha).endVertex();
+        wr.pos(x + 1, y + 1, z + 1).color(r, g, b, alpha).endVertex();
+        wr.pos(x, y + 1, z + 1).color(r, g, b, alpha).endVertex();
         
-        // West face
-        worldRenderer.pos(x, y, z).color(r, g, b, alpha).endVertex();
-        worldRenderer.pos(x, y, z + 1).color(r, g, b, alpha).endVertex();
-        worldRenderer.pos(x, y + 1, z + 1).color(r, g, b, alpha).endVertex();
-        worldRenderer.pos(x, y + 1, z).color(r, g, b, alpha).endVertex();
+        // West
+        wr.pos(x, y, z).color(r, g, b, alpha).endVertex();
+        wr.pos(x, y, z + 1).color(r, g, b, alpha).endVertex();
+        wr.pos(x, y + 1, z + 1).color(r, g, b, alpha).endVertex();
+        wr.pos(x, y + 1, z).color(r, g, b, alpha).endVertex();
         
-        // East face
-        worldRenderer.pos(x + 1, y, z).color(r, g, b, alpha).endVertex();
-        worldRenderer.pos(x + 1, y + 1, z).color(r, g, b, alpha).endVertex();
-        worldRenderer.pos(x + 1, y + 1, z + 1).color(r, g, b, alpha).endVertex();
-        worldRenderer.pos(x + 1, y, z + 1).color(r, g, b, alpha).endVertex();
+        // East
+        wr.pos(x + 1, y, z).color(r, g, b, alpha).endVertex();
+        wr.pos(x + 1, y + 1, z).color(r, g, b, alpha).endVertex();
+        wr.pos(x + 1, y + 1, z + 1).color(r, g, b, alpha).endVertex();
+        wr.pos(x + 1, y, z + 1).color(r, g, b, alpha).endVertex();
         
         tessellator.draw();
         
         // Draw outline
-        GlStateManager.disableBlend();
-        GL11.glLineWidth(2.0f);
-        worldRenderer.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
+        GL11.glLineWidth(3.0f);
+        wr.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
         
-        worldRenderer.pos(x, y, z).color(r, g, b, 1.0f).endVertex();
-        worldRenderer.pos(x + 1, y, z).color(r, g, b, 1.0f).endVertex();
-        worldRenderer.pos(x + 1, y, z + 1).color(r, g, b, 1.0f).endVertex();
-        worldRenderer.pos(x, y, z + 1).color(r, g, b, 1.0f).endVertex();
-        worldRenderer.pos(x, y, z).color(r, g, b, 1.0f).endVertex();
+        wr.pos(x, y, z).color(r, g, b, 1.0f).endVertex();
+        wr.pos(x + 1, y, z).color(r, g, b, 1.0f).endVertex();
+        wr.pos(x + 1, y, z + 1).color(r, g, b, 1.0f).endVertex();
+        wr.pos(x, y, z + 1).color(r, g, b, 1.0f).endVertex();
+        wr.pos(x, y, z).color(r, g, b, 1.0f).endVertex();
         
-        worldRenderer.pos(x, y + 1, z).color(r, g, b, 1.0f).endVertex();
-        worldRenderer.pos(x + 1, y + 1, z).color(r, g, b, 1.0f).endVertex();
-        worldRenderer.pos(x + 1, y + 1, z + 1).color(r, g, b, 1.0f).endVertex();
-        worldRenderer.pos(x, y + 1, z + 1).color(r, g, b, 1.0f).endVertex();
-        worldRenderer.pos(x, y + 1, z).color(r, g, b, 1.0f).endVertex();
+        wr.pos(x, y + 1, z).color(r, g, b, 1.0f).endVertex();
+        wr.pos(x + 1, y + 1, z).color(r, g, b, 1.0f).endVertex();
+        wr.pos(x + 1, y + 1, z + 1).color(r, g, b, 1.0f).endVertex();
+        wr.pos(x, y + 1, z + 1).color(r, g, b, 1.0f).endVertex();
+        wr.pos(x, y + 1, z).color(r, g, b, 1.0f).endVertex();
         
         tessellator.draw();
         
         GlStateManager.enableDepth();
         GlStateManager.enableTexture2D();
+        GlStateManager.disableBlend();
         GlStateManager.popMatrix();
     }
     
@@ -687,13 +586,11 @@ public class ObsidianState extends AbstractState {
     
     @Override
     public boolean shouldActivate() {
-        // Obsidian mode is manually activated, no time-based activation
-        return false;
+        return false; // Manual activation only
     }
     
     @Override
     public int getPriority() {
-        // Medium priority
         return 5;
     }
 }
