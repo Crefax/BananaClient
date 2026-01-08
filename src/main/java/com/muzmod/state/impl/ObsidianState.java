@@ -65,6 +65,7 @@ public class ObsidianState extends AbstractState {
     
     private enum ObsidianPhase {
         INIT,           // Initialize
+        CLIMB_UP,       // Climb up when Y < 4
         FIND_TARGET,    // Find target ahead
         MINING,         // Mining forward
         TURNING,        // Turning to new direction
@@ -110,9 +111,19 @@ public class ObsidianState extends AbstractState {
         
         long now = System.currentTimeMillis();
         
+        // Check Y level - if below 4, need to climb up
+        int playerY = (int) Math.floor(mc.thePlayer.posY);
+        if (playerY < OBSIDIAN_Y && phase != ObsidianPhase.CLIMB_UP && phase != ObsidianPhase.INIT) {
+            MuzMod.LOGGER.info("[Obsidian] Y=" + playerY + " is below " + OBSIDIAN_Y + ", switching to CLIMB_UP");
+            phase = ObsidianPhase.CLIMB_UP;
+        }
+        
         switch (phase) {
             case INIT:
                 handleInit();
+                break;
+            case CLIMB_UP:
+                handleClimbUp();
                 break;
             case FIND_TARGET:
                 handleFindTarget();
@@ -137,6 +148,14 @@ public class ObsidianState extends AbstractState {
         debugInfo = "Initializing...";
         setStatus(debugInfo);
         
+        // Check Y level first
+        int playerY = (int) Math.floor(mc.thePlayer.posY);
+        if (playerY < OBSIDIAN_Y) {
+            MuzMod.LOGGER.info("[Obsidian] Init - Y=" + playerY + " too low, climbing up first");
+            phase = ObsidianPhase.CLIMB_UP;
+            return;
+        }
+        
         // Get current facing direction and snap to nearest 90 degrees
         currentYaw = Math.round(mc.thePlayer.rotationYaw / 90f) * 90f;
         mc.thePlayer.rotationYaw = currentYaw;
@@ -147,6 +166,69 @@ public class ObsidianState extends AbstractState {
         MuzMod.LOGGER.info("[Obsidian] Init - Yaw: " + currentYaw + ", Dir: (" + dirX + ", " + dirZ + ")");
         
         phase = ObsidianPhase.FIND_TARGET;
+    }
+    
+    /**
+     * Climb up when Y is below obsidian level
+     * Mine obsidian above and jump to get to Y=4+
+     */
+    private void handleClimbUp() {
+        int playerY = (int) Math.floor(mc.thePlayer.posY);
+        
+        debugInfo = "Climbing up... Y=" + playerY;
+        setStatus(debugInfo);
+        
+        // Check if we're at the right level now
+        if (playerY >= OBSIDIAN_Y) {
+            MuzMod.LOGGER.info("[Obsidian] Reached Y=" + playerY + ", resuming mining");
+            InputSimulator.releaseAll();
+            phase = ObsidianPhase.FIND_TARGET;
+            return;
+        }
+        
+        int playerX = (int) Math.floor(mc.thePlayer.posX);
+        int playerZ = (int) Math.floor(mc.thePlayer.posZ);
+        
+        // Look for obsidian above us to mine
+        BlockPos above1 = new BlockPos(playerX, playerY + 1, playerZ);
+        BlockPos above2 = new BlockPos(playerX, playerY + 2, playerZ);
+        
+        // Also check blocks around above us
+        BlockPos[] checkPositions = {
+            above1, above2,
+            above1.north(), above1.south(), above1.east(), above1.west(),
+            above2.north(), above2.south(), above2.east(), above2.west()
+        };
+        
+        BlockPos toMine = null;
+        for (BlockPos pos : checkPositions) {
+            if (mc.theWorld.getBlockState(pos).getBlock() == Blocks.obsidian) {
+                toMine = pos;
+                break;
+            }
+        }
+        
+        if (toMine != null) {
+            currentMiningBlock = toMine;
+            
+            // Look UP at the block
+            lookAtBlock(toMine);
+            
+            // Mine it
+            InputSimulator.holdKey(mc.gameSettings.keyBindAttack, true);
+        } else {
+            currentMiningBlock = null;
+            InputSimulator.releaseKey(mc.gameSettings.keyBindAttack);
+            
+            // Look up
+            mc.thePlayer.rotationPitch = -60;
+        }
+        
+        // Always try to jump to get higher
+        InputSimulator.holdKey(mc.gameSettings.keyBindJump, true);
+        
+        // Move around a bit to find a way up
+        InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
     }
     
     /**
@@ -503,10 +585,18 @@ public class ObsidianState extends AbstractState {
         double y = pos.getY() - mc.getRenderManager().viewerPosY;
         double z = pos.getZ() - mc.getRenderManager().viewerPosZ;
         
+        // Convert to 0-255 int values
+        int ri = (int)(r * 255);
+        int gi = (int)(g * 255);
+        int bi = (int)(b * 255);
+        int ai = (int)(alpha * 255);
+        int ao = 255; // Full opacity for outline
+        
         GlStateManager.pushMatrix();
         GlStateManager.enableBlend();
         GlStateManager.disableTexture2D();
         GlStateManager.disableDepth();
+        GlStateManager.disableLighting();
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         
         Tessellator tessellator = Tessellator.getInstance();
@@ -516,40 +606,40 @@ public class ObsidianState extends AbstractState {
         wr.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
         
         // Bottom
-        wr.pos(x, y, z).color(r, g, b, alpha).endVertex();
-        wr.pos(x + 1, y, z).color(r, g, b, alpha).endVertex();
-        wr.pos(x + 1, y, z + 1).color(r, g, b, alpha).endVertex();
-        wr.pos(x, y, z + 1).color(r, g, b, alpha).endVertex();
+        wr.pos(x, y, z).color(ri, gi, bi, ai).endVertex();
+        wr.pos(x + 1, y, z).color(ri, gi, bi, ai).endVertex();
+        wr.pos(x + 1, y, z + 1).color(ri, gi, bi, ai).endVertex();
+        wr.pos(x, y, z + 1).color(ri, gi, bi, ai).endVertex();
         
         // Top
-        wr.pos(x, y + 1, z).color(r, g, b, alpha).endVertex();
-        wr.pos(x, y + 1, z + 1).color(r, g, b, alpha).endVertex();
-        wr.pos(x + 1, y + 1, z + 1).color(r, g, b, alpha).endVertex();
-        wr.pos(x + 1, y + 1, z).color(r, g, b, alpha).endVertex();
+        wr.pos(x, y + 1, z).color(ri, gi, bi, ai).endVertex();
+        wr.pos(x, y + 1, z + 1).color(ri, gi, bi, ai).endVertex();
+        wr.pos(x + 1, y + 1, z + 1).color(ri, gi, bi, ai).endVertex();
+        wr.pos(x + 1, y + 1, z).color(ri, gi, bi, ai).endVertex();
         
         // North
-        wr.pos(x, y, z).color(r, g, b, alpha).endVertex();
-        wr.pos(x, y + 1, z).color(r, g, b, alpha).endVertex();
-        wr.pos(x + 1, y + 1, z).color(r, g, b, alpha).endVertex();
-        wr.pos(x + 1, y, z).color(r, g, b, alpha).endVertex();
+        wr.pos(x, y, z).color(ri, gi, bi, ai).endVertex();
+        wr.pos(x, y + 1, z).color(ri, gi, bi, ai).endVertex();
+        wr.pos(x + 1, y + 1, z).color(ri, gi, bi, ai).endVertex();
+        wr.pos(x + 1, y, z).color(ri, gi, bi, ai).endVertex();
         
         // South
-        wr.pos(x, y, z + 1).color(r, g, b, alpha).endVertex();
-        wr.pos(x + 1, y, z + 1).color(r, g, b, alpha).endVertex();
-        wr.pos(x + 1, y + 1, z + 1).color(r, g, b, alpha).endVertex();
-        wr.pos(x, y + 1, z + 1).color(r, g, b, alpha).endVertex();
+        wr.pos(x, y, z + 1).color(ri, gi, bi, ai).endVertex();
+        wr.pos(x + 1, y, z + 1).color(ri, gi, bi, ai).endVertex();
+        wr.pos(x + 1, y + 1, z + 1).color(ri, gi, bi, ai).endVertex();
+        wr.pos(x, y + 1, z + 1).color(ri, gi, bi, ai).endVertex();
         
         // West
-        wr.pos(x, y, z).color(r, g, b, alpha).endVertex();
-        wr.pos(x, y, z + 1).color(r, g, b, alpha).endVertex();
-        wr.pos(x, y + 1, z + 1).color(r, g, b, alpha).endVertex();
-        wr.pos(x, y + 1, z).color(r, g, b, alpha).endVertex();
+        wr.pos(x, y, z).color(ri, gi, bi, ai).endVertex();
+        wr.pos(x, y, z + 1).color(ri, gi, bi, ai).endVertex();
+        wr.pos(x, y + 1, z + 1).color(ri, gi, bi, ai).endVertex();
+        wr.pos(x, y + 1, z).color(ri, gi, bi, ai).endVertex();
         
         // East
-        wr.pos(x + 1, y, z).color(r, g, b, alpha).endVertex();
-        wr.pos(x + 1, y + 1, z).color(r, g, b, alpha).endVertex();
-        wr.pos(x + 1, y + 1, z + 1).color(r, g, b, alpha).endVertex();
-        wr.pos(x + 1, y, z + 1).color(r, g, b, alpha).endVertex();
+        wr.pos(x + 1, y, z).color(ri, gi, bi, ai).endVertex();
+        wr.pos(x + 1, y + 1, z).color(ri, gi, bi, ai).endVertex();
+        wr.pos(x + 1, y + 1, z + 1).color(ri, gi, bi, ai).endVertex();
+        wr.pos(x + 1, y, z + 1).color(ri, gi, bi, ai).endVertex();
         
         tessellator.draw();
         
@@ -557,22 +647,23 @@ public class ObsidianState extends AbstractState {
         GL11.glLineWidth(3.0f);
         wr.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
         
-        wr.pos(x, y, z).color(r, g, b, 1.0f).endVertex();
-        wr.pos(x + 1, y, z).color(r, g, b, 1.0f).endVertex();
-        wr.pos(x + 1, y, z + 1).color(r, g, b, 1.0f).endVertex();
-        wr.pos(x, y, z + 1).color(r, g, b, 1.0f).endVertex();
-        wr.pos(x, y, z).color(r, g, b, 1.0f).endVertex();
+        wr.pos(x, y, z).color(ri, gi, bi, ao).endVertex();
+        wr.pos(x + 1, y, z).color(ri, gi, bi, ao).endVertex();
+        wr.pos(x + 1, y, z + 1).color(ri, gi, bi, ao).endVertex();
+        wr.pos(x, y, z + 1).color(ri, gi, bi, ao).endVertex();
+        wr.pos(x, y, z).color(ri, gi, bi, ao).endVertex();
         
-        wr.pos(x, y + 1, z).color(r, g, b, 1.0f).endVertex();
-        wr.pos(x + 1, y + 1, z).color(r, g, b, 1.0f).endVertex();
-        wr.pos(x + 1, y + 1, z + 1).color(r, g, b, 1.0f).endVertex();
-        wr.pos(x, y + 1, z + 1).color(r, g, b, 1.0f).endVertex();
-        wr.pos(x, y + 1, z).color(r, g, b, 1.0f).endVertex();
+        wr.pos(x, y + 1, z).color(ri, gi, bi, ao).endVertex();
+        wr.pos(x + 1, y + 1, z).color(ri, gi, bi, ao).endVertex();
+        wr.pos(x + 1, y + 1, z + 1).color(ri, gi, bi, ao).endVertex();
+        wr.pos(x, y + 1, z + 1).color(ri, gi, bi, ao).endVertex();
+        wr.pos(x, y + 1, z).color(ri, gi, bi, ao).endVertex();
         
         tessellator.draw();
         
         GlStateManager.enableDepth();
         GlStateManager.enableTexture2D();
+        GlStateManager.enableLighting();
         GlStateManager.disableBlend();
         GlStateManager.popMatrix();
     }
