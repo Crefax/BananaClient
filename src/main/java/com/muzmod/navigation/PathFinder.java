@@ -83,7 +83,10 @@ public class PathFinder {
             for (BlockPos neighbor : getNeighbors(current.pos)) {
                 if (closedSet.contains(neighbor)) continue;
                 
-                double tentativeG = current.gCost + getDistance(current.pos, neighbor);
+                // Maliyet: mesafe + etraftaki blok yoğunluğu (açık alan tercih edilir)
+                double moveCost = getDistance(current.pos, neighbor);
+                double obstaclePenalty = calculateObstaclePenalty(neighbor);
+                double tentativeG = current.gCost + moveCost + obstaclePenalty;
                 
                 Node neighborNode = allNodes.get(neighbor);
                 
@@ -143,13 +146,24 @@ public class PathFinder {
     
     /**
      * Direkt yol açık mı kontrol et (engel var mı)
+     * Sadece yolun kendisi değil, yolun 1 blok sağı ve solu da kontrol edilir
      */
     public boolean isDirectPathClear(BlockPos start, BlockPos end) {
         int steps = (int) Math.ceil(getDistance(start, end));
+        if (steps == 0) return true;
         
         double dx = (end.getX() - start.getX()) / (double) steps;
         double dy = (end.getY() - start.getY()) / (double) steps;
         double dz = (end.getZ() - start.getZ()) / (double) steps;
+        
+        // Yol yönüne dik vektör (yan kontrol için)
+        double perpX = -dz;
+        double perpZ = dx;
+        double perpLen = Math.sqrt(perpX * perpX + perpZ * perpZ);
+        if (perpLen > 0) {
+            perpX /= perpLen;
+            perpZ /= perpLen;
+        }
         
         for (int i = 0; i <= steps; i++) {
             int x = start.getX() + (int) (dx * i);
@@ -158,12 +172,51 @@ public class PathFinder {
             
             BlockPos checkPos = new BlockPos(x, y, z);
             
+            // Merkez yol kontrolü
             if (!isWalkable(checkPos)) {
+                return false;
+            }
+            
+            // Yan taraf kontrolü (oyuncu genişliği için)
+            // Sağ taraf
+            BlockPos rightPos = new BlockPos(x + (int)Math.round(perpX), y, z + (int)Math.round(perpZ));
+            if (isBlockingPath(rightPos)) {
+                return false;
+            }
+            
+            // Sol taraf
+            BlockPos leftPos = new BlockPos(x - (int)Math.round(perpX), y, z - (int)Math.round(perpZ));
+            if (isBlockingPath(leftPos)) {
                 return false;
             }
         }
         
         return true;
+    }
+    
+    /**
+     * Bir blok yolu engelliyor mu?
+     */
+    private boolean isBlockingPath(BlockPos pos) {
+        if (mc.theWorld == null) return false;
+        
+        Block blockAtFeet = mc.theWorld.getBlockState(pos).getBlock();
+        Block blockAtHead = mc.theWorld.getBlockState(pos.up()).getBlock();
+        
+        // Çit ve duvarlar kesinlikle engeller
+        if (isFenceBlock(blockAtFeet) || isFenceBlock(blockAtHead)) {
+            return true;
+        }
+        
+        // Katı bloklar da engeller (collision box kontrolü)
+        if (!mc.theWorld.isAirBlock(pos) && !blockAtFeet.isPassable(mc.theWorld, pos)) {
+            return true;
+        }
+        if (!mc.theWorld.isAirBlock(pos.up()) && !blockAtHead.isPassable(mc.theWorld, pos.up())) {
+            return true;
+        }
+        
+        return false;
     }
     
     /**
@@ -401,6 +454,59 @@ public class PathFinder {
         double dy = a.getY() - b.getY();
         double dz = a.getZ() - b.getZ();
         return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    }
+    
+    /**
+     * Bir pozisyonun etrafındaki engel yoğunluğunu hesapla
+     * Ne kadar çok engel varsa, o kadar yüksek ceza
+     * Açık alanlar tercih edilir
+     */
+    private double calculateObstaclePenalty(BlockPos pos) {
+        if (mc.theWorld == null) return 0;
+        
+        double penalty = 0;
+        int checkRadius = 2; // 2 blok yarıçapında kontrol
+        
+        for (int dx = -checkRadius; dx <= checkRadius; dx++) {
+            for (int dz = -checkRadius; dz <= checkRadius; dz++) {
+                if (dx == 0 && dz == 0) continue;
+                
+                BlockPos checkPos = pos.add(dx, 0, dz);
+                Block blockAtFeet = mc.theWorld.getBlockState(checkPos).getBlock();
+                Block blockAtHead = mc.theWorld.getBlockState(checkPos.up()).getBlock();
+                
+                // Çit veya duvar varsa yüksek ceza
+                if (isFenceBlock(blockAtFeet) || isFenceBlock(blockAtHead)) {
+                    double distance = Math.sqrt(dx * dx + dz * dz);
+                    penalty += 5.0 / distance; // Yakındaki çitler daha çok ceza
+                }
+                // Katı blok varsa orta ceza
+                else if (!blockAtFeet.isPassable(mc.theWorld, checkPos) || 
+                         !blockAtHead.isPassable(mc.theWorld, checkPos.up())) {
+                    double distance = Math.sqrt(dx * dx + dz * dz);
+                    penalty += 2.0 / distance;
+                }
+            }
+        }
+        
+        // Ayak seviyesinde ve baş seviyesinde engel kontrolü (yürüme yolu)
+        // Dar geçitlerde yüksek ceza
+        int clearSides = 0;
+        BlockPos[] cardinals = {pos.north(), pos.south(), pos.east(), pos.west()};
+        for (BlockPos cardinal : cardinals) {
+            if (isWalkable(cardinal)) {
+                clearSides++;
+            }
+        }
+        
+        // 4 tarafından 2'den az açıksa dar geçit cezası
+        if (clearSides < 2) {
+            penalty += 10.0;
+        } else if (clearSides < 3) {
+            penalty += 3.0;
+        }
+        
+        return penalty;
     }
     
     /**
