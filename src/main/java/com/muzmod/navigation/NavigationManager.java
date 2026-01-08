@@ -512,8 +512,10 @@ public class NavigationManager {
     }
     
     private void handleStuck() {
-        // Zıpla
-        InputSimulator.holdKey(mc.gameSettings.keyBindJump, true);
+        // Sadece yerdeyken zıpla
+        if (mc.thePlayer.onGround) {
+            InputSimulator.holdKey(mc.gameSettings.keyBindJump, true);
+        }
         
         // Biraz sağa veya sola git
         if (random.nextBoolean()) {
@@ -571,6 +573,9 @@ public class NavigationManager {
     
     private boolean shouldJump() {
         if (mc.thePlayer == null) return false;
+        
+        // Oyuncu yerde değilse zıplama (havadayken veya düşerken zıplama)
+        if (!mc.thePlayer.onGround) return false;
         
         // Önümüzdeki bloğu kontrol et
         double rad = Math.toRadians(mc.thePlayer.rotationYaw);
