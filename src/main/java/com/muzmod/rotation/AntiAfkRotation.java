@@ -7,7 +7,7 @@ import net.minecraft.client.Minecraft;
 import java.util.Random;
 
 /**
- * Anti-AFK Rotation System v1.4.0
+ * Anti-AFK Rotation System v1.5.0
  * 
  * Generates random smooth rotations while mining to appear more human-like
  * and prevent AFK detection.
@@ -16,8 +16,8 @@ import java.util.Random;
  * - Configurable min/max rotation angles (0.1 to 100+ degrees)
  * - Smooth interpolated movement (not instant)
  * - Configurable smooth speed
- * - Random interval timing
- * - Alternating left/right preference
+ * - Random interval timing (5 seconds default)
+ * - Balanced random direction (not strictly alternating)
  */
 public class AntiAfkRotation {
     
@@ -29,8 +29,9 @@ public class AntiAfkRotation {
     private long lastRotationTime = 0;
     private long nextRotationDelay = 0;
     
-    // State
-    private boolean turnLeft = true;
+    // State - daha dengeli yön için
+    private int leftCount = 0;
+    private int rightCount = 0;
     
     // Pitch limits (30-60 derece arası)
     private static final float MIN_PITCH = 30f;
@@ -83,14 +84,35 @@ public class AntiAfkRotation {
         float yawAmount = yawMin + random.nextFloat() * (yawMax - yawMin);
         float pitchAmount = pitchMin + random.nextFloat() * (pitchMax - pitchMin);
         
-        // Alternate direction
+        // Dengeli rastgele yön seçimi
+        // Eğer bir yöne çok fazla gidildiyse, diğer yönü tercih et
+        boolean goLeft;
+        int diff = leftCount - rightCount;
+        if (diff >= 2) {
+            // Sol çok fazla, sağa git
+            goLeft = false;
+        } else if (diff <= -2) {
+            // Sağ çok fazla, sola git
+            goLeft = true;
+        } else {
+            // Dengeli, rastgele seç (60% şans mevcut yönü değiştir)
+            goLeft = random.nextFloat() < 0.5f;
+        }
+        
         float yawOffset;
-        if (turnLeft) {
+        if (goLeft) {
             yawOffset = -yawAmount;
+            leftCount++;
         } else {
             yawOffset = yawAmount;
+            rightCount++;
         }
-        turnLeft = !turnLeft;
+        
+        // Her 10 rotasyonda sayaçları sıfırla
+        if (leftCount + rightCount >= 10) {
+            leftCount = 0;
+            rightCount = 0;
+        }
         
         // Random pitch direction
         float pitchOffset = (random.nextBoolean() ? 1 : -1) * pitchAmount;
@@ -144,7 +166,8 @@ public class AntiAfkRotation {
         smoother.cancel();
         lastRotationTime = 0;
         nextRotationDelay = 0;
-        turnLeft = true;
+        leftCount = 0;
+        rightCount = 0;
     }
     
     /**

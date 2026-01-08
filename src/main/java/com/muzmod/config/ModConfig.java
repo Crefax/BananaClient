@@ -21,7 +21,7 @@ public class ModConfig {
     private int miningRadius = 3;
     private double miningLookPitch = 45.0;
     private double antiAfkRotationRange = 10.0;
-    private long antiAfkInterval = 3000;
+    private long antiAfkInterval = 5000;
     
     // Pathfinding Settings
     private int oreSearchRadius = 50; // Chunk arama yarıçapı
@@ -125,7 +125,7 @@ public class ModConfig {
                 "Pitch angle when mining (degrees down)");
             antiAfkRotationRange = config.getFloat("antiAfkRotation", "mining", 10.0f, 1.0f, 45.0f, 
                 "Random rotation range for anti-AFK (degrees)");
-            antiAfkInterval = config.getInt("antiAfkInterval", "mining", 3000, 1000, 10000, 
+            antiAfkInterval = config.getInt("antiAfkInterval", "mining", 5000, 2000, 15000, 
                 "Interval between anti-AFK movements (ms)");
             
             // Pathfinding Category

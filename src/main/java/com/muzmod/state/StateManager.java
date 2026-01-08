@@ -1,6 +1,8 @@
 package com.muzmod.state;
 
 import com.muzmod.MuzMod;
+import com.muzmod.gui.MuzModGui;
+import com.muzmod.gui.MuzModGuiModern;
 import com.muzmod.navigation.NavigationManager;
 import com.muzmod.schedule.ScheduleEntry;
 import com.muzmod.schedule.ScheduleManager;
@@ -10,6 +12,7 @@ import com.muzmod.state.impl.MiningState;
 import com.muzmod.state.impl.OXState;
 import com.muzmod.state.impl.RepairState;
 import com.muzmod.state.impl.SafeState;
+import net.minecraft.client.gui.GuiChat;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -79,6 +82,19 @@ public class StateManager {
         
         net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getMinecraft();
         if (mc.thePlayer == null || mc.theWorld == null) return;
+        
+        // GUI kontrolü - BananaClient GUI'leri ve chat açıkken devam et
+        // Diğer Minecraft ekranları (envanter, ESC menü vb.) açıkken durdur
+        if (mc.currentScreen != null) {
+            boolean isOurGui = mc.currentScreen instanceof MuzModGui || 
+                              mc.currentScreen instanceof MuzModGuiModern;
+            boolean isChat = mc.currentScreen instanceof GuiChat;
+            
+            // Bizim GUI'miz veya chat açıksa devam et
+            if (!isOurGui && !isChat) {
+                return; // Minecraft ekranı açık - mining durdur
+            }
+        }
         
         tickCounter++;
         
