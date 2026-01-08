@@ -282,6 +282,10 @@ public class StateManager {
             case "ox":
                 transitionTo(oxState);
                 break;
+            case "obsidian":
+            case "obsidyen":
+                transitionTo(obsidianState);
+                break;
             default:
                 MuzMod.LOGGER.warn("Unknown state: " + stateName);
         }

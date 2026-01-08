@@ -11,10 +11,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemPickaxe;
 
 /**
- * Repair State v1.6.6
+ * Repair State v1.6.7
  * 
  * Basitleştirilmiş tamir sistemi.
  * Her adım, bir sonraki adıma geçmeden önce configden bekleme süresi bekler.
+ * Repair sonrası önceki state'e döner (Mining, Obsidyen vb.)
  */
 public class RepairState extends AbstractState {
     
@@ -26,6 +27,9 @@ public class RepairState extends AbstractState {
     private int retryCount = 0;
     private boolean waitingForAction = false;
     private int confirmRetryCount = 0; // Onayla butonu için retry sayacı
+    
+    // Önceki state hatırlama
+    private String previousStateName = null;
     
     // Debug
     private String debugInfo = "";
@@ -50,6 +54,23 @@ public class RepairState extends AbstractState {
     @Override
     public void onEnable() {
         super.onEnable();
+        
+        // Önceki state'i kaydet (dönüş için)
+        com.muzmod.state.IState prevState = MuzMod.instance.getStateManager().getPreviousState();
+        if (prevState != null) {
+            String prevName = prevState.getName().toLowerCase();
+            // Mining veya Obsidyen'den geliyorsak hatırla
+            if (prevName.equals("mining") || prevName.equals("obsidyen")) {
+                previousStateName = prevName.equals("mining") ? "mining" : "obsidian";
+                MuzMod.LOGGER.info("[Repair] Önceki state kaydedildi: " + previousStateName);
+            } else {
+                // Idle, AFK veya diğer state'lerden geliyorsak, repair sonrası bir yere gitme
+                previousStateName = null;
+                MuzMod.LOGGER.info("[Repair] Önceki state (" + prevName + ") repair sonrası dönülmeyecek");
+            }
+        } else {
+            previousStateName = null;
+        }
         
         currentStep = STEP_INIT;
         lastActionTime = System.currentTimeMillis();
@@ -124,10 +145,19 @@ public class RepairState extends AbstractState {
                 break;
                 
             case STEP_DONE:
-                debugInfo = "Tamamlandı! Mining'e dönülüyor...";
-                setStatus(debugInfo);
-                MuzMod.LOGGER.info("[Repair] Mining'e dönülüyor");
-                MuzMod.instance.getStateManager().forceState("mining");
+                // Önceki state'e dön (varsa)
+                if (previousStateName != null) {
+                    debugInfo = "Tamamlandı! " + previousStateName + "'e dönülüyor...";
+                    setStatus(debugInfo);
+                    MuzMod.LOGGER.info("[Repair] " + previousStateName + "'e dönülüyor");
+                    MuzMod.instance.getStateManager().forceState(previousStateName);
+                } else {
+                    // Önceki state yoksa idle'a geç
+                    debugInfo = "Tamamlandı! Idle'a dönülüyor...";
+                    setStatus(debugInfo);
+                    MuzMod.LOGGER.info("[Repair] Önceki state yok, Idle'a dönülüyor");
+                    MuzMod.instance.getStateManager().forceState("idle");
+                }
                 break;
                 
             case STEP_FAILED:
