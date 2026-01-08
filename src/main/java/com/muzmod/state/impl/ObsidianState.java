@@ -57,9 +57,15 @@ public class ObsidianState extends AbstractState {
     private long miningStartTime = 0;
     private BlockPos lastMiningBlock = null;
     
+    // Smooth aim
+    private float targetPitch = 30;
+    private float targetYaw = 0;
+    private static final float AIM_SPEED = 0.15f; // Smooth aim hızı (0-1 arası)
+    
     private enum Phase {
         INIT,
-        CLIMB_UP,
+        CLIMB_UP,      // Y < 4: Yukarı çık
+        CLIMB_DOWN,    // Y > 5: Aşağı in
         FIND_TARGET,
         MINING,
         TURNING,
@@ -101,11 +107,19 @@ public class ObsidianState extends AbstractState {
         
         int playerY = (int) Math.floor(mc.thePlayer.posY);
         
-        // Y çok düşükse CLIMB_UP moduna geç
-        if (playerY < OBSIDIAN_Y && phase != Phase.CLIMB_UP && phase != Phase.INIT) {
-            MuzMod.LOGGER.info("[Obsidian] Y=" + playerY + " too low, climbing up");
-            phase = Phase.CLIMB_UP;
+        // Y kontrolü - mining dışındaki phase'lerde kontrol et
+        if (phase != Phase.INIT && phase != Phase.CLIMB_UP && phase != Phase.CLIMB_DOWN && phase != Phase.DONE) {
+            if (playerY < OBSIDIAN_Y) {
+                MuzMod.LOGGER.info("[Obsidian] Y=" + playerY + " too low, climbing up");
+                phase = Phase.CLIMB_UP;
+            } else if (playerY > OBSIDIAN_Y + 1) { // Y > 5
+                MuzMod.LOGGER.info("[Obsidian] Y=" + playerY + " too high, climbing down");
+                phase = Phase.CLIMB_DOWN;
+            }
         }
+        
+        // Smooth aim uygula
+        smoothAim();
         
         switch (phase) {
             case INIT:
@@ -113,6 +127,9 @@ public class ObsidianState extends AbstractState {
                 break;
             case CLIMB_UP:
                 doClimbUp();
+                break;
+            case CLIMB_DOWN:
+                doClimbDown();
                 break;
             case FIND_TARGET:
                 doFindTarget();
@@ -130,6 +147,30 @@ public class ObsidianState extends AbstractState {
         }
     }
     
+    /**
+     * Smooth aim - yaw ve pitch'i yumuşak şekilde hedefe doğru hareket ettirir
+     */
+    private void smoothAim() {
+        // Yaw smooth
+        float yawDiff = targetYaw - mc.thePlayer.rotationYaw;
+        while (yawDiff > 180) yawDiff -= 360;
+        while (yawDiff < -180) yawDiff += 360;
+        
+        if (Math.abs(yawDiff) > 0.5f) {
+            mc.thePlayer.rotationYaw += yawDiff * AIM_SPEED;
+        } else {
+            mc.thePlayer.rotationYaw = targetYaw;
+        }
+        
+        // Pitch smooth
+        float pitchDiff = targetPitch - mc.thePlayer.rotationPitch;
+        if (Math.abs(pitchDiff) > 0.5f) {
+            mc.thePlayer.rotationPitch += pitchDiff * AIM_SPEED;
+        } else {
+            mc.thePlayer.rotationPitch = targetPitch;
+        }
+    }
+    
     // ===================== PHASE HANDLERS =====================
     
     private void doInit() {
@@ -138,9 +179,14 @@ public class ObsidianState extends AbstractState {
         
         int playerY = (int) Math.floor(mc.thePlayer.posY);
         
-        // Y düşükse önce yukarı çık
+        // Y kontrolü
         if (playerY < OBSIDIAN_Y) {
+            MuzMod.LOGGER.info("[Obsidian] Init - Y=" + playerY + " too low");
             phase = Phase.CLIMB_UP;
+            return;
+        } else if (playerY > OBSIDIAN_Y + 1) {
+            MuzMod.LOGGER.info("[Obsidian] Init - Y=" + playerY + " too high");
+            phase = Phase.CLIMB_DOWN;
             return;
         }
         
@@ -148,28 +194,33 @@ public class ObsidianState extends AbstractState {
         float yaw = mc.thePlayer.rotationYaw;
         direction = getDirectionFromYaw(yaw);
         
-        // Yaw'ı tam 90'a sabitle
-        mc.thePlayer.rotationYaw = YAWS[direction];
+        // Smooth aim hedeflerini ayarla
+        targetYaw = YAWS[direction];
+        targetPitch = 30;
         
         MuzMod.LOGGER.info("[Obsidian] Init - direction=" + direction + " yaw=" + YAWS[direction]);
         
         phase = Phase.FIND_TARGET;
     }
     
+    /**
+     * Y < 4 iken yukarı çıkma - Adım adım, önce kaz sonra zıpla
+     */
     private void doClimbUp() {
         int playerY = (int) Math.floor(mc.thePlayer.posY);
-        debugInfo = "Climbing Y=" + playerY;
+        debugInfo = "Climbing UP Y=" + playerY;
         setStatus(debugInfo);
         
         // Yeterli yüksekliğe ulaştık mı?
         if (playerY >= OBSIDIAN_Y) {
             MuzMod.LOGGER.info("[Obsidian] Reached Y=" + playerY);
             InputSimulator.releaseAll();
-            phase = Phase.FIND_TARGET;
+            miningBlock = null;
+            phase = Phase.INIT; // Tekrar init'e dön
             return;
         }
         
-        // Yukarıda obsidyen var mı?
+        // Yukarıda obsidyen var mı kontrol et
         BlockPos playerPos = mc.thePlayer.getPosition();
         BlockPos above = playerPos.up();
         BlockPos above2 = playerPos.up(2);
@@ -177,30 +228,83 @@ public class ObsidianState extends AbstractState {
         Block blockAbove = mc.theWorld.getBlockState(above).getBlock();
         Block blockAbove2 = mc.theWorld.getBlockState(above2).getBlock();
         
-        // Yukarıya bak
-        mc.thePlayer.rotationPitch = -45;
+        // İlerleme yok, hareket etme - ÖNCE KAZ
+        InputSimulator.releaseKey(mc.gameSettings.keyBindForward);
+        InputSimulator.releaseKey(mc.gameSettings.keyBindJump);
         
         if (blockAbove == Blocks.obsidian) {
+            // Direkt üstte obsidyen - onu kaz
             miningBlock = above;
-            mc.thePlayer.rotationPitch = -60;
+            targetPitch = -70; // Yukarı bak
+            targetYaw = mc.thePlayer.rotationYaw; // Yaw değiştirme
             InputSimulator.holdKey(mc.gameSettings.keyBindAttack, true);
+            return;
         } else if (blockAbove2 == Blocks.obsidian) {
+            // 2 blok üstte obsidyen - onu kaz
             miningBlock = above2;
-            mc.thePlayer.rotationPitch = -75;
+            targetPitch = -80;
+            targetYaw = mc.thePlayer.rotationYaw;
+            InputSimulator.holdKey(mc.gameSettings.keyBindAttack, true);
+            return;
+        } else {
+            // Üstte obsidyen yok - zıplayarak yukarı çık
+            miningBlock = null;
+            InputSimulator.releaseKey(mc.gameSettings.keyBindAttack);
+            InputSimulator.holdKey(mc.gameSettings.keyBindJump, true);
+            
+            // Biraz bekle sonra ileri git
+            if (mc.thePlayer.onGround) {
+                InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
+            }
+        }
+    }
+    
+    /**
+     * Y > 5 iken aşağı inme - Ayak altındaki obsidyeni kaz
+     */
+    private void doClimbDown() {
+        int playerY = (int) Math.floor(mc.thePlayer.posY);
+        debugInfo = "Climbing DOWN Y=" + playerY;
+        setStatus(debugInfo);
+        
+        // Doğru yüksekliğe indik mi?
+        if (playerY <= OBSIDIAN_Y + 1) { // Y <= 5
+            MuzMod.LOGGER.info("[Obsidian] Reached Y=" + playerY);
+            InputSimulator.releaseAll();
+            miningBlock = null;
+            phase = Phase.INIT;
+            return;
+        }
+        
+        // Hareket etme - yerinde dur
+        InputSimulator.releaseKey(mc.gameSettings.keyBindForward);
+        InputSimulator.releaseKey(mc.gameSettings.keyBindJump);
+        
+        // Ayak altına bak ve kaz
+        BlockPos playerPos = mc.thePlayer.getPosition();
+        BlockPos below = playerPos.down();
+        
+        Block blockBelow = mc.theWorld.getBlockState(below).getBlock();
+        
+        if (blockBelow == Blocks.obsidian) {
+            miningBlock = below;
+            targetPitch = 90; // Tam aşağı bak
+            targetYaw = mc.thePlayer.rotationYaw;
             InputSimulator.holdKey(mc.gameSettings.keyBindAttack, true);
         } else {
+            // Aşağıda obsidyen yok - düşeceğiz
             miningBlock = null;
             InputSimulator.releaseKey(mc.gameSettings.keyBindAttack);
         }
-        
-        // Zıpla ve ilerle
-        InputSimulator.holdKey(mc.gameSettings.keyBindJump, true);
-        InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
     }
     
     private void doFindTarget() {
         debugInfo = "Finding target...";
         setStatus(debugInfo);
+        
+        // Smooth aim hedefini ayarla
+        targetYaw = YAWS[direction];
+        targetPitch = 30;
         
         int playerX = (int) Math.floor(mc.thePlayer.posX);
         int playerZ = (int) Math.floor(mc.thePlayer.posZ);
@@ -223,7 +327,7 @@ public class ObsidianState extends AbstractState {
                 } else {
                     direction = turnRight(direction);
                 }
-                mc.thePlayer.rotationYaw = YAWS[direction];
+                targetYaw = YAWS[direction]; // Smooth turn
                 MuzMod.LOGGER.info("[Obsidian] Turned to direction=" + direction);
                 return; // Tekrar kontrol et
             } else {
@@ -281,8 +385,8 @@ public class ObsidianState extends AbstractState {
             return;
         }
         
-        // Yön sabit kalsın
-        mc.thePlayer.rotationYaw = YAWS[direction];
+        // Yön smooth olarak ayarla
+        targetYaw = YAWS[direction];
         
         // Önde obsidyen bul
         BlockPos toMine = findObsidianToMine(playerX, playerZ);
@@ -290,18 +394,14 @@ public class ObsidianState extends AbstractState {
         if (toMine != null) {
             miningBlock = toMine;
             
-            // Bloğa bak (sadece pitch değiştir, yaw sabit)
+            // Bloğa bak - smooth pitch hesapla
             double dy = toMine.getY() + 0.5 - (mc.thePlayer.posY + mc.thePlayer.getEyeHeight());
             double dx = toMine.getX() + 0.5 - mc.thePlayer.posX;
             double dz = toMine.getZ() + 0.5 - mc.thePlayer.posZ;
             double horizontalDist = Math.sqrt(dx * dx + dz * dz);
             
-            float targetPitch = (float) Math.toDegrees(Math.atan2(-dy, horizontalDist));
+            targetPitch = (float) Math.toDegrees(Math.atan2(-dy, horizontalDist));
             targetPitch = Math.max(-90, Math.min(90, targetPitch));
-            
-            // Pitch'i yumuşak ayarla
-            float pitchDiff = targetPitch - mc.thePlayer.rotationPitch;
-            mc.thePlayer.rotationPitch += pitchDiff * 0.3f;
             
             // Kaz
             InputSimulator.holdKey(mc.gameSettings.keyBindAttack, true);
@@ -314,8 +414,6 @@ public class ObsidianState extends AbstractState {
                     InputSimulator.releaseKey(mc.gameSettings.keyBindAttack);
                     InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
                     InputSimulator.holdKey(mc.gameSettings.keyBindJump, true);
-                    try { Thread.sleep(200); } catch (Exception ignored) {}
-                    InputSimulator.releaseKey(mc.gameSettings.keyBindJump);
                     miningStartTime = System.currentTimeMillis();
                 }
             } else {
@@ -327,10 +425,10 @@ public class ObsidianState extends AbstractState {
             InputSimulator.releaseKey(mc.gameSettings.keyBindAttack);
             
             // Düz ileri bak
-            mc.thePlayer.rotationPitch = 30; // Hafif aşağı
+            targetPitch = 30; // Hafif aşağı
         }
         
-        // Her zaman ileri git
+        // İleri git
         InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
     }
     
@@ -373,7 +471,9 @@ public class ObsidianState extends AbstractState {
             MuzMod.LOGGER.info("[Obsidian] Turning right");
         }
         
-        mc.thePlayer.rotationYaw = YAWS[direction];
+        // Smooth turn
+        targetYaw = YAWS[direction];
+        targetPitch = 30;
         phase = Phase.FIND_TARGET;
     }
     
