@@ -24,6 +24,9 @@ public class WorldRenderer {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!MuzMod.instance.isBotEnabled()) return;
         
+        // HUD kapalıysa world render da yapma
+        if (!MuzMod.instance.getConfig().isShowOverlay()) return;
+        
         // Get render position
         double renderX = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * partialTicks;
         double renderY = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * partialTicks;

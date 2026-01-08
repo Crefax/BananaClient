@@ -59,9 +59,9 @@ public class RepairState extends AbstractState {
         com.muzmod.state.IState prevState = MuzMod.instance.getStateManager().getPreviousState();
         if (prevState != null) {
             String prevName = prevState.getName().toLowerCase();
-            // Mining veya Obsidyen'den geliyorsak hatırla
-            if (prevName.equals("mining") || prevName.equals("obsidyen")) {
-                previousStateName = prevName.equals("mining") ? "mining" : "obsidian";
+            // Mining veya Obsidian'dan geliyorsak hatırla
+            if (prevName.equals("mining") || prevName.equals("obsidian")) {
+                previousStateName = prevName; // "mining" veya "obsidian"
                 MuzMod.LOGGER.info("[Repair] Önceki state kaydedildi: " + previousStateName);
             } else {
                 // Idle, AFK veya diğer state'lerden geliyorsak, repair sonrası bir yere gitme
@@ -310,7 +310,12 @@ public class RepairState extends AbstractState {
         }
         
         MuzMod.LOGGER.info("[Repair] Onayla tıklanıyor, slot: " + confirmSlot);
-        clickSlot(confirmSlot);
+        
+        // Normal sol tık ile tıkla (shift-click değil)
+        GuiChest chest = (GuiChest) mc.currentScreen;
+        ContainerChest container = (ContainerChest) chest.inventorySlots;
+        mc.playerController.windowClick(container.windowId, confirmSlot, 0, 0, mc.thePlayer);
+        
         debugInfo = "Adım 6: Onay tıklandı!";
         setStatus(debugInfo);
         goToStep(STEP_FINISH);

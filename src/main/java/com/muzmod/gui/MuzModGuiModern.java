@@ -62,7 +62,7 @@ public class MuzModGuiModern extends GuiScreen {
     
     // Mining settings scroll
     private int miningSettingsScrollOffset = 0;
-    private static final int MINING_SETTINGS_SCROLL_MAX = 80; // Maksimum scroll miktarı
+    private static final int MINING_SETTINGS_SCROLL_MAX = 150; // Maksimum scroll miktarı
     
     // Schedule tab
     private int selectedDay = 0; // 0=Pzt, 6=Paz
@@ -85,14 +85,19 @@ public class MuzModGuiModern extends GuiScreen {
     private GuiTextField fieldStrafeInterval, fieldStrafeDuration;
     private GuiTextField fieldMaxDistFromCenter;
     
+    // Mining Jitter fields
+    private GuiTextField fieldMiningJitterYaw, fieldMiningJitterPitch, fieldMiningJitterInterval;
+    
     // OX settings fields
     private GuiTextField fieldOxMinPlayers;
     
-    // Obsidyen settings fields
-    private GuiTextField fieldObsidianForwardMin, fieldObsidianForwardMax;
-    private GuiTextField fieldObsidianSideMin, fieldObsidianSideMax;
-    private boolean obsidianGoLeft = true;
-    private GuiTextField fieldObsidianWarpCommand;
+    // Obsidyen settings fields (jitter + aim hızı)
+    private GuiTextField fieldObsidianJitterYaw, fieldObsidianJitterPitch, fieldObsidianJitterInterval;
+    private GuiTextField fieldObsidianAimSpeed, fieldObsidianTurnSpeed;
+    
+    // Slider için drag state
+    private boolean draggingAimSpeed = false;
+    private boolean draggingTurnSpeed = false;
     
     private List<GuiTextField> allFields = new ArrayList<>();
     
@@ -142,16 +147,20 @@ public class MuzModGuiModern extends GuiScreen {
         fieldStrafeInterval = createField(setX, setY + 196, 50, String.valueOf(config.getStrafeInterval() / 1000), 4);
         fieldStrafeDuration = createField(setX + 70, setY + 196, 50, String.valueOf(config.getStrafeDuration()), 4);
         
+        // Mining Jitter fields
+        fieldMiningJitterYaw = createField(setX, setY, 50, String.valueOf(config.getMiningJitterYaw()), 5);
+        fieldMiningJitterPitch = createField(setX + 70, setY, 50, String.valueOf(config.getMiningJitterPitch()), 5);
+        fieldMiningJitterInterval = createField(setX, setY + 28, 60, String.valueOf(config.getMiningJitterInterval()), 5);
+        
         // OX settings fields
         fieldOxMinPlayers = createField(setX, setY, 50, String.valueOf(config.getOxMinPlayers()), 3);
         
-        // Obsidyen settings fields
-        fieldObsidianForwardMin = createField(setX, setY, 50, String.valueOf(config.getObsidianForwardMin()), 4);
-        fieldObsidianForwardMax = createField(setX + 70, setY, 50, String.valueOf(config.getObsidianForwardMax()), 4);
-        fieldObsidianSideMin = createField(setX, setY + 28, 50, String.valueOf(config.getObsidianSideMin()), 4);
-        fieldObsidianSideMax = createField(setX + 70, setY + 28, 50, String.valueOf(config.getObsidianSideMax()), 4);
-        obsidianGoLeft = config.isObsidianGoLeft();
-        fieldObsidianWarpCommand = createField(setX, setY + 84, 150, config.getObsidianWarpCommand(), 50);
+        // Obsidyen settings fields (jitter + aim hızı)
+        fieldObsidianJitterYaw = createField(setX, setY, 50, String.valueOf(config.getObsidianJitterYaw()), 5);
+        fieldObsidianJitterPitch = createField(setX + 70, setY, 50, String.valueOf(config.getObsidianJitterPitch()), 5);
+        fieldObsidianJitterInterval = createField(setX, setY + 28, 60, String.valueOf(config.getObsidianJitterInterval()), 5);
+        fieldObsidianAimSpeed = createField(setX, setY, 50, String.valueOf(config.getObsidianAimSpeed()), 5);
+        fieldObsidianTurnSpeed = createField(setX, setY, 50, String.valueOf(config.getObsidianTurnSpeed()), 5);
         
         // Legacy field for compatibility
         fieldWalkDist = fieldInitialWalkMin;
@@ -722,6 +731,37 @@ public class MuzModGuiModern extends GuiScreen {
             fieldStrafeDuration.drawTextBox();
             drawString(fontRendererObj, "§8ms", fieldX + 140, scrollY + 3, TEXT_DARK);
         }
+        
+        // Mining Jitter Anti-AFK
+        scrollY += 26;
+        if (scrollY >= clipTop - 20 && scrollY < clipBottom) {
+            drawString(fontRendererObj, "§c§lJitter Anti-AFK", labelX, scrollY, 0xFFFF5555);
+        }
+        scrollY += 16;
+        
+        if (scrollY >= clipTop - 16 && scrollY < clipBottom) {
+            drawString(fontRendererObj, "§7Jitter (yaw/pitch):", labelX, scrollY + 3, TEXT_GRAY);
+            drawFieldBackground(fieldMiningJitterYaw, fieldX, scrollY);
+            fieldMiningJitterYaw.xPosition = fieldX;
+            fieldMiningJitterYaw.yPosition = scrollY;
+            fieldMiningJitterYaw.drawTextBox();
+            drawString(fontRendererObj, "§8/", fieldX + 55, scrollY + 3, TEXT_DARK);
+            drawFieldBackground(fieldMiningJitterPitch, fieldX + 65, scrollY);
+            fieldMiningJitterPitch.xPosition = fieldX + 65;
+            fieldMiningJitterPitch.yPosition = scrollY;
+            fieldMiningJitterPitch.drawTextBox();
+            drawString(fontRendererObj, "§8derece", fieldX + 125, scrollY + 3, TEXT_DARK);
+        }
+        
+        scrollY += 22;
+        if (scrollY >= clipTop - 16 && scrollY < clipBottom) {
+            drawString(fontRendererObj, "§7Jitter Aralık:", labelX, scrollY + 3, TEXT_GRAY);
+            drawFieldBackground(fieldMiningJitterInterval, fieldX, scrollY);
+            fieldMiningJitterInterval.xPosition = fieldX;
+            fieldMiningJitterInterval.yPosition = scrollY;
+            fieldMiningJitterInterval.drawTextBox();
+            drawString(fontRendererObj, "§8ms", fieldX + 65, scrollY + 3, TEXT_DARK);
+        }
     }
     
     private void drawSettingsAFK(int mouseX, int mouseY, ModConfig config, ScheduleManager schedule, int y, int labelX, int fieldX) {
@@ -792,66 +832,79 @@ public class MuzModGuiModern extends GuiScreen {
         drawString(fontRendererObj, "§5§lObsidyen Ayarları", labelX, y, ACCENT_PURPLE);
         y += 20;
         
-        // İleri mesafe (min-max)
-        drawString(fontRendererObj, "§7İleri Mesafe:", labelX, y + 3, TEXT_GRAY);
-        drawFieldBackground(fieldObsidianForwardMin, fieldX, y);
-        fieldObsidianForwardMin.xPosition = fieldX;
-        fieldObsidianForwardMin.yPosition = y;
-        fieldObsidianForwardMin.drawTextBox();
-        drawString(fontRendererObj, "§8-", fieldX + 55, y + 3, TEXT_DARK);
-        drawFieldBackground(fieldObsidianForwardMax, fieldX + 65, y);
-        fieldObsidianForwardMax.xPosition = fieldX + 65;
-        fieldObsidianForwardMax.yPosition = y;
-        fieldObsidianForwardMax.drawTextBox();
-        drawString(fontRendererObj, "§8blok", fieldX + 125, y + 3, TEXT_DARK);
+        // Jitter Yaw/Pitch
+        drawString(fontRendererObj, "§7Jitter (AFK):", labelX, y + 3, TEXT_GRAY);
+        drawFieldBackground(fieldObsidianJitterYaw, fieldX, y);
+        fieldObsidianJitterYaw.xPosition = fieldX;
+        fieldObsidianJitterYaw.yPosition = y;
+        fieldObsidianJitterYaw.drawTextBox();
+        drawString(fontRendererObj, "§8yaw", fieldX + 55, y + 3, TEXT_DARK);
+        drawFieldBackground(fieldObsidianJitterPitch, fieldX + 90, y);
+        fieldObsidianJitterPitch.xPosition = fieldX + 90;
+        fieldObsidianJitterPitch.yPosition = y;
+        fieldObsidianJitterPitch.drawTextBox();
+        drawString(fontRendererObj, "§8pitch", fieldX + 145, y + 3, TEXT_DARK);
         
         y += 26;
-        // Yan mesafe (min-max)
-        drawString(fontRendererObj, "§7Yan Mesafe:", labelX, y + 3, TEXT_GRAY);
-        drawFieldBackground(fieldObsidianSideMin, fieldX, y);
-        fieldObsidianSideMin.xPosition = fieldX;
-        fieldObsidianSideMin.yPosition = y;
-        fieldObsidianSideMin.drawTextBox();
-        drawString(fontRendererObj, "§8-", fieldX + 55, y + 3, TEXT_DARK);
-        drawFieldBackground(fieldObsidianSideMax, fieldX + 65, y);
-        fieldObsidianSideMax.xPosition = fieldX + 65;
-        fieldObsidianSideMax.yPosition = y;
-        fieldObsidianSideMax.drawTextBox();
-        drawString(fontRendererObj, "§8blok", fieldX + 125, y + 3, TEXT_DARK);
-        
-        y += 26;
-        // Yön seçimi (Sol/Sağ toggle)
-        drawString(fontRendererObj, "§7Yan Yön:", labelX, y + 3, TEXT_GRAY);
-        
-        // Sol buton
-        int leftBtnX = fieldX;
-        boolean leftSel = obsidianGoLeft;
-        boolean leftHov = mouseX >= leftBtnX && mouseX < leftBtnX + 60 && mouseY >= y && mouseY < y + 18;
-        drawRect(leftBtnX, y, leftBtnX + 60, y + 18, leftSel ? ACCENT_CYAN : (leftHov ? BG_BUTTON_HOVER : BG_BUTTON));
-        drawCenteredString(fontRendererObj, "Sol (Batı)", leftBtnX + 30, y + 5, TEXT_WHITE);
-        
-        // Sağ buton
-        int rightBtnX = fieldX + 65;
-        boolean rightSel = !obsidianGoLeft;
-        boolean rightHov = mouseX >= rightBtnX && mouseX < rightBtnX + 60 && mouseY >= y && mouseY < y + 18;
-        drawRect(rightBtnX, y, rightBtnX + 60, y + 18, rightSel ? ACCENT_CYAN : (rightHov ? BG_BUTTON_HOVER : BG_BUTTON));
-        drawCenteredString(fontRendererObj, "Sağ (Doğu)", rightBtnX + 30, y + 5, TEXT_WHITE);
+        // Jitter Interval
+        drawString(fontRendererObj, "§7Jitter Aralık:", labelX, y + 3, TEXT_GRAY);
+        drawFieldBackground(fieldObsidianJitterInterval, fieldX, y);
+        fieldObsidianJitterInterval.xPosition = fieldX;
+        fieldObsidianJitterInterval.yPosition = y;
+        fieldObsidianJitterInterval.drawTextBox();
+        drawString(fontRendererObj, "§8ms", fieldX + 65, y + 3, TEXT_DARK);
         
         y += 30;
-        // Warp komutu
-        drawString(fontRendererObj, "§7Warp Komutu:", labelX, y + 3, TEXT_GRAY);
-        drawFieldBackground(fieldObsidianWarpCommand, fieldX, y);
-        fieldObsidianWarpCommand.xPosition = fieldX;
-        fieldObsidianWarpCommand.yPosition = y;
-        fieldObsidianWarpCommand.drawTextBox();
+        // === AIM HIZI AYARLARI ===
+        drawString(fontRendererObj, "§d§lAim Hızı Ayarları", labelX, y, ACCENT_PURPLE);
+        y += 20;
+        
+        // Normal Aim Hızı - Slider + Field
+        drawString(fontRendererObj, "§7Normal Aim:", labelX, y + 3, TEXT_GRAY);
+        drawSliderWithField(fieldX, y, 100, config.getObsidianAimSpeed(), 0.01f, 1.0f, 
+            fieldObsidianAimSpeed, mouseX, mouseY, "aimSpeed");
+        y += 26;
+        
+        // Dönüş Aim Hızı - Slider + Field
+        drawString(fontRendererObj, "§7Dönüş Aim:", labelX, y + 3, TEXT_GRAY);
+        drawSliderWithField(fieldX, y, 100, config.getObsidianTurnSpeed(), 0.01f, 1.0f, 
+            fieldObsidianTurnSpeed, mouseX, mouseY, "turnSpeed");
         
         y += 30;
         // Açıklama
         drawString(fontRendererObj, "§8Açıklama:", labelX, y, TEXT_DARK);
         y += 12;
-        drawString(fontRendererObj, "§8Warp sonrası ileri + yan mesafe hesaplanır", labelX, y, TEXT_DARK);
+        drawString(fontRendererObj, "§8Normal Aim: Mining sırasında aim hızı", labelX, y, TEXT_DARK);
         y += 12;
-        drawString(fontRendererObj, "§8ve tek seferde o noktaya gidilir.", labelX, y, TEXT_DARK);
+        drawString(fontRendererObj, "§8Dönüş Aim: Hedef noktaya varınca dönüş hızı", labelX, y, TEXT_DARK);
+        y += 12;
+        drawString(fontRendererObj, "§8(0.01=yavaş, 1.0=anında)", labelX, y, TEXT_DARK);
+    }
+    
+    /**
+     * Slider + TextField kombinasyonu çizer
+     */
+    private void drawSliderWithField(int x, int y, int sliderWidth, float currentValue, float min, float max, 
+            GuiTextField field, int mouseX, int mouseY, String sliderId) {
+        // Slider background
+        drawRect(x, y + 2, x + sliderWidth, y + 14, 0xFF333333);
+        drawRect(x + 1, y + 3, x + sliderWidth - 1, y + 13, 0xFF1A1A1A);
+        
+        // Slider fill
+        float percent = (currentValue - min) / (max - min);
+        int fillWidth = (int) ((sliderWidth - 2) * percent);
+        drawRect(x + 1, y + 3, x + 1 + fillWidth, y + 13, 0xFF9944FF);
+        
+        // Slider handle
+        int handleX = x + 1 + fillWidth - 3;
+        drawRect(handleX, y + 1, handleX + 6, y + 15, 0xFFFFFFFF);
+        
+        // Field (sağ tarafta)
+        int fieldX = x + sliderWidth + 10;
+        drawFieldBackground(field, fieldX, y);
+        field.xPosition = fieldX;
+        field.yPosition = y;
+        field.drawTextBox();
     }
     
     private int getDirectionIndex(float yaw) {
@@ -1164,6 +1217,9 @@ public class MuzModGuiModern extends GuiScreen {
                 fieldSecondWalkAngle.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldStrafeInterval.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldStrafeDuration.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldMiningJitterYaw.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldMiningJitterPitch.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldMiningJitterInterval.mouseClicked(mouseX, mouseY, mouseButton);
             }
             else if (settingsSubTab == 2) {
                 // OX sub-tab
@@ -1193,25 +1249,29 @@ public class MuzModGuiModern extends GuiScreen {
             
             // Obsidyen settings clicks
             if (settingsSubTab == 3) {
-                // Field clicks
-                fieldObsidianForwardMin.mouseClicked(mouseX, mouseY, mouseButton);
-                fieldObsidianForwardMax.mouseClicked(mouseX, mouseY, mouseButton);
-                fieldObsidianSideMin.mouseClicked(mouseX, mouseY, mouseButton);
-                fieldObsidianSideMax.mouseClicked(mouseX, mouseY, mouseButton);
-                fieldObsidianWarpCommand.mouseClicked(mouseX, mouseY, mouseButton);
+                // Field clicks (jitter + aim hızı)
+                fieldObsidianJitterYaw.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldObsidianJitterPitch.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldObsidianJitterInterval.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldObsidianAimSpeed.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldObsidianTurnSpeed.mouseClicked(mouseX, mouseY, mouseButton);
                 
-                // Yön butonları (Sol/Sağ toggle)
-                int obsYonY = y + 20 + 26 + 26; // İleri + Yan alanlarından sonra
-                int leftBtnX = fieldX;
-                int rightBtnX = fieldX + 65;
+                // Slider clicks - doğrudan slider alanı kontrol (fieldObsidian... pozisyonlarından hesapla)
+                // Slider fieldX'in solunda, field sağında
+                int sliderX = fieldObsidianAimSpeed.xPosition - 110; // slider width + gap
                 
-                if (mouseX >= leftBtnX && mouseX < leftBtnX + 60 && mouseY >= obsYonY && mouseY < obsYonY + 18) {
-                    obsidianGoLeft = true;
-                    config.setObsidianGoLeft(true);
+                // Normal Aim slider
+                int aimSliderY = fieldObsidianAimSpeed.yPosition;
+                if (isInside(mouseX, mouseY, sliderX, aimSliderY, 100, 16)) {
+                    draggingAimSpeed = true;
+                    updateSliderValue(mouseX, sliderX, 100, 0.01f, 1.0f, "aimSpeed");
                 }
-                if (mouseX >= rightBtnX && mouseX < rightBtnX + 60 && mouseY >= obsYonY && mouseY < obsYonY + 18) {
-                    obsidianGoLeft = false;
-                    config.setObsidianGoLeft(false);
+                
+                // Turn Aim slider
+                int turnSliderY = fieldObsidianTurnSpeed.yPosition;
+                if (isInside(mouseX, mouseY, sliderX, turnSliderY, 100, 16)) {
+                    draggingTurnSpeed = true;
+                    updateSliderValue(mouseX, sliderX, 100, 0.01f, 1.0f, "turnSpeed");
                 }
             }
         }
@@ -1301,16 +1361,22 @@ public class MuzModGuiModern extends GuiScreen {
             config.setStrafeInterval(Long.parseLong(fieldStrafeInterval.getText()) * 1000);
             config.setStrafeDuration(Long.parseLong(fieldStrafeDuration.getText()));
             
+            // Mining Jitter ayarları
+            config.setMiningJitterYaw(Float.parseFloat(fieldMiningJitterYaw.getText()));
+            config.setMiningJitterPitch(Float.parseFloat(fieldMiningJitterPitch.getText()));
+            config.setMiningJitterInterval(Integer.parseInt(fieldMiningJitterInterval.getText()));
+            
             // OX ayarları
             config.setOxMinPlayers(Integer.parseInt(fieldOxMinPlayers.getText()));
             
-            // Obsidyen ayarları
-            config.setObsidianForwardMin(Integer.parseInt(fieldObsidianForwardMin.getText()));
-            config.setObsidianForwardMax(Integer.parseInt(fieldObsidianForwardMax.getText()));
-            config.setObsidianSideMin(Integer.parseInt(fieldObsidianSideMin.getText()));
-            config.setObsidianSideMax(Integer.parseInt(fieldObsidianSideMax.getText()));
-            config.setObsidianGoLeft(obsidianGoLeft);
-            config.setObsidianWarpCommand(fieldObsidianWarpCommand.getText());
+            // Obsidyen jitter ayarları
+            config.setObsidianJitterYaw(Float.parseFloat(fieldObsidianJitterYaw.getText()));
+            config.setObsidianJitterPitch(Float.parseFloat(fieldObsidianJitterPitch.getText()));
+            config.setObsidianJitterInterval(Integer.parseInt(fieldObsidianJitterInterval.getText()));
+            
+            // Obsidyen aim hızı ayarları
+            config.setObsidianAimSpeed(Float.parseFloat(fieldObsidianAimSpeed.getText()));
+            config.setObsidianTurnSpeed(Float.parseFloat(fieldObsidianTurnSpeed.getText()));
             
             config.save();
             schedule.save();
@@ -1394,8 +1460,17 @@ public class MuzModGuiModern extends GuiScreen {
                 fieldSecondWalkAngle.textboxKeyTyped(typedChar, keyCode);
                 fieldStrafeInterval.textboxKeyTyped(typedChar, keyCode);
                 fieldStrafeDuration.textboxKeyTyped(typedChar, keyCode);
+                fieldMiningJitterYaw.textboxKeyTyped(typedChar, keyCode);
+                fieldMiningJitterPitch.textboxKeyTyped(typedChar, keyCode);
+                fieldMiningJitterInterval.textboxKeyTyped(typedChar, keyCode);
             } else if (settingsSubTab == 2) {
                 fieldOxMinPlayers.textboxKeyTyped(typedChar, keyCode);
+            } else if (settingsSubTab == 3) {
+                fieldObsidianJitterYaw.textboxKeyTyped(typedChar, keyCode);
+                fieldObsidianJitterPitch.textboxKeyTyped(typedChar, keyCode);
+                fieldObsidianJitterInterval.textboxKeyTyped(typedChar, keyCode);
+                fieldObsidianAimSpeed.textboxKeyTyped(typedChar, keyCode);
+                fieldObsidianTurnSpeed.textboxKeyTyped(typedChar, keyCode);
             }
         }
     }
@@ -1404,6 +1479,54 @@ public class MuzModGuiModern extends GuiScreen {
     public void updateScreen() {
         for (GuiTextField field : allFields) {
             field.updateCursorCounter();
+        }
+    }
+    
+    @Override
+    protected void mouseReleased(int mouseX, int mouseY, int state) {
+        super.mouseReleased(mouseX, mouseY, state);
+        // Slider drag bırakıldığında
+        draggingAimSpeed = false;
+        draggingTurnSpeed = false;
+    }
+    
+    @Override
+    protected void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
+        super.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
+        
+        // Slider drag güncelleme
+        if (settingsSubTab == 3) {
+            int sliderX = fieldObsidianAimSpeed.xPosition - 110;
+            if (draggingAimSpeed) {
+                updateSliderValue(mouseX, sliderX, 100, 0.01f, 1.0f, "aimSpeed");
+            }
+            if (draggingTurnSpeed) {
+                updateSliderValue(mouseX, sliderX, 100, 0.01f, 1.0f, "turnSpeed");
+            }
+        }
+    }
+    
+    /**
+     * Slider değerini güncelle ve field'a yaz
+     */
+    private void updateSliderValue(int mouseX, int sliderX, int sliderWidth, float min, float max, String sliderId) {
+        ModConfig config = MuzMod.instance.getConfig();
+        
+        // Mouse pozisyonundan değer hesapla
+        float percent = (float)(mouseX - sliderX) / sliderWidth;
+        percent = Math.max(0, Math.min(1, percent));
+        float value = min + percent * (max - min);
+        
+        // 2 decimal precision
+        value = Math.round(value * 100) / 100.0f;
+        
+        // Config'e kaydet ve field'ı güncelle
+        if (sliderId.equals("aimSpeed")) {
+            config.setObsidianAimSpeed(value);
+            fieldObsidianAimSpeed.setText(String.valueOf(value));
+        } else if (sliderId.equals("turnSpeed")) {
+            config.setObsidianTurnSpeed(value);
+            fieldObsidianTurnSpeed.setText(String.valueOf(value));
         }
     }
     

@@ -4,7 +4,6 @@ import com.muzmod.MuzMod;
 import com.muzmod.config.ModConfig;
 import com.muzmod.navigation.Direction;
 import com.muzmod.navigation.NavigationManager;
-import com.muzmod.rotation.AntiAfkRotation;
 import com.muzmod.rotation.PositionAdjuster;
 import com.muzmod.state.AbstractState;
 import com.muzmod.util.BlockScanner;
@@ -41,7 +40,6 @@ public class MiningState extends AbstractState {
     private final Random random = new Random();
     
     // Modular rotation systems
-    private final AntiAfkRotation antiAfkRotation = new AntiAfkRotation();
     private final PositionAdjuster positionAdjuster = new PositionAdjuster();
     
     // State phases
@@ -100,6 +98,23 @@ public class MiningState extends AbstractState {
     private long strafeEndTime = 0;
     private boolean isStrafing = false;
     private boolean strafeLeft = true; // Sağ-sol değişimi için
+    
+    // Jitter Anti-AFK
+    private long lastJitterTime = 0;
+    
+    // Grace period - süre bittiğinde hemen ADJUSTING'e geçmeden önce ore kontrolü
+    private long gracePeriodStartTime = 0;
+    private boolean inGracePeriod = false;
+    private static final long GRACE_PERIOD_MS = 200; // 200ms grace period
+    
+    // Kazma kontrolü - her saniye kazma durumunu kontrol et
+    private long lastMiningCheckTime = 0;
+    private static final long MINING_CHECK_INTERVAL = 1000; // 1 saniye
+    
+    // Focus kontrolü - alt-tab sonrası aim bozulmasını önle
+    private boolean hadFocus = true;
+    private long focusRegainTime = 0;
+    private static final long FOCUS_GRACE_PERIOD = 500; // 500ms grace period
     
     // Navigation system reference
     private final NavigationManager nav = NavigationManager.getInstance();
@@ -185,7 +200,6 @@ public class MiningState extends AbstractState {
         nav.stop();
         
         // Reset rotation systems
-        antiAfkRotation.reset();
         positionAdjuster.reset();
         
         // Setup ore found callback
@@ -215,7 +229,6 @@ public class MiningState extends AbstractState {
         usingNavigation = false;
         
         // Reset rotation systems
-        antiAfkRotation.reset();
         positionAdjuster.reset();
     }
     
@@ -627,85 +640,188 @@ public class MiningState extends AbstractState {
             return;
         }
         
-        // Pitch kontrolü - her zaman 30-60 derece arasında olmalı
-        if (mc.thePlayer.rotationPitch < MIN_PITCH) {
-            // Çok yukarı bakıyor, düzelt
-            mc.thePlayer.rotationPitch = MIN_PITCH + 5; // 35 dereceye getir
-        } else if (mc.thePlayer.rotationPitch > MAX_PITCH) {
-            mc.thePlayer.rotationPitch = MAX_PITCH;
+        // GUI açıksa bekle (GUI kapanınca devam edecek)
+        if (mc.currentScreen != null) {
+            setStatus("GUI açık, bekleniyor...");
+            return;
         }
         
-        // Look at reference position (only if block lock enabled)
-        if (config.isBlockLockEnabled()) {
-            float clampedPitch = Math.max(MIN_PITCH, Math.min(MAX_PITCH, referencePitch));
-            RotationUtils.smoothLookAt(mc.thePlayer, referenceYaw, clampedPitch, 0.2f);
+        // === FOCUS KONTROLÜ (Alt-tab sonrası aim bozulmasını önle) ===
+        boolean currentFocus = mc.inGameHasFocus;
+        if (!currentFocus) {
+            hadFocus = false;
+            // Focus yokken sadece kazma kontrolü yap, aim değiştirme
+            setStatus("Focus yok, bekleniyor...");
+        } else if (!hadFocus && currentFocus) {
+            // Focus yeni kazanıldı - grace period başlat
+            hadFocus = true;
+            focusRegainTime = System.currentTimeMillis();
         }
         
-        // Her zaman kazma tuşuna bas (blok kilidi açık/kapalı farketmez)
+        // Grace period içindeyse jitter ve pitch limit uygulama
+        boolean inFocusGracePeriod = (System.currentTimeMillis() - focusRegainTime < FOCUS_GRACE_PERIOD);
+        
+        // === KAZMA KONTROLÜ ===
+        // Her saniye kazma durumunu kontrol et, kazmıyorsa yeniden başlat
+        long now = System.currentTimeMillis();
+        if (now - lastMiningCheckTime >= MINING_CHECK_INTERVAL) {
+            lastMiningCheckTime = now;
+            
+            // Kazma işlemi var mı kontrol et
+            if (!mc.thePlayer.isSwingInProgress) {
+                // Kazmıyor! Sol tıkı yeniden başlat
+                InputSimulator.releaseLeftClick();
+                try { Thread.sleep(50); } catch (InterruptedException ignored) {}
+                InputSimulator.holdLeftClick(true);
+                MuzMod.LOGGER.debug("[Mining] Kazma durdu, yeniden başlatıldı");
+            }
+        }
+        
+        // Her zaman kazma tuşuna bas
         InputSimulator.holdLeftClick(true);
         
-        // === MINING PROGRESS KONTROLÜ ===
-        // Manuel sol tık ile durduruldu mu kontrol et
-        checkMiningProgress(config);
+        // Pitch limit kontrolü (30-60 derece arası) - sadece sınır dışındaysa ve focus grace period dışındaysa düzelt
+        enforcePitchLimits(inFocusGracePeriod);
         
-        // Check what we're looking at
+        // Baktığımız bloğu kontrol et
         BlockPos lookingAt = getLookingAtBlock();
         
         if (lookingAt != null) {
             Block block = mc.theWorld.getBlockState(lookingAt).getBlock();
             
             if (block == Blocks.quartz_ore) {
-                // Found quartz ore - mine it!
+                // === QUARTZ'A BAKIYORUZ ===
+                // Quartz'a bakıyoruz = kazılıyor, aim değiştirme
                 lastMiningProgressTime = System.currentTimeMillis();
-                
-                // Update reference to current ore position
                 referenceOre = lookingAt;
                 markedOres.clear();
                 markedOres.add(lookingAt);
-                
                 setStatus("Kazılıyor...");
-            } else if (block != Blocks.air) {
-                // Looking at some other block
+                
+            } else if (block == Blocks.air) {
+                // === AIR'E BAKIYORUZ ===
+                // Ore respawn olacak, kazmaya devam et, aim değiştirme
+                setStatus("Ore bekleniyor...");
+                
+            } else {
+                // === FARKLI BLOĞA BAKIYORUZ ===
+                // Timer say, ama aim değiştirme (jitter hariç)
                 long timeSinceProgress = System.currentTimeMillis() - lastMiningProgressTime;
                 long remaining = STUCK_TIMEOUT - timeSinceProgress;
+                
                 if (remaining <= 0) {
+                    // Süre bitti - ADJUSTING'e geç
                     InputSimulator.releaseLeftClick();
                     setPhase(MiningPhase.ADJUSTING);
                     startPositionAdjustment(config);
                     setStatus("Takıldı, pozisyon ayarlanıyor...");
                 } else {
-                    // Geri sayım göster (saniye.milisaniye)
                     setStatus(String.format("Bekleniyor... %.1fs", remaining / 1000.0));
-                }
-            } else {
-                // Looking at air - ore might have been mined, wait for respawn
-                long timeSinceProgress = System.currentTimeMillis() - lastMiningProgressTime;
-                long remaining = STUCK_TIMEOUT - timeSinceProgress;
-                if (remaining <= 0) {
-                    InputSimulator.releaseLeftClick();
-                    setPhase(MiningPhase.ADJUSTING);
-                    startPositionAdjustment(config);
-                    setStatus("Ore respawn olmadı, pozisyon ayarlanıyor...");
-                } else {
-                    // Geri sayım göster
-                    setStatus(String.format("Ore bekleniyor... %.1fs", remaining / 1000.0));
                 }
             }
         } else {
-            // Not looking at any block in range
+            // Hiçbir bloğa bakmıyoruz (çok uzak)
             long timeSinceProgress = System.currentTimeMillis() - lastMiningProgressTime;
             long remaining = STUCK_TIMEOUT - timeSinceProgress;
+            
             if (remaining <= 0) {
                 InputSimulator.releaseLeftClick();
                 setPhase(MiningPhase.ADJUSTING);
                 startPositionAdjustment(config);
+                setStatus("Blok bulunamadı, pozisyon ayarlanıyor...");
             } else {
                 setStatus(String.format("Blok aranıyor... %.1fs", remaining / 1000.0));
             }
         }
         
-        // Anti-AFK smooth rotations (always active, independent of block lock)
-        antiAfkRotation.update(config);
+        // Jitter sistemi - sadece focus grace period dışında çalışsın
+        if (!inFocusGracePeriod) {
+            applyMiningJitter(config);
+        }
+    }
+    
+    /**
+     * Pitch'i 30-60 derece arasında tut (focus grace period dışında)
+     */
+    private void enforcePitchLimits(boolean inFocusGracePeriod) {
+        // Focus grace period içindeyse aim'i değiştirme
+        if (inFocusGracePeriod) {
+            return;
+        }
+        
+        if (mc.thePlayer.rotationPitch < MIN_PITCH) {
+            mc.thePlayer.rotationPitch = MIN_PITCH;
+        } else if (mc.thePlayer.rotationPitch > MAX_PITCH) {
+            mc.thePlayer.rotationPitch = MAX_PITCH;
+        }
+    }
+    
+    /**
+     * Mining merkezine (veya reference ore'a) smooth dön
+     */
+    private void smoothLookAtCenter(ModConfig config) {
+        if (referenceOre != null) {
+            // Reference ore varsa ona dön
+            float[] rotations = RotationUtils.getRotationsToBlock(mc.thePlayer, referenceOre);
+            float targetYaw = rotations[0];
+            float targetPitch = Math.max(MIN_PITCH, Math.min(MAX_PITCH, rotations[1]));
+            RotationUtils.smoothLookAt(mc.thePlayer, targetYaw, targetPitch, 0.15f);
+        } else if (miningCenter != null) {
+            // Mining merkezi varsa ona dön
+            float[] rotations = RotationUtils.getRotationsToBlock(mc.thePlayer, miningCenter);
+            float targetYaw = rotations[0];
+            float targetPitch = Math.max(MIN_PITCH, Math.min(MAX_PITCH, rotations[1]));
+            RotationUtils.smoothLookAt(mc.thePlayer, targetYaw, targetPitch, 0.15f);
+        }
+    }
+    
+    /**
+     * Yakında ore var mı kontrol et (ADJUSTING'e geçmeden önce)
+     * Bu fonksiyon aim döndürmez, sadece kontrol eder
+     */
+    private boolean hasNearbyOre(int radius) {
+        if (mc.thePlayer == null || mc.theWorld == null) return false;
+        
+        BlockPos playerPos = mc.thePlayer.getPosition();
+        for (int x = -radius; x <= radius; x++) {
+            for (int y = -radius; y <= radius; y++) {
+                for (int z = -radius; z <= radius; z++) {
+                    BlockPos checkPos = playerPos.add(x, y, z);
+                    Block block = mc.theWorld.getBlockState(checkPos).getBlock();
+                    if (block == Blocks.quartz_ore) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Mining sırasında jitter uygula (AFK bypass için)
+     * Obsidyen ile aynı mantık - sadece interval'de bir kez uygula
+     */
+    private void applyMiningJitter(ModConfig config) {
+        long now = System.currentTimeMillis();
+        int jitterInterval = config.getMiningJitterInterval();
+        
+        // Sadece interval'de bir kez jitter uygula (her tick değil!)
+        if (now - lastJitterTime >= jitterInterval) {
+            lastJitterTime = now;
+            float jitterYaw = config.getMiningJitterYaw();
+            float jitterPitch = config.getMiningJitterPitch();
+            
+            // Yeni random jitter hesapla ve HEMEN uygula
+            float yawChange = (random.nextFloat() - 0.5f) * 2 * jitterYaw;
+            float pitchChange = (random.nextFloat() - 0.5f) * 2 * jitterPitch;
+            
+            // Jitter'ı bir kez uygula
+            mc.thePlayer.rotationYaw += yawChange;
+            mc.thePlayer.rotationPitch += pitchChange;
+            
+            // Pitch sınırlarını kontrol et
+            mc.thePlayer.rotationPitch = Math.max(-90, Math.min(90, mc.thePlayer.rotationPitch));
+        }
     }
     
     /**
@@ -1214,13 +1330,6 @@ public class MiningState extends AbstractState {
     
     public int getAdjustmentCount() {
         return positionAdjuster.getAdjustmentCount();
-    }
-    
-    /**
-     * Get the anti-AFK rotation system for debugging/rendering
-     */
-    public AntiAfkRotation getAntiAfkRotation() {
-        return antiAfkRotation;
     }
     
     /**

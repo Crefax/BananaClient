@@ -49,6 +49,11 @@ public class ModConfig {
     private float antiAfkPitchMax = 1.5f; // Maximum pitch dönüş (derece)
     private long antiAfkSmoothSpeed = 500; // Smooth hızı (ms)
     
+    // Mining Jitter Settings (AFK bypass için titreme - Obsidyen ile aynı mantık)
+    private float miningJitterYaw = 3.0f;     // Sağ-sol titreme (derece)
+    private float miningJitterPitch = 2.0f;   // Yukarı-aşağı titreme (derece)
+    private int miningJitterInterval = 800;   // Titreme aralığı (ms)
+    
     // Position Adjustment Settings (takılınca pozisyon ayarlama)
     private float adjustYawMin = 5.0f;    // Minimum yaw ayar açısı
     private float adjustYawMax = 25.0f;   // Maximum yaw ayar açısı
@@ -96,13 +101,14 @@ public class ModConfig {
     private float oxRedYaw = -90.0f;  // East (Doğu) - Kırmızı taraf
     private int oxMinPlayers = 5;     // Minimum oyuncu sayısı
     
-    // Obsidyen Settings
-    private int obsidianForwardMin = 30;  // İleri minimum mesafe
-    private int obsidianForwardMax = 50;  // İleri maksimum mesafe
-    private int obsidianSideMin = 30;     // Yan minimum mesafe
-    private int obsidianSideMax = 50;     // Yan maksimum mesafe
-    private boolean obsidianGoLeft = true; // true=sola, false=sağa
-    private String obsidianWarpCommand = "/warp atolye";
+    // Obsidyen Jitter Settings (AFK bypass için titreme)
+    private float obsidianJitterYaw = 3.0f;     // Sağ-sol titreme (derece)
+    private float obsidianJitterPitch = 2.0f;   // Yukarı-aşağı titreme (derece)
+    private int obsidianJitterInterval = 300;   // Titreme aralığı (ms)
+    
+    // Obsidyen Aim Hızı Settings
+    private float obsidianAimSpeed = 0.15f;      // Normal aim hızı (0.01 - 1.0)
+    private float obsidianTurnSpeed = 0.40f;     // Dönüş aim hızı (0.01 - 1.0)
     
     public ModConfig(File configFile) {
         config = new Configuration(configFile);
@@ -255,19 +261,27 @@ public class ModConfig {
             oxMinPlayers = config.getInt("minPlayers", "ox", 5, 1, 50,
                 "Minimum players required to start OX event");
             
-            // Obsidyen Category
-            obsidianForwardMin = config.getInt("forwardMin", "obsidian", 30, 1, 100,
-                "Minimum forward distance");
-            obsidianForwardMax = config.getInt("forwardMax", "obsidian", 50, 1, 100,
-                "Maximum forward distance");
-            obsidianSideMin = config.getInt("sideMin", "obsidian", 30, 1, 100,
-                "Minimum side distance");
-            obsidianSideMax = config.getInt("sideMax", "obsidian", 50, 1, 100,
-                "Maximum side distance");
-            obsidianGoLeft = config.getBoolean("goLeft", "obsidian", true,
-                "Go left (true) or right (false)");
-            obsidianWarpCommand = config.getString("warpCommand", "obsidian", "/warp atolye",
-                "Warp command for obsidian area");
+            // Obsidyen Jitter (AFK bypass)
+            obsidianJitterYaw = config.getFloat("jitterYaw", "obsidian", 3.0f, 0.0f, 20.0f,
+                "Yaw jitter amount for anti-AFK (degrees, left-right)");
+            obsidianJitterPitch = config.getFloat("jitterPitch", "obsidian", 2.0f, 0.0f, 20.0f,
+                "Pitch jitter amount for anti-AFK (degrees, up-down)");
+            obsidianJitterInterval = config.getInt("jitterInterval", "obsidian", 300, 50, 5000,
+                "Jitter interval in milliseconds");
+            
+            // Obsidyen Aim Hızı
+            obsidianAimSpeed = config.getFloat("aimSpeed", "obsidian", 0.15f, 0.01f, 1.0f,
+                "Normal aim rotation speed (0.01 - 1.0)");
+            obsidianTurnSpeed = config.getFloat("turnSpeed", "obsidian", 0.40f, 0.01f, 1.0f,
+                "Turn aim rotation speed when reaching target (0.01 - 1.0)");
+            
+            // Mining Jitter (AFK bypass)
+            miningJitterYaw = config.getFloat("jitterYaw", "mining_jitter", 3.0f, 0.0f, 20.0f,
+                "Yaw jitter amount for anti-AFK (degrees, left-right)");
+            miningJitterPitch = config.getFloat("jitterPitch", "mining_jitter", 2.0f, 0.0f, 20.0f,
+                "Pitch jitter amount for anti-AFK (degrees, up-down)");
+            miningJitterInterval = config.getInt("jitterInterval", "mining_jitter", 300, 50, 5000,
+                "Jitter interval in milliseconds");
             
         } catch (Exception e) {
             MuzMod.LOGGER.error("Error loading config", e);
@@ -437,47 +451,65 @@ public class ModConfig {
         save();
     }
     
-    // Obsidyen Getters/Setters
-    public int getObsidianForwardMin() { return obsidianForwardMin; }
-    public int getObsidianForwardMax() { return obsidianForwardMax; }
-    public int getObsidianSideMin() { return obsidianSideMin; }
-    public int getObsidianSideMax() { return obsidianSideMax; }
-    public boolean isObsidianGoLeft() { return obsidianGoLeft; }
-    public String getObsidianWarpCommand() { return obsidianWarpCommand; }
+    // Obsidyen Jitter Getters/Setters
+    public float getObsidianJitterYaw() { return obsidianJitterYaw; }
+    public float getObsidianJitterPitch() { return obsidianJitterPitch; }
+    public int getObsidianJitterInterval() { return obsidianJitterInterval; }
     
-    public void setObsidianForwardMin(int val) {
-        this.obsidianForwardMin = val;
-        config.get("obsidian", "forwardMin", 30).set(val);
+    public void setObsidianJitterYaw(float val) {
+        this.obsidianJitterYaw = val;
+        config.get("obsidian", "jitterYaw", 3.0f).set(val);
         save();
     }
     
-    public void setObsidianForwardMax(int val) {
-        this.obsidianForwardMax = val;
-        config.get("obsidian", "forwardMax", 50).set(val);
+    public void setObsidianJitterPitch(float val) {
+        this.obsidianJitterPitch = val;
+        config.get("obsidian", "jitterPitch", 2.0f).set(val);
         save();
     }
     
-    public void setObsidianSideMin(int val) {
-        this.obsidianSideMin = val;
-        config.get("obsidian", "sideMin", 30).set(val);
+    public void setObsidianJitterInterval(int val) {
+        this.obsidianJitterInterval = val;
+        config.get("obsidian", "jitterInterval", 300).set(val);
         save();
     }
     
-    public void setObsidianSideMax(int val) {
-        this.obsidianSideMax = val;
-        config.get("obsidian", "sideMax", 50).set(val);
+    // Obsidyen Aim Hızı Getters/Setters
+    public float getObsidianAimSpeed() { return obsidianAimSpeed; }
+    public float getObsidianTurnSpeed() { return obsidianTurnSpeed; }
+    
+    public void setObsidianAimSpeed(float val) {
+        this.obsidianAimSpeed = Math.max(0.01f, Math.min(1.0f, val));
+        config.get("obsidian", "aimSpeed", 0.15f).set(this.obsidianAimSpeed);
         save();
     }
     
-    public void setObsidianGoLeft(boolean goLeft) {
-        this.obsidianGoLeft = goLeft;
-        config.get("obsidian", "goLeft", true).set(goLeft);
+    public void setObsidianTurnSpeed(float val) {
+        this.obsidianTurnSpeed = Math.max(0.01f, Math.min(1.0f, val));
+        config.get("obsidian", "turnSpeed", 0.40f).set(this.obsidianTurnSpeed);
         save();
     }
     
-    public void setObsidianWarpCommand(String cmd) {
-        this.obsidianWarpCommand = cmd;
-        config.get("obsidian", "warpCommand", "/warp atolye").set(cmd);
+    // Mining Jitter Getters/Setters
+    public float getMiningJitterYaw() { return miningJitterYaw; }
+    public float getMiningJitterPitch() { return miningJitterPitch; }
+    public int getMiningJitterInterval() { return miningJitterInterval; }
+    
+    public void setMiningJitterYaw(float val) {
+        this.miningJitterYaw = val;
+        config.get("mining_jitter", "jitterYaw", 3.0f).set(val);
+        save();
+    }
+    
+    public void setMiningJitterPitch(float val) {
+        this.miningJitterPitch = val;
+        config.get("mining_jitter", "jitterPitch", 2.0f).set(val);
+        save();
+    }
+    
+    public void setMiningJitterInterval(int val) {
+        this.miningJitterInterval = val;
+        config.get("mining_jitter", "jitterInterval", 300).set(val);
         save();
     }
     
