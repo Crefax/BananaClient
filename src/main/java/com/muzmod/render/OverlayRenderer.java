@@ -37,7 +37,7 @@ public class OverlayRenderer {
         int lineHeight = 10;
         
         // Title
-        String title = "§6§lMuzMod";
+        String title = "§6§l" + MuzMod.CLIENT_NAME;
         fr.drawStringWithShadow(title, x, y, 0xFFFFFF);
         y += lineHeight + 2;
         
