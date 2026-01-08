@@ -77,6 +77,7 @@ public class MuzModGuiModern extends GuiScreen {
     // Settings fields
     private GuiTextField fieldDefaultMiningWarp, fieldDefaultAfkWarp;
     private GuiTextField fieldRepairThreshold, fieldTimeOffset, fieldDetectRadius, fieldWalkDist;
+    private GuiTextField fieldRepairClickDelay;
     
     // Mining settings fields
     private GuiTextField fieldInitialWalkMin, fieldInitialWalkMax, fieldWalkYawVar;
@@ -122,6 +123,7 @@ public class MuzModGuiModern extends GuiScreen {
         fieldRepairThreshold = createField(setX, setY + 56, 50, String.valueOf(config.getRepairDurabilityThreshold()), 5);
         fieldTimeOffset = createField(setX, setY + 84, 50, String.valueOf(config.getTimeOffsetHours()), 4);
         fieldDetectRadius = createField(setX, setY + 112, 50, String.valueOf((int)config.getPlayerDetectionRadius()), 4);
+        fieldRepairClickDelay = createField(setX, setY + 140, 50, String.valueOf(config.getRepairClickDelay()), 4);
         
         // Mining settings fields
         fieldInitialWalkMin = createField(setX, setY, 50, String.valueOf(config.getInitialWalkDistanceMin()), 4);
@@ -541,6 +543,14 @@ public class MuzModGuiModern extends GuiScreen {
         fieldDetectRadius.drawTextBox();
         drawString(fontRendererObj, "§8blok", fieldX + 55, y + 3, TEXT_DARK);
         
+        y += 26;
+        drawString(fontRendererObj, "§7Tamir Tiklama:", labelX, y + 3, TEXT_GRAY);
+        drawFieldBackground(fieldRepairClickDelay, fieldX, y);
+        fieldRepairClickDelay.xPosition = fieldX;
+        fieldRepairClickDelay.yPosition = y;
+        fieldRepairClickDelay.drawTextBox();
+        drawString(fontRendererObj, "§8sn", fieldX + 55, y + 3, TEXT_DARK);
+        
         // Toggles
         y += 30;
         drawToggle(labelX, y, "Blok Kilidi", config.isBlockLockEnabled(), mouseX, mouseY);
@@ -867,8 +877,9 @@ public class MuzModGuiModern extends GuiScreen {
                 config.setShowOverlay(!config.isShowOverlay());
             }
             
-            // State buttons
-            y += 30;
+            // State buttons - "Manuel Durum:" label'dan sonra y += 14 var
+            y += 30; // Label satırı
+            y += 14; // Butonlar label'dan 14 piksel aşağıda
             if (isInside(mouseX, mouseY, guiX + 20, y, 65, 22)) {
                 MuzMod.instance.getStateManager().forceState("idle");
             } else if (isInside(mouseX, mouseY, guiX + 90, y, 65, 22)) {
@@ -1019,7 +1030,7 @@ public class MuzModGuiModern extends GuiScreen {
             // Handle clicks based on sub-tab
             if (settingsSubTab == 0) {
                 // Genel toggles (after fields)
-                int toggleY = y + 26 * 5 + 4;
+                int toggleY = y + 26 * 6 + 4;
                 if (isInside(mouseX, mouseY, labelX - 2, toggleY - 2, 102, 14)) {
                     config.setBlockLockEnabled(!config.isBlockLockEnabled());
                 } else if (isInside(mouseX, mouseY, labelX + 118, toggleY - 2, 102, 14)) {
@@ -1034,6 +1045,7 @@ public class MuzModGuiModern extends GuiScreen {
                 fieldRepairThreshold.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldTimeOffset.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldDetectRadius.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldRepairClickDelay.mouseClicked(mouseX, mouseY, mouseButton);
             }
             else if (settingsSubTab == 1) {
                 // Mining sub-tab - scroll offset'i hesaba kat
@@ -1166,6 +1178,7 @@ public class MuzModGuiModern extends GuiScreen {
             config.setRepairDurabilityThreshold(Integer.parseInt(fieldRepairThreshold.getText()));
             config.setTimeOffsetHours(Integer.parseInt(fieldTimeOffset.getText()));
             config.setPlayerDetectionRadius(Double.parseDouble(fieldDetectRadius.getText()));
+            config.setRepairClickDelay(Float.parseFloat(fieldRepairClickDelay.getText()));
             
             // Mining ayarları
             config.setInitialWalkDistanceMin(Integer.parseInt(fieldInitialWalkMin.getText()));
@@ -1254,6 +1267,7 @@ public class MuzModGuiModern extends GuiScreen {
                 fieldRepairThreshold.textboxKeyTyped(typedChar, keyCode);
                 fieldTimeOffset.textboxKeyTyped(typedChar, keyCode);
                 fieldDetectRadius.textboxKeyTyped(typedChar, keyCode);
+                fieldRepairClickDelay.textboxKeyTyped(typedChar, keyCode);
             } else if (settingsSubTab == 1) {
                 fieldInitialWalkMin.textboxKeyTyped(typedChar, keyCode);
                 fieldInitialWalkMax.textboxKeyTyped(typedChar, keyCode);
