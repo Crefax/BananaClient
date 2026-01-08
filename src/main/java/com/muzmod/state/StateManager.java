@@ -85,13 +85,15 @@ public class StateManager {
         
         // GUI kontrolü - BananaClient GUI'leri ve chat açıkken devam et
         // Diğer Minecraft ekranları (envanter, ESC menü vb.) açıkken durdur
+        // NOT: Repair state GUI içinde çalışır, bu yüzden Repair'da GUI kontrolü yapılmaz
         if (mc.currentScreen != null) {
             boolean isOurGui = mc.currentScreen instanceof MuzModGui || 
                               mc.currentScreen instanceof MuzModGuiModern;
             boolean isChat = mc.currentScreen instanceof GuiChat;
+            boolean isRepairState = currentState != null && currentState.getName().equals("Tamir");
             
-            // Bizim GUI'miz veya chat açıksa devam et
-            if (!isOurGui && !isChat) {
+            // Bizim GUI'miz, chat veya Repair state ise devam et
+            if (!isOurGui && !isChat && !isRepairState) {
                 return; // Minecraft ekranı açık - mining durdur
             }
         }
