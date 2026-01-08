@@ -190,31 +190,18 @@ public class ObsidianState extends AbstractState {
     }
     
     /**
-     * First walk - Go forward dynamically based on obsidian ahead
+     * First walk - Go forward exactly 15 blocks
      */
     private void handleFirstWalk() {
         if (walkStartPos == null) {
             walkStartPos = mc.thePlayer.getPosition();
             
-            // Calculate how much obsidian is ahead
-            int obsidianAhead = countObsidianInDirection(0); // Forward (current facing)
+            // Fixed 15 blocks forward
+            firstWalkTarget = 15;
             
-            if (obsidianAhead < 5) {
-                // Not enough obsidian ahead, skip first walk
-                MuzMod.LOGGER.info("[Obsidian] Not enough obsidian ahead (" + obsidianAhead + "), skipping first walk");
-                firstWalkDone = true;
-                walkStartPos = null;
-                setPhase(ObsidianPhase.SECOND_WALK);
-                return;
-            }
+            MuzMod.LOGGER.info("[Obsidian] First walk: 15 blocks forward");
             
-            // Walk 30-80% of available distance
-            float ratio = 0.3f + random.nextFloat() * 0.5f;
-            firstWalkTarget = Math.max(5, (int)(obsidianAhead * ratio));
-            
-            MuzMod.LOGGER.info("[Obsidian] First walk: " + firstWalkTarget + " blocks (obsidian ahead: " + obsidianAhead + ")");
-            
-            debugInfo = "First walk: " + firstWalkTarget + " blocks";
+            debugInfo = "First walk: 15 blocks forward";
             setStatus(debugInfo);
         }
         
@@ -250,36 +237,22 @@ public class ObsidianState extends AbstractState {
     }
     
     /**
-     * Second walk - Go to side (left or right based on config)
+     * Second walk - Go 25 blocks to the left-forward direction
      */
     private void handleSecondWalk() {
         if (walkStartPos == null) {
             walkStartPos = mc.thePlayer.getPosition();
             
-            // Turn to side direction first
-            boolean goLeft = config.isObsidianGoLeft();
-            float targetYaw = mc.thePlayer.rotationYaw + (goLeft ? -90 : 90);
+            // Turn 45 degrees to left (left-forward direction)
+            float targetYaw = mc.thePlayer.rotationYaw - 45;
             mc.thePlayer.rotationYaw = targetYaw;
             
-            // Count obsidian in side direction
-            int obsidianSide = countObsidianInDirection(goLeft ? -90 : 90);
+            // Fixed 25 blocks to left-forward
+            secondWalkTarget = 25;
             
-            if (obsidianSide < 3) {
-                // Not enough obsidian to side, go to mining
-                MuzMod.LOGGER.info("[Obsidian] Not enough obsidian to side (" + obsidianSide + "), starting mining");
-                secondWalkDone = true;
-                walkStartPos = null;
-                setPhase(ObsidianPhase.FIND_OBSIDIAN);
-                return;
-            }
+            MuzMod.LOGGER.info("[Obsidian] Second walk: 25 blocks left-forward");
             
-            // Walk 30-80% of available distance
-            float ratio = 0.3f + random.nextFloat() * 0.5f;
-            secondWalkTarget = Math.max(3, (int)(obsidianSide * ratio));
-            
-            MuzMod.LOGGER.info("[Obsidian] Second walk: " + secondWalkTarget + " blocks (obsidian side: " + obsidianSide + ")");
-            
-            debugInfo = "Second walk: " + secondWalkTarget + " blocks";
+            debugInfo = "Second walk: 25 blocks left-forward";
             setStatus(debugInfo);
         }
         
