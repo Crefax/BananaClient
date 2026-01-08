@@ -2,6 +2,9 @@ package com.muzmod.navigation;
 
 import com.muzmod.MuzMod;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockFence;
+import net.minecraft.block.BlockFenceGate;
+import net.minecraft.block.BlockWall;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
@@ -173,11 +176,16 @@ public class PathFinder {
         Block blockAtHead = mc.theWorld.getBlockState(pos.up()).getBlock();
         Block blockBelow = mc.theWorld.getBlockState(pos.down()).getBlock();
         
-        // Ayak ve baş seviyesi boş olmalı
-        boolean feetClear = blockAtFeet.isPassable(mc.theWorld, pos) || mc.theWorld.isAirBlock(pos);
-        boolean headClear = blockAtHead.isPassable(mc.theWorld, pos.up()) || mc.theWorld.isAirBlock(pos.up());
+        // Çit kontrolü - çitler 1.5 blok yüksekliğinde, geçilemez
+        if (isFenceBlock(blockAtFeet) || isFenceBlock(blockBelow)) {
+            return false;
+        }
         
-        // Ayağın altında zemin olmalı (veya zıplayarak geçilebilir)
+        // Ayak ve baş seviyesi boş olmalı (çit hariç - zaten kontrol edildi)
+        boolean feetClear = isBlockPassable(blockAtFeet, pos);
+        boolean headClear = isBlockPassable(blockAtHead, pos.up());
+        
+        // Ayağın altında zemin olmalı
         boolean hasGround = !mc.theWorld.isAirBlock(pos.down()) && 
                            !blockBelow.isPassable(mc.theWorld, pos.down());
         
@@ -186,6 +194,59 @@ public class PathFinder {
                                !BLOCKED_BLOCKS.contains(blockBelow);
         
         return feetClear && headClear && notDangerous;
+    }
+    
+    /**
+     * Çit veya duvar bloğu mu? (collision box 1.5 blok)
+     */
+    private boolean isFenceBlock(Block block) {
+        return block instanceof BlockFence || 
+               block instanceof BlockFenceGate || 
+               block instanceof BlockWall;
+    }
+    
+    /**
+     * Blok geçilebilir mi? (Çit ve özel blokları da kontrol et)
+     */
+    private boolean isBlockPassable(Block block, BlockPos pos) {
+        // Çitler geçilemez (collision box 1.5 blok)
+        if (isFenceBlock(block)) {
+            return false;
+        }
+        
+        // Hava her zaman geçilebilir
+        if (mc.theWorld.isAirBlock(pos)) {
+            return true;
+        }
+        
+        // Diğer bloklar için isPassable kullan
+        return block.isPassable(mc.theWorld, pos);
+    }
+    
+    /**
+     * Çapraz hareket için dar geçit kontrolü
+     * İki çapraz blok arasından geçerken, her iki tarafın da açık olması gerekir
+     */
+    private boolean canMoveDiagonally(BlockPos from, BlockPos to) {
+        int dx = to.getX() - from.getX();
+        int dz = to.getZ() - from.getZ();
+        
+        // Çapraz hareket değilse sorun yok
+        if (dx == 0 || dz == 0) {
+            return true;
+        }
+        
+        // İki yan bloğu da kontrol et (köşeden geçiş)
+        BlockPos side1 = from.add(dx, 0, 0);
+        BlockPos side2 = from.add(0, 0, dz);
+        
+        // Her iki taraf da açık olmalı (ayak + baş seviyesi)
+        boolean side1Clear = isBlockPassable(mc.theWorld.getBlockState(side1).getBlock(), side1) &&
+                             isBlockPassable(mc.theWorld.getBlockState(side1.up()).getBlock(), side1.up());
+        boolean side2Clear = isBlockPassable(mc.theWorld.getBlockState(side2).getBlock(), side2) &&
+                             isBlockPassable(mc.theWorld.getBlockState(side2.up()).getBlock(), side2.up());
+        
+        return side1Clear && side2Clear;
     }
     
     /**
@@ -216,33 +277,66 @@ public class PathFinder {
     private List<BlockPos> getNeighbors(BlockPos pos) {
         List<BlockPos> neighbors = new ArrayList<>();
         
-        // 8 yatay yön
-        int[][] directions = {
-            {1, 0}, {-1, 0}, {0, 1}, {0, -1},  // 4 ana yön
-            {1, 1}, {1, -1}, {-1, 1}, {-1, -1} // 4 çapraz
+        // 4 ana yön (öncelikli - daha güvenli)
+        int[][] cardinalDirs = {
+            {1, 0}, {-1, 0}, {0, 1}, {0, -1}
         };
         
-        for (int[] dir : directions) {
-            // Aynı seviye
+        // 4 çapraz yön
+        int[][] diagonalDirs = {
+            {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
+        };
+        
+        // Önce ana yönleri ekle
+        for (int[] dir : cardinalDirs) {
+            addNeighborIfValid(neighbors, pos, dir[0], dir[1]);
+        }
+        
+        // Sonra çapraz yönleri kontrol et (dar geçit kontrolü ile)
+        for (int[] dir : diagonalDirs) {
             BlockPos neighbor = pos.add(dir[0], 0, dir[1]);
-            if (isWalkable(neighbor)) {
+            // Çapraz hareket için dar geçit kontrolü
+            if (isWalkable(neighbor) && canMoveDiagonally(pos, neighbor)) {
                 neighbors.add(neighbor);
             }
             
-            // Bir yukarı (merdiven/zıplama)
+            // Bir yukarı çapraz
             BlockPos neighborUp = pos.add(dir[0], 1, dir[1]);
-            if (isWalkable(neighborUp) && canClimbTo(pos, neighborUp)) {
+            if (isWalkable(neighborUp) && canClimbTo(pos, neighborUp) && canMoveDiagonally(pos, neighborUp)) {
                 neighbors.add(neighborUp);
             }
             
-            // Bir aşağı (düşme)
+            // Bir aşağı çapraz
             BlockPos neighborDown = pos.add(dir[0], -1, dir[1]);
-            if (isWalkable(neighborDown)) {
+            if (isWalkable(neighborDown) && canMoveDiagonally(pos, neighborDown)) {
                 neighbors.add(neighborDown);
             }
         }
         
         return neighbors;
+    }
+    
+    /**
+     * Ana yönler için komşu ekle (yukarı/aşağı dahil)
+     */
+    private void addNeighborIfValid(List<BlockPos> neighbors, BlockPos pos, int dx, int dz) {
+        // Aynı seviye
+        BlockPos neighbor = pos.add(dx, 0, dz);
+        if (isWalkable(neighbor)) {
+            neighbors.add(neighbor);
+        }
+        
+        // Bir yukarı (merdiven/zıplama)
+        BlockPos neighborUp = pos.add(dx, 1, dz);
+        if (isWalkable(neighborUp) && canClimbTo(pos, neighborUp)) {
+            neighbors.add(neighborUp);
+        }
+        
+        // Bir aşağı (düşme)
+        BlockPos neighborDown = pos.add(dx, -1, dz);
+        if (isWalkable(neighborDown)) {
+            neighbors.add(neighborDown);
+        }
     }
     
     /**
