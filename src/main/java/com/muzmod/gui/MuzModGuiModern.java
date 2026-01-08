@@ -60,6 +60,10 @@ public class MuzModGuiModern extends GuiScreen {
     private int settingsSubTab = 0; // 0=Genel, 1=Mining, 2=OX
     private String[] settingsSubTabs = {"Genel", "Mining", "OX"};
     
+    // Mining settings scroll
+    private int miningSettingsScrollOffset = 0;
+    private static final int MINING_SETTINGS_SCROLL_MAX = 80; // Maksimum scroll miktarı
+    
     // Schedule tab
     private int selectedDay = 0; // 0=Pzt, 6=Paz
     private long selectedEntryId = -1;
@@ -545,96 +549,153 @@ public class MuzModGuiModern extends GuiScreen {
     }
     
     private void drawSettingsMining(int mouseX, int mouseY, ModConfig config, int y, int labelX, int fieldX) {
+        // Scroll offset'i uygula
+        int scrollY = y - miningSettingsScrollOffset;
+        
+        // Clipping area için başlangıç Y
+        int clipTop = guiY + 90;
+        int clipBottom = guiY + GUI_HEIGHT - 45;
+        
+        // Scroll göstergesi (sağ taraf)
+        if (miningSettingsScrollOffset > 0 || MINING_SETTINGS_SCROLL_MAX > 0) {
+            int scrollBarX = guiX + GUI_WIDTH - 20;
+            int scrollBarY = clipTop;
+            int scrollBarH = clipBottom - clipTop;
+            
+            // Scroll bar arka planı
+            drawRect(scrollBarX, scrollBarY, scrollBarX + 6, scrollBarY + scrollBarH, BG_FIELD);
+            
+            // Scroll bar pozisyonu
+            float scrollRatio = (float) miningSettingsScrollOffset / MINING_SETTINGS_SCROLL_MAX;
+            int thumbH = 30;
+            int thumbY = scrollBarY + (int) ((scrollBarH - thumbH) * scrollRatio);
+            drawRect(scrollBarX, thumbY, scrollBarX + 6, thumbY + thumbH, ACCENT_CYAN);
+            
+            // Scroll ok göstergeleri
+            if (miningSettingsScrollOffset > 0) {
+                drawString(fontRendererObj, "§7▲", scrollBarX - 4, clipTop + 2, TEXT_GRAY);
+            }
+            if (miningSettingsScrollOffset < MINING_SETTINGS_SCROLL_MAX) {
+                drawString(fontRendererObj, "§7▼", scrollBarX - 4, clipBottom - 12, TEXT_GRAY);
+            }
+        }
+        
         // İlk Yürüyüş
-        drawString(fontRendererObj, "§6§lİlk Yürüyüş (South)", labelX, y, ACCENT_ORANGE);
-        y += 16;
+        if (scrollY >= clipTop - 20 && scrollY < clipBottom) {
+            drawString(fontRendererObj, "§6§lİlk Yürüyüş (South)", labelX, scrollY, ACCENT_ORANGE);
+        }
+        scrollY += 16;
         
-        drawString(fontRendererObj, "§7Min-Max Mesafe:", labelX, y + 3, TEXT_GRAY);
-        drawFieldBackground(fieldInitialWalkMin, fieldX, y);
-        fieldInitialWalkMin.xPosition = fieldX;
-        fieldInitialWalkMin.yPosition = y;
-        fieldInitialWalkMin.drawTextBox();
-        drawString(fontRendererObj, "§7-", fieldX + 55, y + 3, TEXT_GRAY);
-        drawFieldBackground(fieldInitialWalkMax, fieldX + 65, y);
-        fieldInitialWalkMax.xPosition = fieldX + 65;
-        fieldInitialWalkMax.yPosition = y;
-        fieldInitialWalkMax.drawTextBox();
-        drawString(fontRendererObj, "§8blok", fieldX + 125, y + 3, TEXT_DARK);
+        if (scrollY >= clipTop - 16 && scrollY < clipBottom) {
+            drawString(fontRendererObj, "§7Min-Max Mesafe:", labelX, scrollY + 3, TEXT_GRAY);
+            drawFieldBackground(fieldInitialWalkMin, fieldX, scrollY);
+            fieldInitialWalkMin.xPosition = fieldX;
+            fieldInitialWalkMin.yPosition = scrollY;
+            fieldInitialWalkMin.drawTextBox();
+            drawString(fontRendererObj, "§7-", fieldX + 55, scrollY + 3, TEXT_GRAY);
+            drawFieldBackground(fieldInitialWalkMax, fieldX + 65, scrollY);
+            fieldInitialWalkMax.xPosition = fieldX + 65;
+            fieldInitialWalkMax.yPosition = scrollY;
+            fieldInitialWalkMax.drawTextBox();
+            drawString(fontRendererObj, "§8blok", fieldX + 125, scrollY + 3, TEXT_DARK);
+        }
         
-        y += 22;
-        drawString(fontRendererObj, "§7Açı Varyasyonu:", labelX, y + 3, TEXT_GRAY);
-        drawFieldBackground(fieldWalkYawVar, fieldX, y);
-        fieldWalkYawVar.xPosition = fieldX;
-        fieldWalkYawVar.yPosition = y;
-        fieldWalkYawVar.drawTextBox();
-        drawString(fontRendererObj, "§8derece (+/-)", fieldX + 55, y + 3, TEXT_DARK);
+        scrollY += 22;
+        if (scrollY >= clipTop - 16 && scrollY < clipBottom) {
+            drawString(fontRendererObj, "§7Açı Varyasyonu:", labelX, scrollY + 3, TEXT_GRAY);
+            drawFieldBackground(fieldWalkYawVar, fieldX, scrollY);
+            fieldWalkYawVar.xPosition = fieldX;
+            fieldWalkYawVar.yPosition = scrollY;
+            fieldWalkYawVar.drawTextBox();
+            drawString(fontRendererObj, "§8derece (+/-)", fieldX + 55, scrollY + 3, TEXT_DARK);
+        }
         
         // Mining Center
-        y += 26;
-        drawString(fontRendererObj, "§a§lMining Merkezi", labelX, y, ACCENT_GREEN);
-        y += 16;
+        scrollY += 26;
+        if (scrollY >= clipTop - 20 && scrollY < clipBottom) {
+            drawString(fontRendererObj, "§a§lMining Merkezi", labelX, scrollY, ACCENT_GREEN);
+        }
+        scrollY += 16;
         
-        drawString(fontRendererObj, "§7Max Uzaklık:", labelX, y + 3, TEXT_GRAY);
-        drawFieldBackground(fieldMaxDistFromCenter, fieldX, y);
-        fieldMaxDistFromCenter.xPosition = fieldX;
-        fieldMaxDistFromCenter.yPosition = y;
-        fieldMaxDistFromCenter.drawTextBox();
-        drawString(fontRendererObj, "§8blok (merkezden)", fieldX + 55, y + 3, TEXT_DARK);
+        if (scrollY >= clipTop - 16 && scrollY < clipBottom) {
+            drawString(fontRendererObj, "§7Max Uzaklık:", labelX, scrollY + 3, TEXT_GRAY);
+            drawFieldBackground(fieldMaxDistFromCenter, fieldX, scrollY);
+            fieldMaxDistFromCenter.xPosition = fieldX;
+            fieldMaxDistFromCenter.yPosition = scrollY;
+            fieldMaxDistFromCenter.drawTextBox();
+            drawString(fontRendererObj, "§8blok (merkezden)", fieldX + 55, scrollY + 3, TEXT_DARK);
+        }
         
         // İkinci Yürüyüş
-        y += 26;
-        drawString(fontRendererObj, "§b§lİkinci Yürüyüş (East/West)", labelX, y, ACCENT_CYAN);
-        y += 16;
+        scrollY += 26;
+        if (scrollY >= clipTop - 20 && scrollY < clipBottom) {
+            drawString(fontRendererObj, "§b§lİkinci Yürüyüş (East/West)", labelX, scrollY, ACCENT_CYAN);
+        }
+        scrollY += 16;
         
         boolean secondEnabled = config.isSecondWalkEnabled();
-        drawToggle(labelX, y, "Aktif", secondEnabled, mouseX, mouseY);
+        if (scrollY >= clipTop - 16 && scrollY < clipBottom) {
+            drawToggle(labelX, scrollY, "Aktif", secondEnabled, mouseX, mouseY);
+        }
         
-        y += 18;
-        drawString(fontRendererObj, "§7Min-Max Mesafe:", labelX, y + 3, TEXT_GRAY);
-        drawFieldBackground(fieldSecondWalkMin, fieldX, y);
-        fieldSecondWalkMin.xPosition = fieldX;
-        fieldSecondWalkMin.yPosition = y;
-        fieldSecondWalkMin.drawTextBox();
-        drawString(fontRendererObj, "§7-", fieldX + 55, y + 3, TEXT_GRAY);
-        drawFieldBackground(fieldSecondWalkMax, fieldX + 65, y);
-        fieldSecondWalkMax.xPosition = fieldX + 65;
-        fieldSecondWalkMax.yPosition = y;
-        fieldSecondWalkMax.drawTextBox();
-        drawString(fontRendererObj, "§8blok", fieldX + 125, y + 3, TEXT_DARK);
+        scrollY += 18;
+        if (scrollY >= clipTop - 16 && scrollY < clipBottom) {
+            drawString(fontRendererObj, "§7Min-Max Mesafe:", labelX, scrollY + 3, TEXT_GRAY);
+            drawFieldBackground(fieldSecondWalkMin, fieldX, scrollY);
+            fieldSecondWalkMin.xPosition = fieldX;
+            fieldSecondWalkMin.yPosition = scrollY;
+            fieldSecondWalkMin.drawTextBox();
+            drawString(fontRendererObj, "§7-", fieldX + 55, scrollY + 3, TEXT_GRAY);
+            drawFieldBackground(fieldSecondWalkMax, fieldX + 65, scrollY);
+            fieldSecondWalkMax.xPosition = fieldX + 65;
+            fieldSecondWalkMax.yPosition = scrollY;
+            fieldSecondWalkMax.drawTextBox();
+            drawString(fontRendererObj, "§8blok", fieldX + 125, scrollY + 3, TEXT_DARK);
+        }
         
-        y += 22;
-        drawString(fontRendererObj, "§7Açı Varyasyonu:", labelX, y + 3, TEXT_GRAY);
-        drawFieldBackground(fieldSecondWalkAngle, fieldX, y);
-        fieldSecondWalkAngle.xPosition = fieldX;
-        fieldSecondWalkAngle.yPosition = y;
-        fieldSecondWalkAngle.drawTextBox();
-        drawString(fontRendererObj, "§8derece (+/-)", fieldX + 55, y + 3, TEXT_DARK);
+        scrollY += 22;
+        if (scrollY >= clipTop - 16 && scrollY < clipBottom) {
+            drawString(fontRendererObj, "§7Açı Varyasyonu:", labelX, scrollY + 3, TEXT_GRAY);
+            drawFieldBackground(fieldSecondWalkAngle, fieldX, scrollY);
+            fieldSecondWalkAngle.xPosition = fieldX;
+            fieldSecondWalkAngle.yPosition = scrollY;
+            fieldSecondWalkAngle.drawTextBox();
+            drawString(fontRendererObj, "§8derece (+/-)", fieldX + 55, scrollY + 3, TEXT_DARK);
+        }
         
-        y += 22;
+        scrollY += 22;
         boolean randomDir = config.isSecondWalkRandomDirection();
-        drawToggle(labelX, y, "Rastgele Yön", randomDir, mouseX, mouseY);
-        drawString(fontRendererObj, randomDir ? "§a(East/West)" : "§7(Sadece West)", labelX + 110, y, TEXT_GRAY);
+        if (scrollY >= clipTop - 16 && scrollY < clipBottom) {
+            drawToggle(labelX, scrollY, "Rastgele Yön", randomDir, mouseX, mouseY);
+            drawString(fontRendererObj, randomDir ? "§a(East/West)" : "§7(Sadece West)", labelX + 110, scrollY, TEXT_GRAY);
+        }
         
         // Strafe Anti-AFK
-        y += 26;
-        drawString(fontRendererObj, "§e§lStrafe Anti-AFK", labelX, y, ACCENT_YELLOW);
-        y += 16;
+        scrollY += 26;
+        if (scrollY >= clipTop - 20 && scrollY < clipBottom) {
+            drawString(fontRendererObj, "§e§lStrafe Anti-AFK", labelX, scrollY, ACCENT_YELLOW);
+        }
+        scrollY += 16;
         
         boolean strafeEnabled = config.isStrafeEnabled();
-        drawToggle(labelX, y, "Aktif", strafeEnabled, mouseX, mouseY);
+        if (scrollY >= clipTop - 16 && scrollY < clipBottom) {
+            drawToggle(labelX, scrollY, "Aktif", strafeEnabled, mouseX, mouseY);
+        }
         
-        y += 18;
-        drawString(fontRendererObj, "§7Aralık / Süre:", labelX, y + 3, TEXT_GRAY);
-        drawFieldBackground(fieldStrafeInterval, fieldX, y);
-        fieldStrafeInterval.xPosition = fieldX;
-        fieldStrafeInterval.yPosition = y;
-        fieldStrafeInterval.drawTextBox();
-        drawString(fontRendererObj, "§8sn", fieldX + 55, y + 3, TEXT_DARK);
-        drawFieldBackground(fieldStrafeDuration, fieldX + 80, y);
-        fieldStrafeDuration.xPosition = fieldX + 80;
-        fieldStrafeDuration.yPosition = y;
-        fieldStrafeDuration.drawTextBox();
-        drawString(fontRendererObj, "§8ms", fieldX + 140, y + 3, TEXT_DARK);
+        scrollY += 18;
+        if (scrollY >= clipTop - 16 && scrollY < clipBottom) {
+            drawString(fontRendererObj, "§7Aralık / Süre:", labelX, scrollY + 3, TEXT_GRAY);
+            drawFieldBackground(fieldStrafeInterval, fieldX, scrollY);
+            fieldStrafeInterval.xPosition = fieldX;
+            fieldStrafeInterval.yPosition = scrollY;
+            fieldStrafeInterval.drawTextBox();
+            drawString(fontRendererObj, "§8sn", fieldX + 55, scrollY + 3, TEXT_DARK);
+            drawFieldBackground(fieldStrafeDuration, fieldX + 80, scrollY);
+            fieldStrafeDuration.xPosition = fieldX + 80;
+            fieldStrafeDuration.yPosition = scrollY;
+            fieldStrafeDuration.drawTextBox();
+            drawString(fontRendererObj, "§8ms", fieldX + 140, scrollY + 3, TEXT_DARK);
+        }
     }
     
     private void drawSettingsAFK(int mouseX, int mouseY, ModConfig config, ScheduleManager schedule, int y, int labelX, int fieldX) {
@@ -975,35 +1036,29 @@ public class MuzModGuiModern extends GuiScreen {
                 fieldDetectRadius.mouseClicked(mouseX, mouseY, mouseButton);
             }
             else if (settingsSubTab == 1) {
-                // Mining sub-tab - y hesaplaması (güncellenmiş layout):
-                // İlk Yürüyüş başlık: y
-                // Min-Max Mesafe: y + 16
-                // Açı Var: y + 16 + 22 = y + 38
-                // Mining Merkezi başlık: y + 38 + 26 = y + 64
-                // Max Uzaklık: y + 64 + 16 = y + 80
-                // İkinci Yürüyüş başlık: y + 80 + 26 = y + 106
-                // Aktif toggle: y + 106 + 16 = y + 122
-                int secondToggleY = y + 122;
+                // Mining sub-tab - scroll offset'i hesaba kat
+                // Y pozisyonları scroll offset'e göre ayarlanır
+                int scrollY = y - miningSettingsScrollOffset;
+                
+                // İkinci Yürüyüş Aktif toggle: scrollY + 16 + 22 + 26 + 16 + 26 + 16 = scrollY + 122
+                int secondToggleY = scrollY + 122;
                 if (isInside(mouseX, mouseY, labelX - 2, secondToggleY - 2, 70, 14)) {
                     config.setSecondWalkEnabled(!config.isSecondWalkEnabled());
                 }
                 
-                // Min-Max: y + 122 + 18 = y + 140
-                // Açı Var: y + 140 + 22 = y + 162
-                // Rastgele Yön: y + 162 + 22 = y + 184
-                int randomDirY = y + 184;
+                // Rastgele Yön toggle: secondToggleY + 18 + 22 + 22 = scrollY + 184
+                int randomDirY = scrollY + 184;
                 if (isInside(mouseX, mouseY, labelX - 2, randomDirY - 2, 110, 14)) {
                     config.setSecondWalkRandomDirection(!config.isSecondWalkRandomDirection());
                 }
                 
-                // Strafe başlık: y + 184 + 26 = y + 210
-                // Aktif toggle: y + 210 + 16 = y + 226
-                int strafeToggleY = y + 226;
+                // Strafe Aktif toggle: randomDirY + 26 + 16 = scrollY + 226
+                int strafeToggleY = scrollY + 226;
                 if (isInside(mouseX, mouseY, labelX - 2, strafeToggleY - 2, 70, 14)) {
                     config.setStrafeEnabled(!config.isStrafeEnabled());
                 }
                 
-                // Field clicks
+                // Field clicks - her field kendi pozisyonunda, drawSettingsMining'de güncelleniyor
                 fieldInitialWalkMin.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldInitialWalkMax.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldWalkYawVar.mouseClicked(mouseX, mouseY, mouseButton);
@@ -1145,19 +1200,30 @@ public class MuzModGuiModern extends GuiScreen {
     public void handleMouseInput() throws IOException {
         super.handleMouseInput();
         
+        int scroll = Mouse.getEventDWheel();
+        if (scroll == 0) return;
+        
         // Scroll wheel for schedule list
         if (currentTab == 1) {
-            int scroll = Mouse.getEventDWheel();
-            if (scroll != 0) {
-                ScheduleManager schedule = MuzMod.instance.getScheduleManager();
-                List<ScheduleEntry> entries = schedule.getEntriesForDay(selectedDay);
-                int maxScroll = Math.max(0, entries.size() - 4);
-                
-                if (scroll > 0 && scheduleScrollOffset > 0) {
-                    scheduleScrollOffset--;
-                } else if (scroll < 0 && scheduleScrollOffset < maxScroll) {
-                    scheduleScrollOffset++;
-                }
+            ScheduleManager schedule = MuzMod.instance.getScheduleManager();
+            List<ScheduleEntry> entries = schedule.getEntriesForDay(selectedDay);
+            int maxScroll = Math.max(0, entries.size() - 4);
+            
+            if (scroll > 0 && scheduleScrollOffset > 0) {
+                scheduleScrollOffset--;
+            } else if (scroll < 0 && scheduleScrollOffset < maxScroll) {
+                scheduleScrollOffset++;
+            }
+        }
+        
+        // Scroll wheel for Mining settings
+        if (currentTab == 2 && settingsSubTab == 1) {
+            int scrollStep = 15; // Her scroll için 15 piksel
+            
+            if (scroll > 0 && miningSettingsScrollOffset > 0) {
+                miningSettingsScrollOffset = Math.max(0, miningSettingsScrollOffset - scrollStep);
+            } else if (scroll < 0 && miningSettingsScrollOffset < MINING_SETTINGS_SCROLL_MAX) {
+                miningSettingsScrollOffset = Math.min(MINING_SETTINGS_SCROLL_MAX, miningSettingsScrollOffset + scrollStep);
             }
         }
     }
