@@ -2,10 +2,6 @@ package com.muzmod.navigation;
 
 import com.muzmod.MuzMod;
 import com.muzmod.util.InputSimulator;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockFence;
-import net.minecraft.block.BlockFenceGate;
-import net.minecraft.block.BlockWall;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 
@@ -467,13 +463,6 @@ public class NavigationManager {
         BlockPos waypoint = currentPath.get(currentPathIndex);
         double distToWaypoint = getDistanceTo(waypoint);
         
-        // Önümüzde çit veya engel var mı kontrol et
-        if (isBlockedAhead()) {
-            MuzMod.LOGGER.warn("[Navigation] Obstacle detected ahead, recalculating path...");
-            recalculatePath();
-            return;
-        }
-        
         // Waypoint'e ulaştık mı?
         if (distToWaypoint < 1.5) {
             currentPathIndex++;
@@ -523,27 +512,16 @@ public class NavigationManager {
     }
     
     private void handleStuck() {
-        MuzMod.LOGGER.info("[Navigation] Handling stuck situation...");
+        // Sadece yerdeyken zıpla
+        if (mc.thePlayer.onGround) {
+            InputSimulator.holdKey(mc.gameSettings.keyBindJump, true);
+        }
         
-        // Önce dur
-        InputSimulator.releaseAll();
-        
-        // Çit kontrolü - önümüzde çit varsa geri git
-        if (isBlockedAhead()) {
-            MuzMod.LOGGER.info("[Navigation] Fence/wall detected, backing up...");
-            InputSimulator.holdKey(mc.gameSettings.keyBindBack, true);
+        // Biraz sağa veya sola git
+        if (random.nextBoolean()) {
+            InputSimulator.holdKey(mc.gameSettings.keyBindLeft, true);
         } else {
-            // Sadece yerdeyken zıpla
-            if (mc.thePlayer.onGround) {
-                InputSimulator.holdKey(mc.gameSettings.keyBindJump, true);
-            }
-            
-            // Biraz sağa veya sola git
-            if (random.nextBoolean()) {
-                InputSimulator.holdKey(mc.gameSettings.keyBindLeft, true);
-            } else {
-                InputSimulator.holdKey(mc.gameSettings.keyBindRight, true);
-            }
+            InputSimulator.holdKey(mc.gameSettings.keyBindRight, true);
         }
         
         // Yeni path hesapla
@@ -607,82 +585,11 @@ public class NavigationManager {
         BlockPos ahead = new BlockPos(checkX, mc.thePlayer.posY, checkZ);
         BlockPos aboveAhead = ahead.up();
         
-        // Çit kontrolü - çitlerin üstünden zıplanamaz
-        Block blockAtAhead = mc.theWorld.getBlockState(ahead).getBlock();
-        if (isFenceBlock(blockAtAhead)) {
-            return false; // Çitten zıplayamayız, yol değişmeli
-        }
-        
         // Önde blok var ve üstü boş mu?
-        boolean blockAhead = !mc.theWorld.isAirBlock(ahead) && !blockAtAhead.isPassable(mc.theWorld, ahead);
+        boolean blockAhead = !mc.theWorld.isAirBlock(ahead);
         boolean spaceAbove = mc.theWorld.isAirBlock(aboveAhead) && mc.theWorld.isAirBlock(aboveAhead.up());
         
         return blockAhead && spaceAbove;
-    }
-    
-    /**
-     * Önümüzde geçilemez engel var mı?
-     */
-    private boolean isBlockedAhead() {
-        if (mc.thePlayer == null || mc.theWorld == null) return false;
-        
-        double rad = Math.toRadians(mc.thePlayer.rotationYaw);
-        
-        // 1-3 blok önümüzü kontrol et
-        for (double dist = 0.5; dist <= 2.5; dist += 0.5) {
-            double checkX = mc.thePlayer.posX - Math.sin(rad) * dist;
-            double checkZ = mc.thePlayer.posZ + Math.cos(rad) * dist;
-            
-            BlockPos checkPos = new BlockPos(checkX, mc.thePlayer.posY, checkZ);
-            BlockPos checkPosHead = checkPos.up();
-            
-            Block blockAtFeet = mc.theWorld.getBlockState(checkPos).getBlock();
-            Block blockAtHead = mc.theWorld.getBlockState(checkPosHead).getBlock();
-            
-            // Çit veya duvar kontrolü - bunlar kesinlikle geçilemez
-            if (isFenceBlock(blockAtFeet) || isFenceBlock(blockAtHead)) {
-                return true;
-            }
-            
-            // Yan taraflarda da çit var mı (dar geçit)
-            BlockPos leftPos = new BlockPos(checkX - Math.cos(rad) * 0.5, mc.thePlayer.posY, checkZ - Math.sin(rad) * 0.5);
-            BlockPos rightPos = new BlockPos(checkX + Math.cos(rad) * 0.5, mc.thePlayer.posY, checkZ + Math.sin(rad) * 0.5);
-            
-            if (isFenceBlock(mc.theWorld.getBlockState(leftPos).getBlock()) &&
-                isFenceBlock(mc.theWorld.getBlockState(rightPos).getBlock())) {
-                return true; // İki çit arasında sıkıştık
-            }
-        }
-        
-        return false;
-    }
-    
-    /**
-     * Çit veya duvar bloğu mu?
-     */
-    private boolean isFenceBlock(Block block) {
-        return block instanceof BlockFence || 
-               block instanceof BlockFenceGate || 
-               block instanceof BlockWall;
-    }
-    
-    /**
-     * Yolu yeniden hesapla
-     */
-    private void recalculatePath() {
-        // Önce dur
-        InputSimulator.releaseAll();
-        
-        // Biraz geri git
-        InputSimulator.holdKey(mc.gameSettings.keyBindBack, true);
-        try { Thread.sleep(100); } catch (Exception e) {}
-        InputSimulator.releaseKey(mc.gameSettings.keyBindBack);
-        
-        // Yeni path hesapla
-        currentPath = pathFinder.findPath(mc.thePlayer.getPosition(), finalTarget);
-        currentPathIndex = 0;
-        renderer.setPath(currentPath);
-        lastMoveTime = System.currentTimeMillis();
     }
     
     // ==================== GETTERS ====================
