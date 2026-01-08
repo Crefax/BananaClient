@@ -108,7 +108,6 @@ public class MiningState extends AbstractState {
     // Mining center - yürüyüş tamamlandıktan sonra burası merkez olur
     // Player avoidance ve ore bulunamadığında bu merkeze döneriz
     private BlockPos miningCenter = null;
-    private static final int MAX_DISTANCE_FROM_CENTER = 30; // Merkezden maksimum uzaklık
     private long lastCenterCheckTime = 0;
     
     // Mining progress tracking (manuel durdurma algılama)
@@ -594,8 +593,9 @@ public class MiningState extends AbstractState {
         } else {
             // No ore found - merkeze uzaklığı kontrol et
             if (miningCenter != null) {
+                int maxDist = config.getMaxDistanceFromCenter();
                 double distToCenter = mc.thePlayer.getPosition().distanceSq(miningCenter);
-                if (distToCenter > MAX_DISTANCE_FROM_CENTER * MAX_DISTANCE_FROM_CENTER) {
+                if (distToCenter > maxDist * maxDist) {
                     // Merkezden çok uzaklaştık, geri dön
                     MuzMod.LOGGER.info("[Mining] Too far from center (" + Math.sqrt(distToCenter) + " blocks), returning...");
                     safeSpot = miningCenter;

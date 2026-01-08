@@ -17,9 +17,9 @@ buildscript {
 
 apply plugin: 'net.minecraftforge.gradle.forge'
 
-version = "2.8.0"
+version = "2.9.0"
 group = "com.muzmod"
-archivesBaseName = "MuzMod"
+archivesBaseName = "BananaClient"
 
 sourceCompatibility = targetCompatibility = '1.8'
 

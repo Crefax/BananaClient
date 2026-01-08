@@ -25,10 +25,15 @@ public class ModConfig {
     
     // Pathfinding Settings
     private int oreSearchRadius = 50; // Chunk arama yarıçapı
-    private int initialWalkDistance = 45; // İlk yürüme mesafesi (south)
+    private int initialWalkDistanceMin = 40; // İlk yürüme mesafesi minimum
+    private int initialWalkDistanceMax = 50; // İlk yürüme mesafesi maximum
+    private int initialWalkDistance = 45; // Legacy - artık min-max kullanılıyor
     private double walkYawVariation = 10.0; // Yürürken yaw varyasyonu (sol-sağ)
     private boolean enablePathfinding = true;
     private int maxMoveDistance = 15; // Ore'a giderken max mesafe
+    
+    // Mining Center Settings
+    private int maxDistanceFromCenter = 30; // Merkezden maksimum uzaklık
     
     // İkinci yürüyüş ayarları (east/west)
     private boolean secondWalkEnabled = true; // İkinci yürüyüş aktif mi
@@ -126,14 +131,19 @@ public class ModConfig {
             // Pathfinding Category
             oreSearchRadius = config.getInt("oreSearchRadius", "pathfinding", 50, 16, 128,
                 "Radius to search for ores (blocks)");
-            initialWalkDistance = config.getInt("initialWalkDistance", "pathfinding", 45, 5, 100,
-                "Distance to walk south when searching for ores");
+            initialWalkDistanceMin = config.getInt("initialWalkDistanceMin", "pathfinding", 40, 5, 100,
+                "Minimum distance to walk south when searching for ores");
+            initialWalkDistanceMax = config.getInt("initialWalkDistanceMax", "pathfinding", 50, 5, 100,
+                "Maximum distance to walk south when searching for ores");
+            initialWalkDistance = initialWalkDistanceMin; // Legacy compatibility
             walkYawVariation = config.getFloat("walkYawVariation", "pathfinding", 10.0f, 0.0f, 45.0f,
                 "Random yaw variation when walking (degrees left-right)");
             enablePathfinding = config.getBoolean("enablePathfinding", "pathfinding", true,
                 "Enable pathfinding to avoid obstacles");
             maxMoveDistance = config.getInt("maxMoveDistance", "pathfinding", 15, 5, 50,
                 "Maximum distance to walk towards an ore");
+            maxDistanceFromCenter = config.getInt("maxDistanceFromCenter", "pathfinding", 30, 10, 100,
+                "Maximum distance from mining center before returning");
             
             // Second Walk Category (ikinci yürüyüş - east/west)
             secondWalkEnabled = config.getBoolean("secondWalkEnabled", "secondwalk", true,
@@ -271,10 +281,38 @@ public class ModConfig {
     
     // Pathfinding Getters
     public int getOreSearchRadius() { return oreSearchRadius; }
-    public int getInitialWalkDistance() { return initialWalkDistance; }
+    public int getInitialWalkDistance() { 
+        // Random between min and max
+        return initialWalkDistanceMin + (int)(Math.random() * (initialWalkDistanceMax - initialWalkDistanceMin + 1));
+    }
+    public int getInitialWalkDistanceMin() { return initialWalkDistanceMin; }
+    public int getInitialWalkDistanceMax() { return initialWalkDistanceMax; }
     public double getWalkYawVariation() { return walkYawVariation; }
     public boolean isPathfindingEnabled() { return enablePathfinding; }
     public int getMaxMoveDistance() { return maxMoveDistance; }
+    public int getMaxDistanceFromCenter() { return maxDistanceFromCenter; }
+    
+    // Pathfinding Setters
+    public void setInitialWalkDistanceMin(int min) {
+        this.initialWalkDistanceMin = min;
+        config.get("pathfinding", "initialWalkDistanceMin", 40).set(min);
+        save();
+    }
+    public void setInitialWalkDistanceMax(int max) {
+        this.initialWalkDistanceMax = max;
+        config.get("pathfinding", "initialWalkDistanceMax", 50).set(max);
+        save();
+    }
+    public void setMaxDistanceFromCenter(int dist) {
+        this.maxDistanceFromCenter = dist;
+        config.get("pathfinding", "maxDistanceFromCenter", 30).set(dist);
+        save();
+    }
+    public void setWalkYawVariation(double variation) {
+        this.walkYawVariation = variation;
+        config.get("pathfinding", "walkYawVariation", 10.0f).set((float)variation);
+        save();
+    }
     
     // Anti-AFK Rotation Getters
     public float getAntiAfkYawMin() { return antiAfkYawMin; }
@@ -318,16 +356,6 @@ public class ModConfig {
     public void setSecondWalkRandomDirection(boolean random) {
         this.secondWalkRandomDirection = random;
         config.get("secondwalk", "secondWalkRandomDirection", true).set(random);
-    }
-    
-    // Initial Walk Setters
-    public void setInitialWalkDistance(int dist) {
-        this.initialWalkDistance = dist;
-        config.get("pathfinding", "initialWalkDistance", 45).set(dist);
-    }
-    public void setWalkYawVariation(double variation) {
-        this.walkYawVariation = variation;
-        config.get("pathfinding", "walkYawVariation", 20.0f).set((float)variation);
     }
     
     // AFK Getters

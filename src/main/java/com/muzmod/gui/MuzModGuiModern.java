@@ -57,8 +57,8 @@ public class MuzModGuiModern extends GuiScreen {
     private String[] tabNames = {"Genel", "Zamanlama", "Ayarlar"};
     
     // Settings sub-tabs
-    private int settingsSubTab = 0; // 0=Genel, 1=Mining, 2=AFK, 3=OX
-    private String[] settingsSubTabs = {"Genel", "Mining", "AFK", "OX"};
+    private int settingsSubTab = 0; // 0=Genel, 1=Mining, 2=OX
+    private String[] settingsSubTabs = {"Genel", "Mining", "OX"};
     
     // Schedule tab
     private int selectedDay = 0; // 0=Pzt, 6=Paz
@@ -75,9 +75,10 @@ public class MuzModGuiModern extends GuiScreen {
     private GuiTextField fieldRepairThreshold, fieldTimeOffset, fieldDetectRadius, fieldWalkDist;
     
     // Mining settings fields
-    private GuiTextField fieldInitialWalkDist, fieldWalkYawVar;
+    private GuiTextField fieldInitialWalkMin, fieldInitialWalkMax, fieldWalkYawVar;
     private GuiTextField fieldSecondWalkMin, fieldSecondWalkMax, fieldSecondWalkAngle;
     private GuiTextField fieldStrafeInterval, fieldStrafeDuration;
+    private GuiTextField fieldMaxDistFromCenter;
     
     // OX settings fields
     private GuiTextField fieldOxMinPlayers;
@@ -119,19 +120,21 @@ public class MuzModGuiModern extends GuiScreen {
         fieldDetectRadius = createField(setX, setY + 112, 50, String.valueOf((int)config.getPlayerDetectionRadius()), 4);
         
         // Mining settings fields
-        fieldInitialWalkDist = createField(setX, setY, 50, String.valueOf(config.getInitialWalkDistance()), 4);
+        fieldInitialWalkMin = createField(setX, setY, 50, String.valueOf(config.getInitialWalkDistanceMin()), 4);
+        fieldInitialWalkMax = createField(setX + 70, setY, 50, String.valueOf(config.getInitialWalkDistanceMax()), 4);
         fieldWalkYawVar = createField(setX, setY + 28, 50, String.valueOf((int)config.getWalkYawVariation()), 4);
-        fieldSecondWalkMin = createField(setX, setY + 84, 50, String.valueOf(config.getSecondWalkDistanceMin()), 4);
-        fieldSecondWalkMax = createField(setX + 70, setY + 84, 50, String.valueOf(config.getSecondWalkDistanceMax()), 4);
-        fieldSecondWalkAngle = createField(setX, setY + 112, 50, String.valueOf((int)config.getSecondWalkAngleVariation()), 4);
-        fieldStrafeInterval = createField(setX, setY + 140, 50, String.valueOf(config.getStrafeInterval() / 1000), 4);
-        fieldStrafeDuration = createField(setX + 70, setY + 140, 50, String.valueOf(config.getStrafeDuration()), 4);
+        fieldMaxDistFromCenter = createField(setX, setY + 56, 50, String.valueOf(config.getMaxDistanceFromCenter()), 4);
+        fieldSecondWalkMin = createField(setX, setY + 112, 50, String.valueOf(config.getSecondWalkDistanceMin()), 4);
+        fieldSecondWalkMax = createField(setX + 70, setY + 112, 50, String.valueOf(config.getSecondWalkDistanceMax()), 4);
+        fieldSecondWalkAngle = createField(setX, setY + 140, 50, String.valueOf((int)config.getSecondWalkAngleVariation()), 4);
+        fieldStrafeInterval = createField(setX, setY + 196, 50, String.valueOf(config.getStrafeInterval() / 1000), 4);
+        fieldStrafeDuration = createField(setX + 70, setY + 196, 50, String.valueOf(config.getStrafeDuration()), 4);
         
         // OX settings fields
         fieldOxMinPlayers = createField(setX, setY, 50, String.valueOf(config.getOxMinPlayers()), 3);
         
         // Legacy field for compatibility
-        fieldWalkDist = fieldInitialWalkDist;
+        fieldWalkDist = fieldInitialWalkMin;
     }
     
     private GuiTextField createField(int x, int y, int w, String text, int maxLen) {
@@ -154,7 +157,7 @@ public class MuzModGuiModern extends GuiScreen {
         
         // Header
         drawGradientRect(guiX, guiY, guiX + GUI_WIDTH, guiY + 32, BG_HEADER, BG_PANEL);
-        drawString(fontRendererObj, "§d§lMUZ§f§lMOD §7v2.1", guiX + 12, guiY + 12, TEXT_WHITE);
+        drawString(fontRendererObj, "§e§l" + MuzMod.CLIENT_NAME + " §7v" + MuzMod.VERSION, guiX + 12, guiY + 12, TEXT_WHITE);
         
         // Time & Day
         ModConfig config = MuzMod.instance.getConfig();
@@ -188,7 +191,7 @@ public class MuzModGuiModern extends GuiScreen {
         drawButton(guiX + GUI_WIDTH - 80, guiY + GUI_HEIGHT - 28, 70, 20, "§cKapat", ACCENT_RED, mouseX, mouseY);
         
         // Footer
-        drawString(fontRendererObj, "§8github.com/Crefax/MuzClient", guiX + 10, guiY + GUI_HEIGHT - 23, TEXT_DARK);
+        drawString(fontRendererObj, "§8" + MuzMod.GITHUB_URL, guiX + 10, guiY + GUI_HEIGHT - 23, TEXT_DARK);
         
         // Safe state warning
         IState state = MuzMod.instance.getStateManager().getCurrentState();
@@ -491,8 +494,7 @@ public class MuzModGuiModern extends GuiScreen {
         switch (settingsSubTab) {
             case 0: drawSettingsGeneral(mouseX, mouseY, config, schedule, y, labelX, fieldX); break;
             case 1: drawSettingsMining(mouseX, mouseY, config, y, labelX, fieldX); break;
-            case 2: drawSettingsAFK(mouseX, mouseY, config, schedule, y, labelX, fieldX); break;
-            case 3: drawSettingsOX(mouseX, mouseY, config, y, labelX, fieldX); break;
+            case 2: drawSettingsOX(mouseX, mouseY, config, y, labelX, fieldX); break;
         }
     }
     
@@ -547,12 +549,17 @@ public class MuzModGuiModern extends GuiScreen {
         drawString(fontRendererObj, "§6§lİlk Yürüyüş (South)", labelX, y, ACCENT_ORANGE);
         y += 16;
         
-        drawString(fontRendererObj, "§7Mesafe:", labelX, y + 3, TEXT_GRAY);
-        drawFieldBackground(fieldInitialWalkDist, fieldX, y);
-        fieldInitialWalkDist.xPosition = fieldX;
-        fieldInitialWalkDist.yPosition = y;
-        fieldInitialWalkDist.drawTextBox();
-        drawString(fontRendererObj, "§8blok", fieldX + 55, y + 3, TEXT_DARK);
+        drawString(fontRendererObj, "§7Min-Max Mesafe:", labelX, y + 3, TEXT_GRAY);
+        drawFieldBackground(fieldInitialWalkMin, fieldX, y);
+        fieldInitialWalkMin.xPosition = fieldX;
+        fieldInitialWalkMin.yPosition = y;
+        fieldInitialWalkMin.drawTextBox();
+        drawString(fontRendererObj, "§7-", fieldX + 55, y + 3, TEXT_GRAY);
+        drawFieldBackground(fieldInitialWalkMax, fieldX + 65, y);
+        fieldInitialWalkMax.xPosition = fieldX + 65;
+        fieldInitialWalkMax.yPosition = y;
+        fieldInitialWalkMax.drawTextBox();
+        drawString(fontRendererObj, "§8blok", fieldX + 125, y + 3, TEXT_DARK);
         
         y += 22;
         drawString(fontRendererObj, "§7Açı Varyasyonu:", labelX, y + 3, TEXT_GRAY);
@@ -561,6 +568,18 @@ public class MuzModGuiModern extends GuiScreen {
         fieldWalkYawVar.yPosition = y;
         fieldWalkYawVar.drawTextBox();
         drawString(fontRendererObj, "§8derece (+/-)", fieldX + 55, y + 3, TEXT_DARK);
+        
+        // Mining Center
+        y += 26;
+        drawString(fontRendererObj, "§a§lMining Merkezi", labelX, y, ACCENT_GREEN);
+        y += 16;
+        
+        drawString(fontRendererObj, "§7Max Uzaklık:", labelX, y + 3, TEXT_GRAY);
+        drawFieldBackground(fieldMaxDistFromCenter, fieldX, y);
+        fieldMaxDistFromCenter.xPosition = fieldX;
+        fieldMaxDistFromCenter.yPosition = y;
+        fieldMaxDistFromCenter.drawTextBox();
+        drawString(fontRendererObj, "§8blok (merkezden)", fieldX + 55, y + 3, TEXT_DARK);
         
         // İkinci Yürüyüş
         y += 26;
@@ -956,35 +975,39 @@ public class MuzModGuiModern extends GuiScreen {
                 fieldDetectRadius.mouseClicked(mouseX, mouseY, mouseButton);
             }
             else if (settingsSubTab == 1) {
-                // Mining sub-tab - y hesaplaması:
+                // Mining sub-tab - y hesaplaması (güncellenmiş layout):
                 // İlk Yürüyüş başlık: y
-                // Mesafe: y + 16
+                // Min-Max Mesafe: y + 16
                 // Açı Var: y + 16 + 22 = y + 38
-                // İkinci Yürüyüş başlık: y + 38 + 26 = y + 64
-                // Aktif toggle: y + 64 + 16 = y + 80
-                int secondToggleY = y + 80;
+                // Mining Merkezi başlık: y + 38 + 26 = y + 64
+                // Max Uzaklık: y + 64 + 16 = y + 80
+                // İkinci Yürüyüş başlık: y + 80 + 26 = y + 106
+                // Aktif toggle: y + 106 + 16 = y + 122
+                int secondToggleY = y + 122;
                 if (isInside(mouseX, mouseY, labelX - 2, secondToggleY - 2, 70, 14)) {
                     config.setSecondWalkEnabled(!config.isSecondWalkEnabled());
                 }
                 
-                // Min-Max: y + 80 + 18 = y + 98
-                // Açı Var: y + 98 + 22 = y + 120
-                // Rastgele Yön: y + 120 + 22 = y + 142
-                int randomDirY = y + 142;
+                // Min-Max: y + 122 + 18 = y + 140
+                // Açı Var: y + 140 + 22 = y + 162
+                // Rastgele Yön: y + 162 + 22 = y + 184
+                int randomDirY = y + 184;
                 if (isInside(mouseX, mouseY, labelX - 2, randomDirY - 2, 110, 14)) {
                     config.setSecondWalkRandomDirection(!config.isSecondWalkRandomDirection());
                 }
                 
-                // Strafe başlık: y + 142 + 26 = y + 168
-                // Aktif toggle: y + 168 + 16 = y + 184
-                int strafeToggleY = y + 184;
+                // Strafe başlık: y + 184 + 26 = y + 210
+                // Aktif toggle: y + 210 + 16 = y + 226
+                int strafeToggleY = y + 226;
                 if (isInside(mouseX, mouseY, labelX - 2, strafeToggleY - 2, 70, 14)) {
                     config.setStrafeEnabled(!config.isStrafeEnabled());
                 }
                 
                 // Field clicks
-                fieldInitialWalkDist.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldInitialWalkMin.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldInitialWalkMax.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldWalkYawVar.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldMaxDistFromCenter.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldSecondWalkMin.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldSecondWalkMax.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldSecondWalkAngle.mouseClicked(mouseX, mouseY, mouseButton);
@@ -992,16 +1015,6 @@ public class MuzModGuiModern extends GuiScreen {
                 fieldStrafeDuration.mouseClicked(mouseX, mouseY, mouseButton);
             }
             else if (settingsSubTab == 2) {
-                // AFK sub-tab
-                int afkToggleY = y + 20 + 30;
-                if (isInside(mouseX, mouseY, labelX - 2, afkToggleY - 2, 90, 14)) {
-                    MuzMod.instance.getScheduleManager().setAutoAfkWhenIdle(
-                        !MuzMod.instance.getScheduleManager().isAutoAfkWhenIdle());
-                }
-                
-                fieldDefaultAfkWarp.mouseClicked(mouseX, mouseY, mouseButton);
-            }
-            else if (settingsSubTab == 3) {
                 // OX sub-tab
                 int oxDirY = y + 20;
                 float[] yawValues = {180f, -90f, 0f, 90f}; // Kuzey, Doğu, Güney, Batı
@@ -1100,8 +1113,10 @@ public class MuzModGuiModern extends GuiScreen {
             config.setPlayerDetectionRadius(Double.parseDouble(fieldDetectRadius.getText()));
             
             // Mining ayarları
-            config.setInitialWalkDistance(Integer.parseInt(fieldInitialWalkDist.getText()));
+            config.setInitialWalkDistanceMin(Integer.parseInt(fieldInitialWalkMin.getText()));
+            config.setInitialWalkDistanceMax(Integer.parseInt(fieldInitialWalkMax.getText()));
             config.setWalkYawVariation(Float.parseFloat(fieldWalkYawVar.getText()));
+            config.setMaxDistanceFromCenter(Integer.parseInt(fieldMaxDistFromCenter.getText()));
             config.setSecondWalkDistanceMin(Integer.parseInt(fieldSecondWalkMin.getText()));
             config.setSecondWalkDistanceMax(Integer.parseInt(fieldSecondWalkMax.getText()));
             config.setSecondWalkAngleVariation(Float.parseFloat(fieldSecondWalkAngle.getText()));
@@ -1174,16 +1189,16 @@ public class MuzModGuiModern extends GuiScreen {
                 fieldTimeOffset.textboxKeyTyped(typedChar, keyCode);
                 fieldDetectRadius.textboxKeyTyped(typedChar, keyCode);
             } else if (settingsSubTab == 1) {
-                fieldInitialWalkDist.textboxKeyTyped(typedChar, keyCode);
+                fieldInitialWalkMin.textboxKeyTyped(typedChar, keyCode);
+                fieldInitialWalkMax.textboxKeyTyped(typedChar, keyCode);
                 fieldWalkYawVar.textboxKeyTyped(typedChar, keyCode);
+                fieldMaxDistFromCenter.textboxKeyTyped(typedChar, keyCode);
                 fieldSecondWalkMin.textboxKeyTyped(typedChar, keyCode);
                 fieldSecondWalkMax.textboxKeyTyped(typedChar, keyCode);
                 fieldSecondWalkAngle.textboxKeyTyped(typedChar, keyCode);
                 fieldStrafeInterval.textboxKeyTyped(typedChar, keyCode);
                 fieldStrafeDuration.textboxKeyTyped(typedChar, keyCode);
             } else if (settingsSubTab == 2) {
-                fieldDefaultAfkWarp.textboxKeyTyped(typedChar, keyCode);
-            } else if (settingsSubTab == 3) {
                 fieldOxMinPlayers.textboxKeyTyped(typedChar, keyCode);
             }
         }

@@ -327,7 +327,8 @@ public class MuzModGui extends GuiScreen {
             config.setMiningWarpCommand(txtMiningWarp.getText());
             parseTime(txtMiningStart.getText(), (h, m) -> config.setMiningStartTime(h, m));
             parseTime(txtMiningEnd.getText(), (h, m) -> config.setMiningEndTime(h, m));
-            config.setInitialWalkDistance((int) parseDouble(txtWalkDist.getText(), 10));
+            config.setInitialWalkDistanceMin((int) parseDouble(txtWalkDist.getText(), 10));
+            config.setInitialWalkDistanceMax((int) parseDouble(txtWalkDist.getText(), 10));
             config.setPlayerDetectionRadius(parseDouble(txtDetectRadius.getText(), 15));
             
             // AFK

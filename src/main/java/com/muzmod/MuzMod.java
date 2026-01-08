@@ -5,6 +5,7 @@ import com.muzmod.handler.EventHandler;
 import com.muzmod.handler.KeyBindHandler;
 import com.muzmod.schedule.ScheduleManager;
 import com.muzmod.state.StateManager;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -18,9 +19,13 @@ import java.io.File;
 @Mod(modid = MuzMod.MODID, version = MuzMod.VERSION, clientSideOnly = true)
 public class MuzMod {
     
-    public static final String MODID = "muzmod";
-    public static final String VERSION = "2.8.0";
-    public static final Logger LOGGER = LogManager.getLogger(MODID);
+    // Client bilgileri - tek yerden yönetim
+    public static final String CLIENT_NAME = "BananaClient";
+    public static final String VERSION = "2.9.0";
+    public static final String MODID = "bananaclient";
+    public static final String GITHUB_URL = "github.com/Crefax/BananaClient";
+    
+    public static final Logger LOGGER = LogManager.getLogger(CLIENT_NAME);
     
     @Mod.Instance(MODID)
     public static MuzMod instance;
@@ -30,24 +35,36 @@ public class MuzMod {
     private ScheduleManager scheduleManager;
     private boolean botEnabled = false;
     
+    // Config dizini - .minecraft/BananaClient/
+    private File clientDir;
+    
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        LOGGER.info("MuzMod Pre-Initialization");
-        File configDir = event.getModConfigurationDirectory();
-        File muzmodDir = new File(configDir, "muzmod");
-        if (!muzmodDir.exists()) {
-            muzmodDir.mkdirs();
+        LOGGER.info(CLIENT_NAME + " v" + VERSION + " Pre-Initialization");
+        
+        // .minecraft/BananaClient/ dizinini oluştur
+        File mcDir = Minecraft.getMinecraft().mcDataDir;
+        clientDir = new File(mcDir, CLIENT_NAME);
+        if (!clientDir.exists()) {
+            clientDir.mkdirs();
         }
         
-        config = new ModConfig(event.getSuggestedConfigurationFile());
+        // Config dosyası: .minecraft/BananaClient/config.cfg
+        File configFile = new File(clientDir, "config.cfg");
+        config = new ModConfig(configFile);
         config.load();
         
-        scheduleManager = new ScheduleManager(muzmodDir);
+        // Schedule dizini: .minecraft/BananaClient/schedules/
+        File schedulesDir = new File(clientDir, "schedules");
+        if (!schedulesDir.exists()) {
+            schedulesDir.mkdirs();
+        }
+        scheduleManager = new ScheduleManager(schedulesDir);
     }
     
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        LOGGER.info("MuzMod Initialization");
+        LOGGER.info(CLIENT_NAME + " Initialization");
         
         stateManager = new StateManager();
         
@@ -60,7 +77,7 @@ public class MuzMod {
     
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-        LOGGER.info("MuzMod Post-Initialization Complete");
+        LOGGER.info(CLIENT_NAME + " v" + VERSION + " Post-Initialization Complete");
     }
     
     public StateManager getStateManager() {
@@ -73,6 +90,10 @@ public class MuzMod {
     
     public ScheduleManager getScheduleManager() {
         return scheduleManager;
+    }
+    
+    public File getClientDir() {
+        return clientDir;
     }
     
     public boolean isBotEnabled() {
