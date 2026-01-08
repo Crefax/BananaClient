@@ -266,11 +266,12 @@ public class MuzModGuiModern extends GuiScreen {
         y += 30;
         drawString(fontRendererObj, "§7Manuel Durum:", guiX + 20, y, TEXT_GRAY);
         y += 14;
-        drawButton(guiX + 20, y, 65, 22, "Idle", BG_BUTTON, mouseX, mouseY);
-        drawButton(guiX + 90, y, 65, 22, "§6Mining", ACCENT_ORANGE, mouseX, mouseY);
-        drawButton(guiX + 160, y, 65, 22, "§bAFK", ACCENT_BLUE, mouseX, mouseY);
-        drawButton(guiX + 230, y, 65, 22, "§eRepair", ACCENT_YELLOW, mouseX, mouseY);
-        drawButton(guiX + 300, y, 65, 22, "§dOX", ACCENT_PURPLE, mouseX, mouseY);
+        drawButton(guiX + 20, y, 55, 22, "Idle", BG_BUTTON, mouseX, mouseY);
+        drawButton(guiX + 80, y, 55, 22, "§6Mine", ACCENT_ORANGE, mouseX, mouseY);
+        drawButton(guiX + 140, y, 55, 22, "§bAFK", ACCENT_BLUE, mouseX, mouseY);
+        drawButton(guiX + 200, y, 55, 22, "§eRepair", ACCENT_YELLOW, mouseX, mouseY);
+        drawButton(guiX + 260, y, 55, 22, "§dOX", ACCENT_PURPLE, mouseX, mouseY);
+        drawButton(guiX + 320, y, 55, 22, "§8Obsid", 0xFF444444, mouseX, mouseY);
         
         // Current state info
         y += 35;
@@ -880,16 +881,18 @@ public class MuzModGuiModern extends GuiScreen {
             // State buttons - "Manuel Durum:" label'dan sonra y += 14 var
             y += 30; // Label satırı
             y += 14; // Butonlar label'dan 14 piksel aşağıda
-            if (isInside(mouseX, mouseY, guiX + 20, y, 65, 22)) {
+            if (isInside(mouseX, mouseY, guiX + 20, y, 55, 22)) {
                 MuzMod.instance.getStateManager().forceState("idle");
-            } else if (isInside(mouseX, mouseY, guiX + 90, y, 65, 22)) {
+            } else if (isInside(mouseX, mouseY, guiX + 80, y, 55, 22)) {
                 MuzMod.instance.getStateManager().forceState("mining");
-            } else if (isInside(mouseX, mouseY, guiX + 160, y, 65, 22)) {
+            } else if (isInside(mouseX, mouseY, guiX + 140, y, 55, 22)) {
                 MuzMod.instance.getStateManager().forceState("afk");
-            } else if (isInside(mouseX, mouseY, guiX + 230, y, 65, 22)) {
+            } else if (isInside(mouseX, mouseY, guiX + 200, y, 55, 22)) {
                 MuzMod.instance.getStateManager().forceState("repair");
-            } else if (isInside(mouseX, mouseY, guiX + 300, y, 65, 22)) {
+            } else if (isInside(mouseX, mouseY, guiX + 260, y, 55, 22)) {
                 MuzMod.instance.getStateManager().forceState("ox");
+            } else if (isInside(mouseX, mouseY, guiX + 320, y, 55, 22)) {
+                MuzMod.instance.getStateManager().forceState("obsidian");
             }
         }
         

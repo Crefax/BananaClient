@@ -9,6 +9,7 @@ import com.muzmod.schedule.ScheduleManager;
 import com.muzmod.state.impl.AFKState;
 import com.muzmod.state.impl.IdleState;
 import com.muzmod.state.impl.MiningState;
+import com.muzmod.state.impl.ObsidianState;
 import com.muzmod.state.impl.OXState;
 import com.muzmod.state.impl.RepairState;
 import com.muzmod.state.impl.SafeState;
@@ -36,6 +37,7 @@ public class StateManager {
     private RepairState repairState;
     private SafeState safeState;
     private OXState oxState;
+    private ObsidianState obsidianState;
     
     private int tickCounter = 0;
     private static final int CHECK_INTERVAL = 20; // Check every second (20 ticks)
@@ -59,6 +61,7 @@ public class StateManager {
         repairState = new RepairState();
         safeState = new SafeState();
         oxState = new OXState();
+        obsidianState = new ObsidianState();
         
         states.add(idleState);
         states.add(afkState);
@@ -66,6 +69,7 @@ public class StateManager {
         states.add(repairState);
         states.add(safeState);
         states.add(oxState);
+        states.add(obsidianState);
         
         // Sort by priority (highest first)
         states.sort(Comparator.comparingInt(IState::getPriority).reversed());
@@ -85,15 +89,16 @@ public class StateManager {
         
         // GUI kontrolü - BananaClient GUI'leri ve chat açıkken devam et
         // Diğer Minecraft ekranları (envanter, ESC menü vb.) açıkken durdur
-        // NOT: Repair state GUI içinde çalışır, bu yüzden Repair'da GUI kontrolü yapılmaz
+        // NOT: Repair ve Obsidian state'ler GUI içinde çalışabilir
         if (mc.currentScreen != null) {
             boolean isOurGui = mc.currentScreen instanceof MuzModGui || 
                               mc.currentScreen instanceof MuzModGuiModern;
             boolean isChat = mc.currentScreen instanceof GuiChat;
             boolean isRepairState = currentState != null && currentState.getName().equals("Tamir");
+            boolean isObsidianState = currentState != null && currentState.getName().equals("Obsidyen");
             
-            // Bizim GUI'miz, chat veya Repair state ise devam et
-            if (!isOurGui && !isChat && !isRepairState) {
+            // Bizim GUI'miz, chat veya özel state'ler ise devam et
+            if (!isOurGui && !isChat && !isRepairState && !isObsidianState) {
                 return; // Minecraft ekranı açık - mining durdur
             }
         }
@@ -330,6 +335,10 @@ public class StateManager {
     
     public OXState getOxState() {
         return oxState;
+    }
+    
+    public ObsidianState getObsidianState() {
+        return obsidianState;
     }
     
     public List<IState> getAllStates() {
