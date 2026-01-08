@@ -11,7 +11,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemPickaxe;
 
 /**
- * Repair State v1.6.4
+ * Repair State v1.6.5
  * 
  * Basitleştirilmiş tamir sistemi.
  * Her adım, bir sonraki adıma geçmeden önce configden bekleme süresi bekler.
@@ -175,8 +175,17 @@ public class RepairState extends AbstractState {
         debugInfo = "Adım 2: GUI açılması bekleniyor...";
         setStatus(debugInfo);
         
+        // Debug: Hangi ekran açık?
+        if (mc.currentScreen != null) {
+            MuzMod.LOGGER.info("[Repair] Mevcut ekran: " + mc.currentScreen.getClass().getSimpleName());
+        }
+        
         if (mc.currentScreen instanceof GuiChest) {
             MuzMod.LOGGER.info("[Repair] İlk GUI açıldı!");
+            goToStep(STEP_CLICK_REPAIR);
+        } else if (mc.currentScreen != null && mc.currentScreen.getClass().getSimpleName().contains("Gui")) {
+            // Farklı bir GUI türü olabilir, yine de kontrol et
+            MuzMod.LOGGER.info("[Repair] Farklı GUI türü algılandı, devam ediliyor: " + mc.currentScreen.getClass().getSimpleName());
             goToStep(STEP_CLICK_REPAIR);
         } else if (elapsed > 5000) {
             MuzMod.LOGGER.warn("[Repair] GUI açılmadı, timeout!");
@@ -216,8 +225,17 @@ public class RepairState extends AbstractState {
             return;
         }
         
+        // Debug: Hangi ekran açık?
+        if (mc.currentScreen != null) {
+            MuzMod.LOGGER.info("[Repair] Mevcut ekran (GUI2): " + mc.currentScreen.getClass().getSimpleName());
+        }
+        
         if (mc.currentScreen instanceof GuiChest) {
             MuzMod.LOGGER.info("[Repair] İkinci GUI hazır!");
+            goToStep(STEP_PUT_PICKAXE);
+        } else if (mc.currentScreen != null && mc.currentScreen.getClass().getSimpleName().contains("Gui")) {
+            // Farklı bir GUI türü olabilir
+            MuzMod.LOGGER.info("[Repair] Farklı GUI türü (GUI2), devam ediliyor: " + mc.currentScreen.getClass().getSimpleName());
             goToStep(STEP_PUT_PICKAXE);
         } else if (elapsed > 5000) {
             MuzMod.LOGGER.warn("[Repair] İkinci GUI timeout!");
