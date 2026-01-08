@@ -11,7 +11,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemPickaxe;
 
 /**
- * Repair State v1.6.3
+ * Repair State v1.6.4
  * 
  * Basitleştirilmiş tamir sistemi.
  * Her adım, bir sonraki adıma geçmeden önce configden bekleme süresi bekler.
@@ -25,6 +25,7 @@ public class RepairState extends AbstractState {
     private long lastActionTime = 0;
     private int retryCount = 0;
     private boolean waitingForAction = false;
+    private int confirmRetryCount = 0; // Onayla butonu için retry sayacı
     
     // Debug
     private String debugInfo = "";
@@ -54,6 +55,7 @@ public class RepairState extends AbstractState {
         lastActionTime = System.currentTimeMillis();
         retryCount = 0;
         waitingForAction = false;
+        confirmRetryCount = 0;
         debugInfo = "Başlatılıyor...";
         remainingWait = 0;
         
@@ -288,12 +290,40 @@ public class RepairState extends AbstractState {
         debugInfo = "Adım 7: Tamamlanıyor...";
         setStatus(debugInfo);
         
-        if (elapsed >= delay * 2) {
-            // GUI hala açıksa kapat
-            if (mc.currentScreen != null) {
-                mc.thePlayer.closeScreen();
+        // GUI kapandıysa tamir başarılı, hemen mining'e dön
+        if (mc.currentScreen == null) {
+            MuzMod.LOGGER.info("[Repair] GUI kapandı, tamir başarılı!");
+            currentStep = STEP_DONE;
+            return;
+        }
+        
+        // GUI hala açıksa kontrol et
+        if (mc.currentScreen instanceof GuiChest) {
+            // Onay beklemesi için delay kadar bekle
+            if (elapsed < delay) {
+                return;
             }
-            MuzMod.LOGGER.info("[Repair] Tamir tamamlandı!");
+            
+            // Hala GUI açık, Onayla butonu var mı kontrol et
+            int confirmSlot = findConfirmSlot();
+            if (confirmSlot != -1 && confirmRetryCount < 3) {
+                // Onayla butonu hala var, tekrar tıkla
+                confirmRetryCount++;
+                MuzMod.LOGGER.warn("[Repair] Onayla hala mevcut, tekrar tıklanıyor (deneme " + confirmRetryCount + "/3)");
+                clickSlot(confirmSlot);
+                lastActionTime = System.currentTimeMillis(); // Timer'ı resetle
+                return;
+            }
+            
+            // 3 deneme yapıldı veya buton yok, zorla kapat
+            if (elapsed >= delay * 2 || confirmRetryCount >= 3) {
+                MuzMod.LOGGER.info("[Repair] GUI zorla kapatılıyor");
+                mc.thePlayer.closeScreen();
+                currentStep = STEP_DONE;
+            }
+        } else {
+            // Farklı bir ekran açık, kapat
+            mc.thePlayer.closeScreen();
             currentStep = STEP_DONE;
         }
     }
