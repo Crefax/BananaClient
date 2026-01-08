@@ -4,31 +4,25 @@ import com.muzmod.MuzMod;
 import com.muzmod.config.ModConfig;
 import com.muzmod.state.AbstractState;
 import com.muzmod.util.InputSimulator;
-import com.muzmod.navigation.NavigationManager;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
 
 import java.util.*;
 
 /**
- * Obsidian Mining State v1.1.0
+ * Obsidian Mining State v2.0.0
  * 
- * Atolye bölgesinde obsidyen kazma sistemi.
+ * Dynamic snake-like obsidian mining system.
  * 
- * Özellikler:
- * - /warp atolye ile ışınlanma
- * - Config'den okunan ilk hareket (ileri + yan tek seferde)
- * - En üst obsidyen tabakasına gitme
- * - Obsidyenlerin dışına çıkmama
- * - Değişken patern ile kazma (aynı yönde sürekli gitmeme)
- * - Diğer oyuncuların kazdığı boş alanlara gitmeme
- * - A* benzeri hedef belirleme
+ * Features:
+ * - Warp to atolye
+ * - Two-step initial movement (forward then side)
+ * - Dynamic distance calculation based on available obsidian
+ * - Snake pattern mining (always moving forward, occasional turns)
+ * - Never stays in one place mining around
  */
 public class ObsidianState extends AbstractState {
     
@@ -36,31 +30,32 @@ public class ObsidianState extends AbstractState {
     private final Random random = new Random();
     private final ModConfig config = MuzMod.instance.getConfig();
     
-    // Fazlar
+    // Phases
     private ObsidianPhase phase = ObsidianPhase.WARPING;
     private long phaseStartTime = 0;
     private long lastActionTime = 0;
     
-    // Warp ayarları (config'den okunacak)
+    // Warp settings
     private static final long WARP_DELAY = 3000;
     
-    // İlk hareket hedefi
-    private BlockPos initialTarget = null;
-    private boolean initialMoveCompleted = false;
+    // Two-step initial movement
+    private int firstWalkTarget = 0;      // First walk distance (forward)
+    private int secondWalkTarget = 0;     // Second walk distance (side)
+    private double walkedDistance = 0;
+    private BlockPos walkStartPos = null;
+    private boolean firstWalkDone = false;
+    private boolean secondWalkDone = false;
     
-    // Obsidyen alan bilgileri
-    private BlockPos topLayerY = null;  // En üst obsidyen seviyesi
-    private BlockPos miningCenter = null;  // Mining merkezi
-    private Set<BlockPos> obsidianBounds = new HashSet<>();  // Obsidyen sınırları
+    // Mining direction (yaw)
+    private float miningYaw = 0;          // Current mining direction
+    private int blocksMinedInRow = 0;     // Blocks mined in current direction
+    private int targetBlocksInRow = 0;    // How many blocks to mine before turning
     
-    // Hareket ve kazma
+    // Current target obsidian
     private BlockPos currentTarget = null;
-    private int blocksMinedInDirection = 0;
-    private float currentYaw = 0;
-    private int directionChanges = 0;
-    private static final int BLOCKS_BEFORE_TURN = 8;  // Kaç blok sonra yön değiştir
+    private int obsidianY = -1;           // Y level of obsidian layer
     
-    // Retry ve güvenlik
+    // Stuck detection
     private int retryCount = 0;
     private static final int MAX_RETRIES = 3;
     private long stuckCheckTime = 0;
@@ -71,22 +66,20 @@ public class ObsidianState extends AbstractState {
     private String debugInfo = "";
     
     private enum ObsidianPhase {
-        WARPING,           // Atolye'ye ışınlanma
-        WAITING_WARP,      // Warp'ın tamamlanmasını bekle
-        INITIAL_MOVE,      // Config'den okunan ilk hareket (tek seferde)
-        FINDING_TOP,       // En üst obsidyen tabakasını bul
-        POSITIONING,       // Doğru pozisyona git
-        DESCENDING,        // 1 blok aşağı in
-        SCANNING,          // Çevreyi tara, hedef belirle
-        MINING,            // Obsidyen kaz
-        REPOSITIONING,     // Yön değiştir
-        WALKING,           // Hedef bloğa yürü
-        DONE,              // Tamamlandı
-        FAILED             // Başarısız
+        WARPING,           // Teleporting to atolye
+        WAITING_WARP,      // Waiting for warp
+        FIRST_WALK,        // Walking forward (dynamic distance)
+        SECOND_WALK,       // Walking to side (dynamic distance)
+        FIND_OBSIDIAN,     // Finding obsidian level
+        MINING,            // Mining obsidian (snake pattern)
+        WALKING_FORWARD,   // Walking forward on obsidian
+        TURNING,           // Turning 90 degrees
+        DONE,
+        FAILED
     }
     
     public ObsidianState() {
-        this.status = "Obsidyen hazır";
+        this.status = "Obsidian ready";
     }
     
     @Override
@@ -97,24 +90,29 @@ public class ObsidianState extends AbstractState {
         phaseStartTime = System.currentTimeMillis();
         lastActionTime = System.currentTimeMillis();
         retryCount = 0;
-        blocksMinedInDirection = 0;
-        directionChanges = 0;
+        
+        firstWalkTarget = 0;
+        secondWalkTarget = 0;
+        walkedDistance = 0;
+        walkStartPos = null;
+        firstWalkDone = false;
+        secondWalkDone = false;
+        
+        miningYaw = 0;
+        blocksMinedInRow = 0;
+        targetBlocksInRow = 0;
         currentTarget = null;
-        topLayerY = null;
-        miningCenter = null;
-        obsidianBounds.clear();
+        obsidianY = -1;
+        
         stuckCounter = 0;
-        initialTarget = null;
-        initialMoveCompleted = false;
+        lastPosition = null;
         
         InputSimulator.releaseAll();
-        setStatus("Obsidyen başlıyor");
+        setStatus("Obsidian starting");
         
         MuzMod.LOGGER.info("[Obsidian] =============================");
-        MuzMod.LOGGER.info("[Obsidian] OBSIDIAN STATE BAŞLADI");
-        MuzMod.LOGGER.info("[Obsidian] Config: Forward=" + config.getObsidianForwardMin() + "-" + config.getObsidianForwardMax() +
-                          ", Side=" + config.getObsidianSideMin() + "-" + config.getObsidianSideMax() + 
-                          ", GoLeft=" + config.isObsidianGoLeft());
+        MuzMod.LOGGER.info("[Obsidian] OBSIDIAN STATE v2.0 STARTED");
+        MuzMod.LOGGER.info("[Obsidian] Dynamic snake mining enabled");
         MuzMod.LOGGER.info("[Obsidian] =============================");
     }
     
@@ -122,7 +120,7 @@ public class ObsidianState extends AbstractState {
     public void onDisable() {
         super.onDisable();
         InputSimulator.releaseAll();
-        MuzMod.LOGGER.info("[Obsidian] OBSIDIAN STATE KAPANDI");
+        MuzMod.LOGGER.info("[Obsidian] OBSIDIAN STATE STOPPED");
     }
     
     @Override
@@ -130,8 +128,6 @@ public class ObsidianState extends AbstractState {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         
         long now = System.currentTimeMillis();
-        
-        // Stuck detection
         checkStuck(now);
         
         switch (phase) {
@@ -141,36 +137,30 @@ public class ObsidianState extends AbstractState {
             case WAITING_WARP:
                 handleWaitingWarp(now);
                 break;
-            case INITIAL_MOVE:
-                handleInitialMove();
+            case FIRST_WALK:
+                handleFirstWalk();
                 break;
-            case FINDING_TOP:
-                handleFindingTop();
+            case SECOND_WALK:
+                handleSecondWalk();
                 break;
-            case POSITIONING:
-                handlePositioning();
-                break;
-            case DESCENDING:
-                handleDescending();
-                break;
-            case SCANNING:
-                handleScanning();
+            case FIND_OBSIDIAN:
+                handleFindObsidian();
                 break;
             case MINING:
                 handleMining();
                 break;
-            case REPOSITIONING:
-                handleRepositioning();
+            case WALKING_FORWARD:
+                handleWalkingForward();
                 break;
-            case WALKING:
-                handleWalking();
+            case TURNING:
+                handleTurning();
                 break;
             case DONE:
-                setStatus("Tamamlandı");
+                setStatus("Completed");
                 MuzMod.instance.getStateManager().forceState("idle");
                 break;
             case FAILED:
-                setStatus("Başarısız!");
+                setStatus("Failed!");
                 MuzMod.instance.getStateManager().forceState("idle");
                 break;
         }
@@ -179,346 +169,358 @@ public class ObsidianState extends AbstractState {
     // ==================== PHASE HANDLERS ====================
     
     private void handleWarping() {
-        debugInfo = "Warp gönderiliyor...";
+        debugInfo = "Warping...";
         setStatus(debugInfo);
         
         String warpCommand = config.getObsidianWarpCommand();
         mc.thePlayer.sendChatMessage(warpCommand);
-        MuzMod.LOGGER.info("[Obsidian] Warp komutu gönderildi: " + warpCommand);
+        MuzMod.LOGGER.info("[Obsidian] Warp sent: " + warpCommand);
         
         setPhase(ObsidianPhase.WAITING_WARP);
-        phaseStartTime = System.currentTimeMillis();
     }
     
     private void handleWaitingWarp(long now) {
-        debugInfo = "Warp bekleniyor...";
+        debugInfo = "Waiting for warp...";
         setStatus(debugInfo);
         
         if (now - phaseStartTime >= WARP_DELAY) {
-            MuzMod.LOGGER.info("[Obsidian] Warp tamamlandı, ilk hareket hesaplanıyor...");
-            setPhase(ObsidianPhase.INITIAL_MOVE);
+            MuzMod.LOGGER.info("[Obsidian] Warp complete, calculating first walk...");
+            setPhase(ObsidianPhase.FIRST_WALK);
         }
     }
     
     /**
-     * İlk hareket - Config'den okunan ileri ve yan mesafeyi
-     * tek bir hedef olarak hesaplayıp NavigationManager'a gönder
+     * First walk - Go forward dynamically based on obsidian ahead
      */
-    private void handleInitialMove() {
-        NavigationManager nav = NavigationManager.getInstance();
-        
-        // Eğer henüz hedef hesaplanmadıysa hesapla
-        if (initialTarget == null) {
-            initialTarget = calculateInitialTarget();
-            MuzMod.LOGGER.info("[Obsidian] İlk hareket hedefi hesaplandı: " + initialTarget);
+    private void handleFirstWalk() {
+        if (walkStartPos == null) {
+            walkStartPos = mc.thePlayer.getPosition();
             
-            debugInfo = "İlk pozisyona gidiliyor...";
-            setStatus(debugInfo);
+            // Calculate how much obsidian is ahead
+            int obsidianAhead = countObsidianInDirection(0); // Forward (current facing)
             
-            // Tek seferde hedefe git
-            nav.goTo(initialTarget).onComplete(() -> {
-                MuzMod.LOGGER.info("[Obsidian] İlk hareket tamamlandı!");
-                initialMoveCompleted = true;
-            });
-            return;
-        }
-        
-        // Navigation tamamlandı mı?
-        if (initialMoveCompleted || !nav.isNavigating()) {
-            MuzMod.LOGGER.info("[Obsidian] İlk hareket bitti, üst tabaka aranıyor...");
-            setPhase(ObsidianPhase.FINDING_TOP);
-            return;
-        }
-        
-        // Navigation devam ediyor
-        debugInfo = String.format("İlk pozisyona gidiliyor... (%.1f blok kaldı)", 
-            Math.sqrt(mc.thePlayer.getPosition().distanceSq(initialTarget)));
-        setStatus(debugInfo);
-    }
-    
-    /**
-     * Config'den okunan değerlerle ilk hareket hedefini hesapla
-     * 
-     * Oyuncu spawn'da güneye (Z+) bakıyor kabul ediyoruz.
-     * İleri = Z+ yönünde (güney)
-     * Sol = X- yönünde (batı)
-     * Sağ = X+ yönünde (doğu)
-     */
-    private BlockPos calculateInitialTarget() {
-        BlockPos playerPos = mc.thePlayer.getPosition();
-        
-        // Config'den değerleri al
-        int forwardMin = config.getObsidianForwardMin();
-        int forwardMax = config.getObsidianForwardMax();
-        int sideMin = config.getObsidianSideMin();
-        int sideMax = config.getObsidianSideMax();
-        boolean goLeft = config.isObsidianGoLeft();
-        
-        // Rastgele mesafeler belirle
-        int forwardDist = forwardMin + random.nextInt(Math.max(1, forwardMax - forwardMin + 1));
-        int sideDist = sideMin + random.nextInt(Math.max(1, sideMax - sideMin + 1));
-        
-        MuzMod.LOGGER.info("[Obsidian] Hesaplanan mesafeler: ileri=" + forwardDist + ", yan=" + sideDist + ", sol=" + goLeft);
-        
-        // Hedef pozisyonu hesapla
-        // İleri = Z+ (güney)
-        // Sol = X- (batı), Sağ = X+ (doğu)
-        int targetX = playerPos.getX() + (goLeft ? -sideDist : sideDist);
-        int targetZ = playerPos.getZ() + forwardDist;
-        int targetY = playerPos.getY();
-        
-        return new BlockPos(targetX, targetY, targetZ);
-    }
-    
-    private void handleFindingTop() {
-        debugInfo = "En üst obsidyen tabakası aranıyor...";
-        setStatus(debugInfo);
-        
-        // Çevrede obsidyen ara
-        BlockPos playerPos = mc.thePlayer.getPosition();
-        int searchRadius = 30;
-        int highestY = -1;
-        BlockPos highestObsidian = null;
-        
-        // Obsidyen alanını tara
-        for (int x = -searchRadius; x <= searchRadius; x++) {
-            for (int z = -searchRadius; z <= searchRadius; z++) {
-                for (int y = 10; y >= -10; y--) {  // Yukarıdan aşağı tara
-                    BlockPos checkPos = playerPos.add(x, y, z);
-                    Block block = mc.theWorld.getBlockState(checkPos).getBlock();
-                    
-                    if (block == Blocks.obsidian) {
-                        if (checkPos.getY() > highestY) {
-                            highestY = checkPos.getY();
-                            highestObsidian = checkPos;
-                        }
-                        obsidianBounds.add(checkPos);
-                    }
-                }
-            }
-        }
-        
-        if (highestObsidian != null) {
-            topLayerY = new BlockPos(highestObsidian.getX(), highestY, highestObsidian.getZ());
-            miningCenter = playerPos;
-            MuzMod.LOGGER.info("[Obsidian] En üst tabaka bulundu: Y=" + highestY + ", Toplam obsidyen: " + obsidianBounds.size());
-            setPhase(ObsidianPhase.POSITIONING);
-        } else {
-            MuzMod.LOGGER.warn("[Obsidian] Obsidyen bulunamadı!");
-            retryOrFail();
-        }
-    }
-    
-    private void handlePositioning() {
-        debugInfo = "Üst tabakaya gidiliyor...";
-        setStatus(debugInfo);
-        
-        BlockPos playerPos = mc.thePlayer.getPosition();
-        int targetY = topLayerY.getY() + 1;  // Obsidyenin 1 üstünde dur
-        
-        // Yatay mesafeyi kontrol et
-        BlockPos nearestTopObsidian = findNearestObsidianAtY(playerPos, topLayerY.getY());
-        
-        if (nearestTopObsidian == null) {
-            MuzMod.LOGGER.warn("[Obsidian] Üst tabakada obsidyen bulunamadı");
-            setPhase(ObsidianPhase.SCANNING);
-            return;
-        }
-        
-        double horizontalDist = Math.sqrt(
-            Math.pow(playerPos.getX() - nearestTopObsidian.getX(), 2) +
-            Math.pow(playerPos.getZ() - nearestTopObsidian.getZ(), 2)
-        );
-        
-        // Üst tabakadayız mı?
-        if (playerPos.getY() == targetY && horizontalDist < 3) {
-            MuzMod.LOGGER.info("[Obsidian] Üst tabakada, aşağı iniliyor...");
-            setPhase(ObsidianPhase.DESCENDING);
-            return;
-        }
-        
-        // Üst tabakaya git
-        // Basit yürüyüş - en yakın üst obsidyene doğru
-        float[] rotation = getRotationToBlock(nearestTopObsidian.up());
-        smoothRotateTo(rotation[0], rotation[1]);
-        
-        if (mc.thePlayer.onGround) {
-            InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
-            
-            // Zıplama gerekiyorsa
-            if (playerPos.getY() < targetY) {
-                InputSimulator.holdKey(mc.gameSettings.keyBindJump, true);
-            }
-        }
-    }
-    
-    private void handleDescending() {
-        debugInfo = "Obsidyen seviyesine iniliyor...";
-        setStatus(debugInfo);
-        
-        InputSimulator.releaseAll();
-        
-        BlockPos playerPos = mc.thePlayer.getPosition();
-        int obsidianY = topLayerY.getY();
-        
-        // Şu an obsidyen seviyesindeyiz mi? (Obsidyenin üstünde duruyoruz)
-        BlockPos below = playerPos.down();
-        Block blockBelow = mc.theWorld.getBlockState(below).getBlock();
-        
-        if (blockBelow == Blocks.obsidian && playerPos.getY() == obsidianY + 1) {
-            // Doğru pozisyondayız, şimdi önümüzdeki obsidyeni kazarak ilerleyeceğiz
-            MuzMod.LOGGER.info("[Obsidian] Obsidyen seviyesine ulaşıldı, kazma başlıyor...");
-            
-            // Rastgele başlangıç yönü belirle
-            currentYaw = mc.thePlayer.rotationYaw;
-            // 4 ana yönden birine yuvarla
-            currentYaw = Math.round(currentYaw / 90) * 90;
-            
-            setPhase(ObsidianPhase.SCANNING);
-            return;
-        }
-        
-        // Henüz doğru pozisyonda değiliz, aşağı bakalım ve önümüzdeki bloğu kazalım
-        // Veya üstteki bloğu kazalım
-        BlockPos above = playerPos.up();
-        Block blockAbove = mc.theWorld.getBlockState(above).getBlock();
-        
-        if (blockAbove != Blocks.air) {
-            // Üstteki bloğu kaz
-            lookAtBlock(above);
-            InputSimulator.holdLeftClick(true);
-        } else if (playerPos.getY() > obsidianY + 1) {
-            // Aşağı in
-            // Ayağımızın altındaki bloğu kaz
-            lookAtBlock(below);
-            if (blockBelow != Blocks.obsidian) {
-                InputSimulator.holdLeftClick(true);
-            }
-        }
-    }
-    
-    private void handleScanning() {
-        debugInfo = "Hedef aranıyor...";
-        setStatus(debugInfo);
-        
-        InputSimulator.releaseAll();
-        
-        // En iyi kazma hedefini bul
-        currentTarget = findBestMiningTarget();
-        
-        if (currentTarget != null) {
-            MuzMod.LOGGER.info("[Obsidian] Hedef bulundu: " + currentTarget);
-            setPhase(ObsidianPhase.MINING);
-        } else {
-            // Hedef bulunamadı, yön değiştir
-            MuzMod.LOGGER.info("[Obsidian] Hedef bulunamadı, yön değiştiriliyor...");
-            setPhase(ObsidianPhase.REPOSITIONING);
-        }
-    }
-    
-    private void handleMining() {
-        if (currentTarget == null) {
-            setPhase(ObsidianPhase.SCANNING);
-            return;
-        }
-        
-        Block targetBlock = mc.theWorld.getBlockState(currentTarget).getBlock();
-        
-        // Hedef blok hala obsidyen mi?
-        if (targetBlock != Blocks.obsidian) {
-            blocksMinedInDirection++;
-            MuzMod.LOGGER.info("[Obsidian] Blok kazıldı, toplam: " + blocksMinedInDirection);
-            
-            // Belirli sayıda blok sonra yön değiştir
-            if (blocksMinedInDirection >= BLOCKS_BEFORE_TURN + random.nextInt(5)) {
-                blocksMinedInDirection = 0;
-                directionChanges++;
-                setPhase(ObsidianPhase.REPOSITIONING);
+            if (obsidianAhead < 5) {
+                // Not enough obsidian ahead, skip first walk
+                MuzMod.LOGGER.info("[Obsidian] Not enough obsidian ahead (" + obsidianAhead + "), skipping first walk");
+                firstWalkDone = true;
+                walkStartPos = null;
+                setPhase(ObsidianPhase.SECOND_WALK);
                 return;
             }
             
-            // Yeni hedef bul
-            setPhase(ObsidianPhase.SCANNING);
+            // Walk 30-80% of available distance
+            float ratio = 0.3f + random.nextFloat() * 0.5f;
+            firstWalkTarget = Math.max(5, (int)(obsidianAhead * ratio));
+            
+            MuzMod.LOGGER.info("[Obsidian] First walk: " + firstWalkTarget + " blocks (obsidian ahead: " + obsidianAhead + ")");
+            
+            debugInfo = "First walk: " + firstWalkTarget + " blocks";
+            setStatus(debugInfo);
+        }
+        
+        // Calculate walked distance
+        walkedDistance = Math.sqrt(
+            Math.pow(mc.thePlayer.posX - walkStartPos.getX(), 2) +
+            Math.pow(mc.thePlayer.posZ - walkStartPos.getZ(), 2)
+        );
+        
+        debugInfo = String.format("Walking forward... %.1f/%d", walkedDistance, firstWalkTarget);
+        setStatus(debugInfo);
+        
+        // Check if arrived
+        if (walkedDistance >= firstWalkTarget) {
+            InputSimulator.releaseAll();
+            MuzMod.LOGGER.info("[Obsidian] First walk complete");
+            firstWalkDone = true;
+            walkStartPos = null;
+            walkedDistance = 0;
+            setPhase(ObsidianPhase.SECOND_WALK);
             return;
         }
         
-        // Hedefe bak ve kaz
-        float[] rotation = getRotationToBlock(currentTarget);
-        smoothRotateTo(rotation[0], rotation[1]);
+        // Keep walking forward
+        InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
         
-        // Rotasyon tamamlandıysa kaz
-        float yawDiff = Math.abs(mc.thePlayer.rotationYaw - rotation[0]);
-        while (yawDiff > 180) yawDiff -= 360;
-        
-        if (Math.abs(yawDiff) < 5) {
-            InputSimulator.holdLeftClick(true);
-            debugInfo = String.format("Obsidyen kazılıyor... (%d/%d)", 
-                blocksMinedInDirection, BLOCKS_BEFORE_TURN);
-            setStatus(debugInfo);
+        // Jump if needed
+        if (shouldJump()) {
+            InputSimulator.holdKey(mc.gameSettings.keyBindJump, true);
         } else {
-            InputSimulator.releaseLeftClick();
-            debugInfo = "Hedefe dönülüyor...";
-            setStatus(debugInfo);
+            InputSimulator.releaseKey(mc.gameSettings.keyBindJump);
         }
     }
     
-    private void handleRepositioning() {
-        debugInfo = "Yön değiştiriliyor...";
+    /**
+     * Second walk - Go to side (left or right based on config)
+     */
+    private void handleSecondWalk() {
+        if (walkStartPos == null) {
+            walkStartPos = mc.thePlayer.getPosition();
+            
+            // Turn to side direction first
+            boolean goLeft = config.isObsidianGoLeft();
+            float targetYaw = mc.thePlayer.rotationYaw + (goLeft ? -90 : 90);
+            mc.thePlayer.rotationYaw = targetYaw;
+            
+            // Count obsidian in side direction
+            int obsidianSide = countObsidianInDirection(goLeft ? -90 : 90);
+            
+            if (obsidianSide < 3) {
+                // Not enough obsidian to side, go to mining
+                MuzMod.LOGGER.info("[Obsidian] Not enough obsidian to side (" + obsidianSide + "), starting mining");
+                secondWalkDone = true;
+                walkStartPos = null;
+                setPhase(ObsidianPhase.FIND_OBSIDIAN);
+                return;
+            }
+            
+            // Walk 30-80% of available distance
+            float ratio = 0.3f + random.nextFloat() * 0.5f;
+            secondWalkTarget = Math.max(3, (int)(obsidianSide * ratio));
+            
+            MuzMod.LOGGER.info("[Obsidian] Second walk: " + secondWalkTarget + " blocks (obsidian side: " + obsidianSide + ")");
+            
+            debugInfo = "Second walk: " + secondWalkTarget + " blocks";
+            setStatus(debugInfo);
+        }
+        
+        // Calculate walked distance
+        walkedDistance = Math.sqrt(
+            Math.pow(mc.thePlayer.posX - walkStartPos.getX(), 2) +
+            Math.pow(mc.thePlayer.posZ - walkStartPos.getZ(), 2)
+        );
+        
+        debugInfo = String.format("Walking to side... %.1f/%d", walkedDistance, secondWalkTarget);
+        setStatus(debugInfo);
+        
+        // Check if arrived
+        if (walkedDistance >= secondWalkTarget) {
+            InputSimulator.releaseAll();
+            MuzMod.LOGGER.info("[Obsidian] Second walk complete");
+            secondWalkDone = true;
+            walkStartPos = null;
+            walkedDistance = 0;
+            setPhase(ObsidianPhase.FIND_OBSIDIAN);
+            return;
+        }
+        
+        // Keep walking forward (we already turned)
+        InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
+        
+        if (shouldJump()) {
+            InputSimulator.holdKey(mc.gameSettings.keyBindJump, true);
+        } else {
+            InputSimulator.releaseKey(mc.gameSettings.keyBindJump);
+        }
+    }
+    
+    /**
+     * Find obsidian layer and set up mining direction
+     */
+    private void handleFindObsidian() {
+        debugInfo = "Finding obsidian...";
         setStatus(debugInfo);
         
         InputSimulator.releaseAll();
         
-        // Yeni yön belirle (90 derece sağa veya sola)
-        float turnAmount = random.nextBoolean() ? 90 : -90;
+        BlockPos playerPos = mc.thePlayer.getPosition();
         
-        // Bazen 180 derece dön
-        if (random.nextFloat() < 0.2f) {
-            turnAmount = 180;
+        // Search for obsidian below and around
+        for (int y = 0; y >= -5; y--) {
+            BlockPos checkPos = playerPos.add(0, y, 0);
+            if (mc.theWorld.getBlockState(checkPos).getBlock() == Blocks.obsidian) {
+                obsidianY = checkPos.getY();
+                MuzMod.LOGGER.info("[Obsidian] Found obsidian at Y=" + obsidianY);
+                break;
+            }
         }
         
-        currentYaw += turnAmount;
-        // Normalize
-        while (currentYaw > 180) currentYaw -= 360;
-        while (currentYaw < -180) currentYaw += 360;
+        if (obsidianY == -1) {
+            // Check nearby
+            for (int x = -3; x <= 3; x++) {
+                for (int z = -3; z <= 3; z++) {
+                    for (int y = 2; y >= -5; y--) {
+                        BlockPos checkPos = playerPos.add(x, y, z);
+                        if (mc.theWorld.getBlockState(checkPos).getBlock() == Blocks.obsidian) {
+                            obsidianY = checkPos.getY();
+                            MuzMod.LOGGER.info("[Obsidian] Found obsidian nearby at Y=" + obsidianY);
+                            break;
+                        }
+                    }
+                    if (obsidianY != -1) break;
+                }
+                if (obsidianY != -1) break;
+            }
+        }
         
-        MuzMod.LOGGER.info("[Obsidian] Yeni yön: " + currentYaw + "° (dönüş: " + turnAmount + "°)");
+        if (obsidianY == -1) {
+            MuzMod.LOGGER.warn("[Obsidian] No obsidian found!");
+            retryOrFail();
+            return;
+        }
         
-        // Dönüşü uygula
-        smoothRotateTo(currentYaw, 0);
+        // Set initial mining direction (current yaw, rounded to 90)
+        miningYaw = Math.round(mc.thePlayer.rotationYaw / 90) * 90;
         
-        // Dönüş tamamlandıysa taramaya geç
-        float diff = Math.abs(mc.thePlayer.rotationYaw - currentYaw);
-        while (diff > 180) diff -= 360;
+        // Calculate how many blocks to mine in this direction
+        targetBlocksInRow = calculateTargetBlocks();
+        blocksMinedInRow = 0;
         
-        if (Math.abs(diff) < 5) {
-            setPhase(ObsidianPhase.SCANNING);
+        MuzMod.LOGGER.info("[Obsidian] Mining direction: " + miningYaw + "°, target: " + targetBlocksInRow + " blocks");
+        
+        setPhase(ObsidianPhase.MINING);
+    }
+    
+    /**
+     * Main mining phase - snake pattern
+     * Always mine forward, never stay in place
+     */
+    private void handleMining() {
+        BlockPos playerPos = mc.thePlayer.getPosition();
+        
+        // Find obsidian to mine in front
+        currentTarget = findObsidianAhead();
+        
+        if (currentTarget == null) {
+            // No obsidian ahead, need to turn
+            MuzMod.LOGGER.info("[Obsidian] No obsidian ahead, turning...");
+            setPhase(ObsidianPhase.TURNING);
+            return;
+        }
+        
+        // Check if we should turn (mined enough in this direction)
+        if (blocksMinedInRow >= targetBlocksInRow) {
+            MuzMod.LOGGER.info("[Obsidian] Reached target blocks (" + blocksMinedInRow + "), turning...");
+            setPhase(ObsidianPhase.TURNING);
+            return;
+        }
+        
+        // Look at target
+        float[] rotation = getRotationToBlock(currentTarget);
+        smoothRotateTo(rotation[0], rotation[1]);
+        
+        // Check if block is still obsidian
+        Block targetBlock = mc.theWorld.getBlockState(currentTarget).getBlock();
+        if (targetBlock != Blocks.obsidian) {
+            // Block was mined, move forward
+            blocksMinedInRow++;
+            MuzMod.LOGGER.info("[Obsidian] Block mined, total in row: " + blocksMinedInRow);
+            setPhase(ObsidianPhase.WALKING_FORWARD);
+            return;
+        }
+        
+        // Check rotation
+        float yawDiff = Math.abs(mc.thePlayer.rotationYaw - rotation[0]);
+        while (yawDiff > 180) yawDiff -= 360;
+        yawDiff = Math.abs(yawDiff);
+        
+        if (yawDiff < 10) {
+            // Mining
+            InputSimulator.holdLeftClick(true);
+            debugInfo = String.format("Mining... (%d/%d in row)", blocksMinedInRow, targetBlocksInRow);
+            setStatus(debugInfo);
+        } else {
+            InputSimulator.releaseLeftClick();
+            debugInfo = "Turning to target...";
+            setStatus(debugInfo);
         }
     }
     
-    private void handleWalking() {
-        // İleri yürü (obsidyen olmayan alana)
-        if (currentTarget == null) {
-            setPhase(ObsidianPhase.SCANNING);
+    /**
+     * Walk forward after mining a block
+     */
+    private void handleWalkingForward() {
+        debugInfo = "Walking forward...";
+        setStatus(debugInfo);
+        
+        InputSimulator.releaseLeftClick();
+        
+        // Face mining direction
+        smoothRotateTo(miningYaw, 0);
+        
+        float yawDiff = Math.abs(mc.thePlayer.rotationYaw - miningYaw);
+        while (yawDiff > 180) yawDiff -= 360;
+        yawDiff = Math.abs(yawDiff);
+        
+        if (yawDiff > 15) {
+            // Still turning
             return;
         }
         
+        // Check if we're on obsidian or close to next target
         BlockPos playerPos = mc.thePlayer.getPosition();
-        double dist = playerPos.distanceSq(currentTarget);
+        BlockPos ahead = getBlockAhead(1);
         
-        if (dist < 4) {
-            // Hedefe ulaştık
+        // If ahead has obsidian at mining level, go to mining
+        BlockPos obsidianAhead = new BlockPos(ahead.getX(), obsidianY, ahead.getZ());
+        if (mc.theWorld.getBlockState(obsidianAhead).getBlock() == Blocks.obsidian) {
             InputSimulator.releaseAll();
-            setPhase(ObsidianPhase.SCANNING);
+            setPhase(ObsidianPhase.MINING);
             return;
         }
         
-        // Hedefe yürü
-        float[] rotation = getRotationToBlock(currentTarget);
-        smoothRotateTo(rotation[0], rotation[1]);
+        // Walk forward
         InputSimulator.holdKey(mc.gameSettings.keyBindForward, true);
         
-        debugInfo = "Hedefe yürünüyor...";
+        // Check if we walked far enough (simple distance check)
+        if (walkStartPos == null) {
+            walkStartPos = playerPos;
+        }
+        
+        double walked = Math.sqrt(
+            Math.pow(mc.thePlayer.posX - walkStartPos.getX(), 2) +
+            Math.pow(mc.thePlayer.posZ - walkStartPos.getZ(), 2)
+        );
+        
+        if (walked >= 1.0) {
+            InputSimulator.releaseAll();
+            walkStartPos = null;
+            setPhase(ObsidianPhase.MINING);
+        }
+    }
+    
+    /**
+     * Turn 90 degrees for snake pattern
+     */
+    private void handleTurning() {
+        debugInfo = "Turning...";
         setStatus(debugInfo);
+        
+        InputSimulator.releaseAll();
+        
+        // Decide turn direction (prefer alternating)
+        boolean turnLeft = (blocksMinedInRow % 2 == 0) ? random.nextBoolean() : !random.nextBoolean();
+        
+        // Check which side has more obsidian
+        int leftObs = countObsidianInDirection(-90);
+        int rightObs = countObsidianInDirection(90);
+        
+        if (leftObs > rightObs + 3) {
+            turnLeft = true;
+        } else if (rightObs > leftObs + 3) {
+            turnLeft = false;
+        }
+        
+        float targetYaw = miningYaw + (turnLeft ? -90 : 90);
+        
+        // Normalize
+        while (targetYaw > 180) targetYaw -= 360;
+        while (targetYaw < -180) targetYaw += 360;
+        
+        smoothRotateTo(targetYaw, 0);
+        
+        float yawDiff = Math.abs(mc.thePlayer.rotationYaw - targetYaw);
+        while (yawDiff > 180) yawDiff -= 360;
+        yawDiff = Math.abs(yawDiff);
+        
+        if (yawDiff < 10) {
+            // Turn complete
+            miningYaw = targetYaw;
+            blocksMinedInRow = 0;
+            targetBlocksInRow = calculateTargetBlocks();
+            
+            MuzMod.LOGGER.info("[Obsidian] Turned to " + miningYaw + "°, new target: " + targetBlocksInRow + " blocks");
+            setPhase(ObsidianPhase.MINING);
+        }
     }
     
     // ==================== HELPER METHODS ====================
@@ -527,73 +529,82 @@ public class ObsidianState extends AbstractState {
         phase = newPhase;
         phaseStartTime = System.currentTimeMillis();
         lastActionTime = System.currentTimeMillis();
-        MuzMod.LOGGER.info("[Obsidian] -> Faz: " + newPhase);
-    }
-    
-    private BlockPos findNearestObsidianAtY(BlockPos from, int y) {
-        BlockPos nearest = null;
-        double nearestDist = Double.MAX_VALUE;
-        
-        for (BlockPos pos : obsidianBounds) {
-            if (pos.getY() == y) {
-                double dist = from.distanceSq(pos);
-                if (dist < nearestDist) {
-                    nearestDist = dist;
-                    nearest = pos;
-                }
-            }
-        }
-        
-        return nearest;
+        MuzMod.LOGGER.info("[Obsidian] -> Phase: " + newPhase);
     }
     
     /**
-     * En iyi kazma hedefini bul
-     * Kriterler:
-     * - Önümüzde olmalı
-     * - En üst tabakada olmalı
-     * - Boş alanların yanında olmamalı (diğer oyuncuların kazdığı)
-     * - Obsidyen sınırları içinde olmalı
+     * Count obsidian blocks in a direction (relative to current facing)
+     * @param angleOffset 0=forward, 90=right, -90=left
      */
-    private BlockPos findBestMiningTarget() {
+    private int countObsidianInDirection(float angleOffset) {
+        if (mc.thePlayer == null || mc.theWorld == null) return 0;
+        
         BlockPos playerPos = mc.thePlayer.getPosition();
-        int obsidianY = topLayerY.getY();
+        float checkYaw = mc.thePlayer.rotationYaw + angleOffset;
+        double rad = Math.toRadians(checkYaw);
         
-        // Önümüzdeki yöne doğru tara
-        double rad = Math.toRadians(currentYaw);
+        int count = 0;
         
-        // 1-5 blok önümüzü tara
-        for (int dist = 1; dist <= 5; dist++) {
+        // Check up to 50 blocks in that direction
+        for (int dist = 1; dist <= 50; dist++) {
+            int checkX = playerPos.getX() - (int)(Math.sin(rad) * dist);
+            int checkZ = playerPos.getZ() + (int)(Math.cos(rad) * dist);
+            
+            // Check a few Y levels around player
+            boolean foundObsidian = false;
+            for (int y = -3; y <= 3; y++) {
+                BlockPos checkPos = new BlockPos(checkX, playerPos.getY() + y, checkZ);
+                if (mc.theWorld.getBlockState(checkPos).getBlock() == Blocks.obsidian) {
+                    foundObsidian = true;
+                    break;
+                }
+            }
+            
+            if (foundObsidian) {
+                count++;
+            } else {
+                // Gap in obsidian, stop counting
+                break;
+            }
+        }
+        
+        return count;
+    }
+    
+    /**
+     * Calculate how many blocks to mine in current direction
+     * Based on available obsidian
+     */
+    private int calculateTargetBlocks() {
+        int obsidianAhead = countObsidianInDirection(0);
+        
+        if (obsidianAhead < 3) {
+            return obsidianAhead;
+        }
+        
+        // Mine 40-90% of available, randomized
+        float ratio = 0.4f + random.nextFloat() * 0.5f;
+        int target = (int)(obsidianAhead * ratio);
+        
+        // Clamp between 3 and 20
+        return Math.max(3, Math.min(20, target));
+    }
+    
+    /**
+     * Find obsidian block directly ahead to mine
+     */
+    private BlockPos findObsidianAhead() {
+        BlockPos playerPos = mc.thePlayer.getPosition();
+        double rad = Math.toRadians(miningYaw);
+        
+        // Check 1-4 blocks ahead at obsidian level
+        for (int dist = 1; dist <= 4; dist++) {
             int checkX = playerPos.getX() - (int)(Math.sin(rad) * dist);
             int checkZ = playerPos.getZ() + (int)(Math.cos(rad) * dist);
             
             BlockPos checkPos = new BlockPos(checkX, obsidianY, checkZ);
-            Block block = mc.theWorld.getBlockState(checkPos).getBlock();
-            
-            if (block == Blocks.obsidian) {
-                // Bu obsidyenin yanında çok fazla boşluk var mı kontrol et
-                if (!isNearEmptyArea(checkPos)) {
-                    return checkPos;
-                }
-            }
-        }
-        
-        // Önde obsidyen yoksa, yanlarda ara
-        for (int angle = -45; angle <= 45; angle += 15) {
-            if (angle == 0) continue;
-            
-            double checkRad = Math.toRadians(currentYaw + angle);
-            
-            for (int dist = 1; dist <= 3; dist++) {
-                int checkX = playerPos.getX() - (int)(Math.sin(checkRad) * dist);
-                int checkZ = playerPos.getZ() + (int)(Math.cos(checkRad) * dist);
-                
-                BlockPos checkPos = new BlockPos(checkX, obsidianY, checkZ);
-                Block block = mc.theWorld.getBlockState(checkPos).getBlock();
-                
-                if (block == Blocks.obsidian && !isNearEmptyArea(checkPos)) {
-                    return checkPos;
-                }
+            if (mc.theWorld.getBlockState(checkPos).getBlock() == Blocks.obsidian) {
+                return checkPos;
             }
         }
         
@@ -601,47 +612,31 @@ public class ObsidianState extends AbstractState {
     }
     
     /**
-     * Bu pozisyon çok fazla boş alanın yanında mı?
-     * (Diğer oyuncuların kazdığı yerler)
+     * Get block position ahead
      */
-    private boolean isNearEmptyArea(BlockPos pos) {
-        int emptyCount = 0;
-        int obsidianY = topLayerY.getY();
-        
-        // 4 yönü kontrol et
-        for (EnumFacing facing : EnumFacing.HORIZONTALS) {
-            BlockPos neighbor = pos.offset(facing);
-            Block block = mc.theWorld.getBlockState(neighbor).getBlock();
-            
-            if (block != Blocks.obsidian) {
-                emptyCount++;
-            }
-        }
-        
-        // 2 veya daha fazla tarafı boşsa, bu bir kenar veya köşe
-        return emptyCount >= 3;
+    private BlockPos getBlockAhead(int distance) {
+        double rad = Math.toRadians(mc.thePlayer.rotationYaw);
+        int x = mc.thePlayer.getPosition().getX() - (int)(Math.sin(rad) * distance);
+        int z = mc.thePlayer.getPosition().getZ() + (int)(Math.cos(rad) * distance);
+        return new BlockPos(x, mc.thePlayer.getPosition().getY(), z);
     }
     
-    /**
-     * Obsidyen alanının dışında mıyız?
-     */
-    private boolean isOutsideObsidianArea(BlockPos pos) {
-        int obsidianY = topLayerY.getY();
+    private boolean shouldJump() {
+        if (!mc.thePlayer.onGround) return false;
         
-        // Bu seviyede herhangi bir obsidyen var mı kontrol et
-        BlockPos checkPos = new BlockPos(pos.getX(), obsidianY, pos.getZ());
+        double rad = Math.toRadians(mc.thePlayer.rotationYaw);
+        double checkX = mc.thePlayer.posX - Math.sin(rad) * 0.8;
+        double checkZ = mc.thePlayer.posZ + Math.cos(rad) * 0.8;
         
-        // 3 blok çapında obsidyen var mı
-        for (int x = -1; x <= 1; x++) {
-            for (int z = -1; z <= 1; z++) {
-                BlockPos nearby = checkPos.add(x, 0, z);
-                if (mc.theWorld.getBlockState(nearby).getBlock() == Blocks.obsidian) {
-                    return false;
-                }
-            }
-        }
+        BlockPos ahead = new BlockPos(checkX, mc.thePlayer.posY, checkZ);
+        BlockPos aboveAhead = ahead.up();
         
-        return true;
+        Block blockAhead = mc.theWorld.getBlockState(ahead).getBlock();
+        
+        boolean blocked = !mc.theWorld.isAirBlock(ahead) && !blockAhead.isPassable(mc.theWorld, ahead);
+        boolean spaceAbove = mc.theWorld.isAirBlock(aboveAhead) && mc.theWorld.isAirBlock(aboveAhead.up());
+        
+        return blocked && spaceAbove;
     }
     
     private void checkStuck(long now) {
@@ -654,9 +649,9 @@ public class ObsidianState extends AbstractState {
             stuckCounter++;
             
             if (stuckCounter >= 5) {
-                MuzMod.LOGGER.warn("[Obsidian] Stuck detected, repositioning...");
+                MuzMod.LOGGER.warn("[Obsidian] Stuck detected, turning...");
                 stuckCounter = 0;
-                setPhase(ObsidianPhase.REPOSITIONING);
+                setPhase(ObsidianPhase.TURNING);
             }
         } else {
             stuckCounter = 0;
@@ -668,7 +663,7 @@ public class ObsidianState extends AbstractState {
     private void retryOrFail() {
         retryCount++;
         if (retryCount >= MAX_RETRIES) {
-            MuzMod.LOGGER.error("[Obsidian] Max retry aşıldı!");
+            MuzMod.LOGGER.error("[Obsidian] Max retries exceeded!");
             setPhase(ObsidianPhase.FAILED);
         } else {
             MuzMod.LOGGER.info("[Obsidian] Retry " + retryCount + "/" + MAX_RETRIES);
@@ -695,11 +690,9 @@ public class ObsidianState extends AbstractState {
         float yawDiff = targetYaw - currentYaw;
         float pitchDiff = targetPitch - currentPitch;
         
-        // Normalize yaw
         while (yawDiff > 180) yawDiff -= 360;
         while (yawDiff < -180) yawDiff += 360;
         
-        // Smooth rotation
         float rotSpeed = 15.0f;
         float yawStep = Math.signum(yawDiff) * Math.min(Math.abs(yawDiff), rotSpeed);
         float pitchStep = Math.signum(pitchDiff) * Math.min(Math.abs(pitchDiff), rotSpeed);
@@ -707,24 +700,17 @@ public class ObsidianState extends AbstractState {
         mc.thePlayer.rotationYaw += yawStep;
         mc.thePlayer.rotationPitch += pitchStep;
         
-        // Clamp pitch
         mc.thePlayer.rotationPitch = Math.max(-90, Math.min(90, mc.thePlayer.rotationPitch));
-    }
-    
-    private void lookAtBlock(BlockPos pos) {
-        float[] rotation = getRotationToBlock(pos);
-        mc.thePlayer.rotationYaw = rotation[0];
-        mc.thePlayer.rotationPitch = rotation[1];
     }
     
     @Override
     public String getName() {
-        return "Obsidyen";
+        return "Obsidian";
     }
     
     @Override
     public boolean shouldActivate() {
-        return false;  // Manuel aktivasyon
+        return false;
     }
     
     @Override
@@ -732,9 +718,7 @@ public class ObsidianState extends AbstractState {
         return 3;
     }
     
-    // Debug getters
     public String getDebugInfo() { return debugInfo; }
     public ObsidianPhase getPhase() { return phase; }
-    public int getBlocksMinedInDirection() { return blocksMinedInDirection; }
-    public int getDirectionChanges() { return directionChanges; }
+    public int getBlocksMinedInRow() { return blocksMinedInRow; }
 }
