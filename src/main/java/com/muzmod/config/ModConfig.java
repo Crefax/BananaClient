@@ -110,6 +110,11 @@ public class ModConfig {
     private float obsidianAimSpeed = 0.15f;      // Normal aim hızı (0.01 - 1.0)
     private float obsidianTurnSpeed = 0.40f;     // Dönüş aim hızı (0.01 - 1.0)
     
+    // Obsidyen Sell Settings (inv dolunca komut gönderme)
+    private boolean obsidianSellEnabled = true;     // Satış özelliği açık mı
+    private String obsidianSellCommand = "/obsicevir";  // Satış komutu
+    private int obsidianSellDelay = 1000;           // Komut sonrası bekleme (ms)
+    
     public ModConfig(File configFile) {
         config = new Configuration(configFile);
     }
@@ -274,6 +279,14 @@ public class ModConfig {
                 "Normal aim rotation speed (0.01 - 1.0)");
             obsidianTurnSpeed = config.getFloat("turnSpeed", "obsidian", 0.40f, 0.01f, 1.0f,
                 "Turn aim rotation speed when reaching target (0.01 - 1.0)");
+            
+            // Obsidyen Sell Settings
+            obsidianSellEnabled = config.getBoolean("sellEnabled", "obsidian", true,
+                "Enable auto-sell when inventory is full");
+            obsidianSellCommand = config.getString("sellCommand", "obsidian", "/obsicevir",
+                "Command to send when inventory is full");
+            obsidianSellDelay = config.getInt("sellDelay", "obsidian", 1000, 100, 10000,
+                "Delay after sell command in milliseconds");
             
             // Mining Jitter (AFK bypass)
             miningJitterYaw = config.getFloat("jitterYaw", "mining_jitter", 3.0f, 0.0f, 20.0f,
@@ -487,6 +500,29 @@ public class ModConfig {
     public void setObsidianTurnSpeed(float val) {
         this.obsidianTurnSpeed = Math.max(0.01f, Math.min(1.0f, val));
         config.get("obsidian", "turnSpeed", 0.40f).set(this.obsidianTurnSpeed);
+        save();
+    }
+    
+    // Obsidyen Sell Getters/Setters
+    public boolean isObsidianSellEnabled() { return obsidianSellEnabled; }
+    public String getObsidianSellCommand() { return obsidianSellCommand; }
+    public int getObsidianSellDelay() { return obsidianSellDelay; }
+    
+    public void setObsidianSellEnabled(boolean val) {
+        this.obsidianSellEnabled = val;
+        config.get("obsidian", "sellEnabled", true).set(val);
+        save();
+    }
+    
+    public void setObsidianSellCommand(String val) {
+        this.obsidianSellCommand = val;
+        config.get("obsidian", "sellCommand", "/obsicevir").set(val);
+        save();
+    }
+    
+    public void setObsidianSellDelay(int val) {
+        this.obsidianSellDelay = Math.max(100, Math.min(10000, val));
+        config.get("obsidian", "sellDelay", 1000).set(this.obsidianSellDelay);
         save();
     }
     

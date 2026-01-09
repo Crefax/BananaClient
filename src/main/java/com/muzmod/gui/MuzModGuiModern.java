@@ -91,9 +91,11 @@ public class MuzModGuiModern extends GuiScreen {
     // OX settings fields
     private GuiTextField fieldOxMinPlayers;
     
-    // Obsidyen settings fields (jitter + aim hızı)
+    // Obsidyen settings fields (jitter + aim hızı + sell)
     private GuiTextField fieldObsidianJitterYaw, fieldObsidianJitterPitch, fieldObsidianJitterInterval;
     private GuiTextField fieldObsidianAimSpeed, fieldObsidianTurnSpeed;
+    private GuiTextField fieldObsidianSellCommand, fieldObsidianSellDelay;
+    private boolean obsidianSellEnabled = true;
     
     // Slider için drag state
     private boolean draggingAimSpeed = false;
@@ -155,12 +157,15 @@ public class MuzModGuiModern extends GuiScreen {
         // OX settings fields
         fieldOxMinPlayers = createField(setX, setY, 50, String.valueOf(config.getOxMinPlayers()), 3);
         
-        // Obsidyen settings fields (jitter + aim hızı)
+        // Obsidyen settings fields (jitter + aim hızı + sell)
         fieldObsidianJitterYaw = createField(setX, setY, 50, String.valueOf(config.getObsidianJitterYaw()), 5);
         fieldObsidianJitterPitch = createField(setX + 70, setY, 50, String.valueOf(config.getObsidianJitterPitch()), 5);
         fieldObsidianJitterInterval = createField(setX, setY + 28, 60, String.valueOf(config.getObsidianJitterInterval()), 5);
         fieldObsidianAimSpeed = createField(setX, setY, 50, String.valueOf(config.getObsidianAimSpeed()), 5);
         fieldObsidianTurnSpeed = createField(setX, setY, 50, String.valueOf(config.getObsidianTurnSpeed()), 5);
+        fieldObsidianSellCommand = createField(setX, setY, 120, config.getObsidianSellCommand(), 50);
+        fieldObsidianSellDelay = createField(setX, setY, 50, String.valueOf(config.getObsidianSellDelay() / 1000.0), 5);
+        obsidianSellEnabled = config.isObsidianSellEnabled();
         
         // Legacy field for compatibility
         fieldWalkDist = fieldInitialWalkMin;
@@ -879,6 +884,35 @@ public class MuzModGuiModern extends GuiScreen {
         drawString(fontRendererObj, "§8Dönüş Aim: Hedef noktaya varınca dönüş hızı", labelX, y, TEXT_DARK);
         y += 12;
         drawString(fontRendererObj, "§8(0.01=yavaş, 1.0=anında)", labelX, y, TEXT_DARK);
+        
+        y += 25;
+        // === SELL AYARLARI ===
+        drawString(fontRendererObj, "§d§lEnvanter Satış Ayarları", labelX, y, ACCENT_PURPLE);
+        y += 20;
+        
+        // Sell Enabled Toggle
+        drawString(fontRendererObj, "§7Otomatik Satış:", labelX, y + 3, TEXT_GRAY);
+        String sellText = obsidianSellEnabled ? "§a✓ Açık" : "§c✗ Kapalı";
+        int sellBtnColor = obsidianSellEnabled ? 0xFF2D5A27 : 0xFF5A2727;
+        drawRect(fieldX, y, fieldX + 60, y + 16, sellBtnColor);
+        drawCenteredString(fontRendererObj, sellText, fieldX + 30, y + 4, TEXT_WHITE);
+        
+        y += 24;
+        // Sell Command
+        drawString(fontRendererObj, "§7Satış Komutu:", labelX, y + 3, TEXT_GRAY);
+        drawFieldBackground(fieldObsidianSellCommand, fieldX, y);
+        fieldObsidianSellCommand.xPosition = fieldX;
+        fieldObsidianSellCommand.yPosition = y;
+        fieldObsidianSellCommand.drawTextBox();
+        
+        y += 24;
+        // Sell Delay
+        drawString(fontRendererObj, "§7Bekleme Süresi:", labelX, y + 3, TEXT_GRAY);
+        drawFieldBackground(fieldObsidianSellDelay, fieldX, y);
+        fieldObsidianSellDelay.xPosition = fieldX;
+        fieldObsidianSellDelay.yPosition = y;
+        fieldObsidianSellDelay.drawTextBox();
+        drawString(fontRendererObj, "§8saniye", fieldX + 55, y + 3, TEXT_DARK);
     }
     
     /**
@@ -1249,12 +1283,26 @@ public class MuzModGuiModern extends GuiScreen {
             
             // Obsidyen settings clicks
             if (settingsSubTab == 3) {
-                // Field clicks (jitter + aim hızı)
+                // Field clicks (jitter + aim hızı + sell)
                 fieldObsidianJitterYaw.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldObsidianJitterPitch.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldObsidianJitterInterval.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldObsidianAimSpeed.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldObsidianTurnSpeed.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldObsidianSellCommand.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldObsidianSellDelay.mouseClicked(mouseX, mouseY, mouseButton);
+                
+                // Sell toggle click - pozisyonu hesapla
+                // Draw'daki sıraya göre hesapla
+                int contentY = guiY + 60;
+                int sellToggleY = contentY + 20 + 26 + 30 + 20 + 26 + 30 + 12 + 12 + 12 + 25 + 20; // draw sırasına göre
+                int sellFieldX = guiX + 130;
+                
+                // Sell enabled toggle butonu
+                if (mouseX >= sellFieldX && mouseX < sellFieldX + 60 && mouseY >= sellToggleY && mouseY < sellToggleY + 16) {
+                    obsidianSellEnabled = !obsidianSellEnabled;
+                    config.setObsidianSellEnabled(obsidianSellEnabled);
+                }
                 
                 // Slider clicks - doğrudan slider alanı kontrol (fieldObsidian... pozisyonlarından hesapla)
                 // Slider fieldX'in solunda, field sağında
@@ -1377,6 +1425,11 @@ public class MuzModGuiModern extends GuiScreen {
             // Obsidyen aim hızı ayarları
             config.setObsidianAimSpeed(Float.parseFloat(fieldObsidianAimSpeed.getText()));
             config.setObsidianTurnSpeed(Float.parseFloat(fieldObsidianTurnSpeed.getText()));
+            
+            // Obsidyen sell ayarları
+            config.setObsidianSellEnabled(obsidianSellEnabled);
+            config.setObsidianSellCommand(fieldObsidianSellCommand.getText());
+            config.setObsidianSellDelay((int)(Float.parseFloat(fieldObsidianSellDelay.getText()) * 1000));
             
             config.save();
             schedule.save();

@@ -78,9 +78,9 @@ public class ObsidianState extends AbstractState {
     // Envanter kontrolü
     private long lastInventoryCheck = 0;
     private static final long INVENTORY_CHECK_INTERVAL = 2000; // 2 saniyede bir kontrol
-    private boolean waitingForCevir = false; // /obsicevir bekleniyor mu
+    private boolean waitingForCevir = false; // Sell komutu bekleniyor mu
     private long cevirCommandTime = 0;
-    private static final long CEVIR_WAIT_TIME = 3000; // 3 saniye bekle
+    // CEVIR_WAIT_TIME artık config'den okunuyor: config.getObsidianSellDelay()
     
     private enum Phase {
         INIT,
@@ -139,30 +139,32 @@ public class ObsidianState extends AbstractState {
             return;
         }
         
-        // /obsicevir bekleniyorsa
+        // Sell komutu bekleniyorsa
         if (waitingForCevir) {
             long elapsed = System.currentTimeMillis() - cevirCommandTime;
-            if (elapsed >= CEVIR_WAIT_TIME) {
+            int sellDelay = config.getObsidianSellDelay();
+            if (elapsed >= sellDelay) {
                 waitingForCevir = false;
-                MuzMod.LOGGER.info("[Obsidian] /obsicevir bekleme bitti, devam ediliyor");
+                MuzMod.LOGGER.info("[Obsidian] Sell komutu bekleme bitti, devam ediliyor");
             } else {
-                setStatus("Obsicevir bekleniyor... " + ((CEVIR_WAIT_TIME - elapsed) / 1000) + "s");
+                setStatus("Bekleniyor... " + ((sellDelay - elapsed) / 1000) + "s");
                 return;
             }
         }
         
-        // Envanter kontrolü (Mining sırasında)
-        if (phase == Phase.MINING) {
+        // Envanter kontrolü (Mining sırasında) - Config'den açık/kapalı kontrolü
+        if (phase == Phase.MINING && config.isObsidianSellEnabled()) {
             long now = System.currentTimeMillis();
             if (now - lastInventoryCheck >= INVENTORY_CHECK_INTERVAL) {
                 lastInventoryCheck = now;
                 if (isInventoryFull()) {
-                    MuzMod.LOGGER.info("[Obsidian] Envanter dolu! /obsicevir yazılıyor...");
+                    String sellCommand = config.getObsidianSellCommand();
+                    MuzMod.LOGGER.info("[Obsidian] Envanter dolu! " + sellCommand + " yazılıyor...");
                     InputSimulator.releaseAll();
-                    mc.thePlayer.sendChatMessage("/obsicevir");
+                    mc.thePlayer.sendChatMessage(sellCommand);
                     waitingForCevir = true;
                     cevirCommandTime = now;
-                    setStatus("/obsicevir gönderildi...");
+                    setStatus(sellCommand + " gönderildi...");
                     return;
                 }
             }
