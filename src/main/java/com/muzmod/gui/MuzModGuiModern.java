@@ -49,8 +49,8 @@ public class MuzModGuiModern extends GuiScreen {
     
     // Layout
     private int guiX, guiY;
-    private static final int GUI_WIDTH = 450;
-    private static final int GUI_HEIGHT = 360;
+    private static final int GUI_WIDTH = 500;
+    private static final int GUI_HEIGHT = 420;
     
     // Tabs
     private int currentTab = 0;
@@ -63,6 +63,10 @@ public class MuzModGuiModern extends GuiScreen {
     // Mining settings scroll
     private int miningSettingsScrollOffset = 0;
     private static final int MINING_SETTINGS_SCROLL_MAX = 150; // Maksimum scroll miktarı
+    
+    // Obsidyen settings scroll
+    private int obsidianSettingsScrollOffset = 0;
+    private static final int OBSIDIAN_SETTINGS_SCROLL_MAX = 200; // Maksimum scroll miktarı
     
     // Schedule tab
     private int selectedDay = 0; // 0=Pzt, 6=Paz
@@ -523,14 +527,14 @@ public class MuzModGuiModern extends GuiScreen {
         
         int y = guiY + 95;
         int labelX = guiX + 20;
-        int fieldX = guiX + 140;
+        int fieldX = guiX + 160;
         
         // Draw sub-tab content
         switch (settingsSubTab) {
             case 0: drawSettingsGeneral(mouseX, mouseY, config, schedule, y, labelX, fieldX); break;
             case 1: drawSettingsMining(mouseX, mouseY, config, y, labelX, fieldX); break;
             case 2: drawSettingsOX(mouseX, mouseY, config, y, labelX, fieldX); break;
-            case 3: drawSettingsObsidyen(mouseX, mouseY, config, y, labelX, fieldX); break;
+            case 3: drawSettingsObsidyen(mouseX, mouseY, config, y - obsidianSettingsScrollOffset, labelX, fieldX); break;
         }
     }
     
@@ -1292,11 +1296,11 @@ public class MuzModGuiModern extends GuiScreen {
                 fieldObsidianSellCommand.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldObsidianSellDelay.mouseClicked(mouseX, mouseY, mouseButton);
                 
-                // Sell toggle click - pozisyonu hesapla
+                // Sell toggle click - pozisyonu hesapla (scroll offset dahil)
                 // Draw'daki sıraya göre hesapla
-                int contentY = guiY + 60;
+                int contentY = guiY + 95 - obsidianSettingsScrollOffset;
                 int sellToggleY = contentY + 20 + 26 + 30 + 20 + 26 + 30 + 12 + 12 + 12 + 25 + 20; // draw sırasına göre
-                int sellFieldX = guiX + 130;
+                int sellFieldX = guiX + 160;
                 
                 // Sell enabled toggle butonu
                 if (mouseX >= sellFieldX && mouseX < sellFieldX + 60 && mouseY >= sellToggleY && mouseY < sellToggleY + 16) {
@@ -1472,6 +1476,17 @@ public class MuzModGuiModern extends GuiScreen {
                 miningSettingsScrollOffset = Math.max(0, miningSettingsScrollOffset - scrollStep);
             } else if (scroll < 0 && miningSettingsScrollOffset < MINING_SETTINGS_SCROLL_MAX) {
                 miningSettingsScrollOffset = Math.min(MINING_SETTINGS_SCROLL_MAX, miningSettingsScrollOffset + scrollStep);
+            }
+        }
+        
+        // Scroll wheel for Obsidyen settings
+        if (currentTab == 2 && settingsSubTab == 3) {
+            int scrollStep = 20; // Her scroll için 20 piksel
+            
+            if (scroll > 0 && obsidianSettingsScrollOffset > 0) {
+                obsidianSettingsScrollOffset = Math.max(0, obsidianSettingsScrollOffset - scrollStep);
+            } else if (scroll < 0 && obsidianSettingsScrollOffset < OBSIDIAN_SETTINGS_SCROLL_MAX) {
+                obsidianSettingsScrollOffset = Math.min(OBSIDIAN_SETTINGS_SCROLL_MAX, obsidianSettingsScrollOffset + scrollStep);
             }
         }
     }
