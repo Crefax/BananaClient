@@ -115,6 +115,10 @@ public class ModConfig {
     private String obsidianSellCommand = "/obsicevir";  // Satış komutu
     private int obsidianSellDelay = 1000;           // Komut sonrası bekleme (ms)
     
+    // Obsidyen Target Distance Settings (kırmızı hedef mesafesi)
+    private int obsidianTargetMinOffset = 0;   // En yakın hedef offset (0 = en son blok)
+    private int obsidianTargetMaxOffset = 10;  // En uzak hedef offset (10 = son bloktan 10 geri)
+    
     public ModConfig(File configFile) {
         config = new Configuration(configFile);
     }
@@ -287,6 +291,12 @@ public class ModConfig {
                 "Command to send when inventory is full");
             obsidianSellDelay = config.getInt("sellDelay", "obsidian", 1000, 100, 10000,
                 "Delay after sell command in milliseconds");
+            
+            // Obsidyen Target Distance Settings
+            obsidianTargetMinOffset = config.getInt("targetMinOffset", "obsidian", 0, 0, 50,
+                "Minimum target offset from last obsidian (0 = last block)");
+            obsidianTargetMaxOffset = config.getInt("targetMaxOffset", "obsidian", 10, 0, 50,
+                "Maximum target offset from last obsidian (10 = 10 blocks before last)");
             
             // Mining Jitter (AFK bypass)
             miningJitterYaw = config.getFloat("jitterYaw", "mining_jitter", 3.0f, 0.0f, 20.0f,
@@ -523,6 +533,22 @@ public class ModConfig {
     public void setObsidianSellDelay(int val) {
         this.obsidianSellDelay = Math.max(100, Math.min(10000, val));
         config.get("obsidian", "sellDelay", 1000).set(this.obsidianSellDelay);
+        save();
+    }
+    
+    // Obsidyen Target Distance Getters/Setters
+    public int getObsidianTargetMinOffset() { return obsidianTargetMinOffset; }
+    public int getObsidianTargetMaxOffset() { return obsidianTargetMaxOffset; }
+    
+    public void setObsidianTargetMinOffset(int val) {
+        this.obsidianTargetMinOffset = Math.max(0, Math.min(50, val));
+        config.get("obsidian", "targetMinOffset", 0).set(this.obsidianTargetMinOffset);
+        save();
+    }
+    
+    public void setObsidianTargetMaxOffset(int val) {
+        this.obsidianTargetMaxOffset = Math.max(0, Math.min(50, val));
+        config.get("obsidian", "targetMaxOffset", 10).set(this.obsidianTargetMaxOffset);
         save();
     }
     

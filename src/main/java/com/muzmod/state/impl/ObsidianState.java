@@ -342,10 +342,15 @@ public class ObsidianState extends AbstractState {
             }
         }
         
-        // Hedef mesafesi: max - (0-10 arası rastgele)
+        // Hedef mesafesi: config'den okunan offset değerlerine göre
+        ModConfig config = MuzMod.instance.getConfig();
+        int minOffset = config.getObsidianTargetMinOffset(); // En yakın offset (0 = son blok)
+        int maxOffset = config.getObsidianTargetMaxOffset(); // En uzak offset
+        
         int maxDist = count;
-        int minDist = Math.max(2, maxDist - 10);
-        int targetDist = minDist + random.nextInt(maxDist - minDist + 1);
+        int minDist = Math.max(2, maxDist - maxOffset);
+        int actualMaxDist = Math.max(minDist, maxDist - minOffset);
+        int targetDist = minDist + random.nextInt(actualMaxDist - minDist + 1);
         
         // Kırmızı hedef belirle
         redTarget = new BlockPos(
@@ -635,8 +640,12 @@ public class ObsidianState extends AbstractState {
         
         if (nextCount >= 2) {
             int maxDist = nextCount;
-            int minDist = Math.max(2, maxDist - 10);
-            int targetDist = minDist + random.nextInt(maxDist - minDist + 1);
+            ModConfig config = MuzMod.instance.getConfig();
+            int minOffset = config.getObsidianTargetMinOffset();
+            int maxOffset = config.getObsidianTargetMaxOffset();
+            int minDist = Math.max(2, maxDist - maxOffset);
+            int actualMaxDist = Math.max(minDist, maxDist - minOffset);
+            int targetDist = minDist + random.nextInt(actualMaxDist - minDist + 1);
             
             yellowTarget = new BlockPos(
                 redTarget.getX() + DX[nextDir] * targetDist,

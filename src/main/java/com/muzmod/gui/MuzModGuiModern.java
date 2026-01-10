@@ -99,6 +99,7 @@ public class MuzModGuiModern extends GuiScreen {
     private GuiTextField fieldObsidianJitterYaw, fieldObsidianJitterPitch, fieldObsidianJitterInterval;
     private GuiTextField fieldObsidianAimSpeed, fieldObsidianTurnSpeed;
     private GuiTextField fieldObsidianSellCommand, fieldObsidianSellDelay;
+    private GuiTextField fieldObsidianTargetMin, fieldObsidianTargetMax;
     private boolean obsidianSellEnabled = true;
     
     // Slider için drag state
@@ -169,6 +170,8 @@ public class MuzModGuiModern extends GuiScreen {
         fieldObsidianTurnSpeed = createField(setX, setY, 50, String.valueOf(config.getObsidianTurnSpeed()), 5);
         fieldObsidianSellCommand = createField(setX, setY, 120, config.getObsidianSellCommand(), 50);
         fieldObsidianSellDelay = createField(setX, setY, 50, String.valueOf(config.getObsidianSellDelay() / 1000.0), 5);
+        fieldObsidianTargetMin = createField(setX, setY, 40, String.valueOf(config.getObsidianTargetMinOffset()), 3);
+        fieldObsidianTargetMax = createField(setX, setY, 40, String.valueOf(config.getObsidianTargetMaxOffset()), 3);
         obsidianSellEnabled = config.isObsidianSellEnabled();
         
         // Legacy field for compatibility
@@ -917,6 +920,28 @@ public class MuzModGuiModern extends GuiScreen {
         fieldObsidianSellDelay.yPosition = y;
         fieldObsidianSellDelay.drawTextBox();
         drawString(fontRendererObj, "§8saniye", fieldX + 55, y + 3, TEXT_DARK);
+        
+        y += 28;
+        // Target Distance Settings - Başlık
+        drawString(fontRendererObj, "§e§lHedef Mesafe Ayarları", labelX, y + 3, TEXT_WHITE);
+        
+        y += 20;
+        // Min Offset (İlk Blok)
+        drawString(fontRendererObj, "§7İlk Blok Offset:", labelX, y + 3, TEXT_GRAY);
+        drawFieldBackground(fieldObsidianTargetMin, fieldX, y);
+        fieldObsidianTargetMin.xPosition = fieldX;
+        fieldObsidianTargetMin.yPosition = y;
+        fieldObsidianTargetMin.drawTextBox();
+        drawString(fontRendererObj, "§8(son obsidyene yakınlık)", fieldX + 45, y + 3, TEXT_DARK);
+        
+        y += 24;
+        // Max Offset (Son Blok)
+        drawString(fontRendererObj, "§7Son Blok Offset:", labelX, y + 3, TEXT_GRAY);
+        drawFieldBackground(fieldObsidianTargetMax, fieldX, y);
+        fieldObsidianTargetMax.xPosition = fieldX;
+        fieldObsidianTargetMax.yPosition = y;
+        fieldObsidianTargetMax.drawTextBox();
+        drawString(fontRendererObj, "§8(son obsidyene uzaklık)", fieldX + 45, y + 3, TEXT_DARK);
     }
     
     /**
@@ -1287,7 +1312,7 @@ public class MuzModGuiModern extends GuiScreen {
             
             // Obsidyen settings clicks
             if (settingsSubTab == 3) {
-                // Field clicks (jitter + aim hızı + sell)
+                // Field clicks (jitter + aim hızı + sell + target offset)
                 fieldObsidianJitterYaw.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldObsidianJitterPitch.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldObsidianJitterInterval.mouseClicked(mouseX, mouseY, mouseButton);
@@ -1295,6 +1320,8 @@ public class MuzModGuiModern extends GuiScreen {
                 fieldObsidianTurnSpeed.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldObsidianSellCommand.mouseClicked(mouseX, mouseY, mouseButton);
                 fieldObsidianSellDelay.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldObsidianTargetMin.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldObsidianTargetMax.mouseClicked(mouseX, mouseY, mouseButton);
                 
                 // Sell toggle click - pozisyonu hesapla (scroll offset dahil)
                 // Draw'daki sıraya göre hesapla
@@ -1434,6 +1461,10 @@ public class MuzModGuiModern extends GuiScreen {
             config.setObsidianSellEnabled(obsidianSellEnabled);
             config.setObsidianSellCommand(fieldObsidianSellCommand.getText());
             config.setObsidianSellDelay((int)(Float.parseFloat(fieldObsidianSellDelay.getText()) * 1000));
+            
+            // Obsidyen hedef mesafe ayarları
+            config.setObsidianTargetMinOffset(Integer.parseInt(fieldObsidianTargetMin.getText()));
+            config.setObsidianTargetMaxOffset(Integer.parseInt(fieldObsidianTargetMax.getText()));
             
             config.save();
             schedule.save();
