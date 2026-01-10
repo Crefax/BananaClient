@@ -560,8 +560,16 @@ public class ObsidianState extends AbstractState {
         for (int i = 1; i <= 100; i++) {
             int x = startX + DX[dir] * i;
             int z = startZ + DZ[dir] * i;
-            BlockPos pos = new BlockPos(x, startY, z);
-            if (mc.theWorld.getBlockState(pos).getBlock() == Blocks.obsidian) {
+            // Y seviyesinden bağımsız - birkaç Y seviyesinde obsidyen ara
+            boolean foundObsidian = false;
+            for (int yOffset = -2; yOffset <= 2; yOffset++) {
+                BlockPos pos = new BlockPos(x, startY + yOffset, z);
+                if (mc.theWorld.getBlockState(pos).getBlock() == Blocks.obsidian) {
+                    foundObsidian = true;
+                    break;
+                }
+            }
+            if (foundObsidian) {
                 count++;
             }
         }
@@ -573,9 +581,12 @@ public class ObsidianState extends AbstractState {
         for (int dist = 0; dist <= 3; dist++) {
             int x = playerX + DX[direction] * dist;
             int z = playerZ + DZ[direction] * dist;
-            BlockPos pos = new BlockPos(x, startY, z);
-            if (mc.theWorld.getBlockState(pos).getBlock() == Blocks.obsidian) {
-                return pos;
+            // Birkaç Y seviyesinde ara
+            for (int yOffset = -2; yOffset <= 2; yOffset++) {
+                BlockPos pos = new BlockPos(x, startY + yOffset, z);
+                if (mc.theWorld.getBlockState(pos).getBlock() == Blocks.obsidian) {
+                    return pos;
+                }
             }
         }
         return null;
