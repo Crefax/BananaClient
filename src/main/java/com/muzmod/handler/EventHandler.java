@@ -13,6 +13,7 @@ import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 /**
  * Main event handler for rendering and other events
@@ -93,6 +94,22 @@ public class EventHandler {
             if (event.button.id == ACCOUNT_BUTTON_ID) {
                 Minecraft.getMinecraft().displayGuiScreen(new GuiAccountManager(event.gui));
                 event.setCanceled(true);
+            }
+        }
+    }
+    
+    /**
+     * Oyuncu dünyaya girdiğinde hesaba özel config yükle
+     */
+    @SubscribeEvent
+    public void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
+        
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.thePlayer != null && mc.theWorld != null) {
+            String playerName = mc.thePlayer.getName();
+            if (playerName != null && !playerName.equals(MuzMod.instance.getCurrentPlayerName())) {
+                MuzMod.instance.loadConfigForPlayer(playerName);
             }
         }
     }

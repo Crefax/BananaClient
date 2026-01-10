@@ -21,7 +21,7 @@ public class MuzMod {
     
     // Client bilgileri - tek yerden yönetim
     public static final String CLIENT_NAME = "BananaClient";
-    public static final String VERSION = "0.7.6";
+    public static final String VERSION = "0.7.7";
     public static final String MODID = "bananaclient";
     public static final String GITHUB_URL = "github.com/Crefax/BananaClient";
     
@@ -34,6 +34,7 @@ public class MuzMod {
     private ModConfig config;
     private ScheduleManager scheduleManager;
     private boolean botEnabled = false;
+    private String currentPlayerName = null;
     
     // Config dizini - .minecraft/BananaClient/
     private File clientDir;
@@ -49,7 +50,7 @@ public class MuzMod {
             clientDir.mkdirs();
         }
         
-        // Config dosyası: .minecraft/BananaClient/config.cfg
+        // Config dosyası: varsayılan config (oyuncu giriş yapınca hesaba göre yüklenecek)
         File configFile = new File(clientDir, "config.cfg");
         config = new ModConfig(configFile);
         config.load();
@@ -94,6 +95,38 @@ public class MuzMod {
     
     public File getClientDir() {
         return clientDir;
+    }
+    
+    /**
+     * Oyuncu adına göre config yükler
+     * Her hesabın kendi config dosyası olur: config_OyuncuAdi.cfg
+     */
+    public void loadConfigForPlayer(String playerName) {
+        if (playerName == null || playerName.isEmpty()) {
+            return;
+        }
+        
+        // Aynı oyuncu için tekrar yükleme
+        if (playerName.equals(currentPlayerName)) {
+            return;
+        }
+        
+        currentPlayerName = playerName;
+        
+        // Hesaba özel config dosyası: config_OyuncuAdi.cfg
+        File playerConfigFile = new File(clientDir, "config_" + playerName + ".cfg");
+        
+        LOGGER.info("Loading config for player: " + playerName + " -> " + playerConfigFile.getName());
+        
+        // Yeni config oluştur ve yükle
+        config = new ModConfig(playerConfigFile);
+        config.load();
+        
+        LOGGER.info("Config loaded for " + playerName + ": targetMin=" + config.getObsidianTargetMinOffset() + ", targetMax=" + config.getObsidianTargetMaxOffset());
+    }
+    
+    public String getCurrentPlayerName() {
+        return currentPlayerName;
     }
     
     public boolean isBotEnabled() {
