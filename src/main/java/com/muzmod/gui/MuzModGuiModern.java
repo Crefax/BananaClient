@@ -1570,6 +1570,10 @@ public class MuzModGuiModern extends GuiScreen {
                 fieldObsidianJitterInterval.textboxKeyTyped(typedChar, keyCode);
                 fieldObsidianAimSpeed.textboxKeyTyped(typedChar, keyCode);
                 fieldObsidianTurnSpeed.textboxKeyTyped(typedChar, keyCode);
+                fieldObsidianSellCommand.textboxKeyTyped(typedChar, keyCode);
+                fieldObsidianSellDelay.textboxKeyTyped(typedChar, keyCode);
+                fieldObsidianTargetMin.textboxKeyTyped(typedChar, keyCode);
+                fieldObsidianTargetMax.textboxKeyTyped(typedChar, keyCode);
             }
         }
     }
