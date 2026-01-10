@@ -21,7 +21,7 @@ public class MuzMod {
     
     // Client bilgileri - tek yerden yönetim
     public static final String CLIENT_NAME = "BananaClient";
-    public static final String VERSION = "0.7.7";
+    public static final String VERSION = "0.7.8";
     public static final String MODID = "bananaclient";
     public static final String GITHUB_URL = "github.com/Crefax/BananaClient";
     
@@ -102,12 +102,19 @@ public class MuzMod {
      * Her hesabın kendi config dosyası olur: config_OyuncuAdi.cfg
      */
     public void loadConfigForPlayer(String playerName) {
+        loadConfigForPlayer(playerName, false);
+    }
+    
+    /**
+     * Oyuncu adına göre config yükler (force reload opsiyonlu)
+     */
+    public void loadConfigForPlayer(String playerName, boolean forceReload) {
         if (playerName == null || playerName.isEmpty()) {
             return;
         }
         
-        // Aynı oyuncu için tekrar yükleme
-        if (playerName.equals(currentPlayerName)) {
+        // Aynı oyuncu için tekrar yükleme (force değilse)
+        if (!forceReload && playerName.equals(currentPlayerName)) {
             return;
         }
         
@@ -116,7 +123,7 @@ public class MuzMod {
         // Hesaba özel config dosyası: config_OyuncuAdi.cfg
         File playerConfigFile = new File(clientDir, "config_" + playerName + ".cfg");
         
-        LOGGER.info("Loading config for player: " + playerName + " -> " + playerConfigFile.getName());
+        LOGGER.info("Loading config for player: " + playerName + " -> " + playerConfigFile.getName() + (forceReload ? " (forced)" : ""));
         
         // Yeni config oluştur ve yükle
         config = new ModConfig(playerConfigFile);

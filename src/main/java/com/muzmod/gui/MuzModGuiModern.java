@@ -13,6 +13,7 @@ import net.minecraft.item.ItemStack;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -57,8 +58,8 @@ public class MuzModGuiModern extends GuiScreen {
     private String[] tabNames = {"Genel", "Zamanlama", "Ayarlar"};
     
     // Settings sub-tabs
-    private int settingsSubTab = 0; // 0=Genel, 1=Mining, 2=OX, 3=Obsidyen
-    private String[] settingsSubTabs = {"Genel", "Mining", "OX", "Obsidyen"};
+    private int settingsSubTab = 0; // 0=Genel, 1=Mining, 2=OX, 3=Obsidyen, 4=Config
+    private String[] settingsSubTabs = {"Genel", "Mining", "OX", "Obsidyen", "Config"};
     
     // Mining settings scroll
     private int miningSettingsScrollOffset = 0;
@@ -538,6 +539,7 @@ public class MuzModGuiModern extends GuiScreen {
             case 1: drawSettingsMining(mouseX, mouseY, config, y, labelX, fieldX); break;
             case 2: drawSettingsOX(mouseX, mouseY, config, y, labelX, fieldX); break;
             case 3: drawSettingsObsidyen(mouseX, mouseY, config, y - obsidianSettingsScrollOffset, labelX, fieldX); break;
+            case 4: drawSettingsConfig(mouseX, mouseY, y, labelX, fieldX); break;
         }
     }
     
@@ -944,6 +946,90 @@ public class MuzModGuiModern extends GuiScreen {
         drawString(fontRendererObj, "§8(son obsidyene uzaklık)", fieldX + 45, y + 3, TEXT_DARK);
     }
     
+    /**
+     * Config Import/Export sekmesi
+     */
+    private void drawSettingsConfig(int mouseX, int mouseY, int y, int labelX, int fieldX) {
+        String playerName = MuzMod.instance.getCurrentPlayerName();
+        
+        // Başlık
+        drawString(fontRendererObj, "§6§lConfig Yönetimi", labelX, y, ACCENT_YELLOW);
+        y += 24;
+        
+        // Mevcut hesap bilgisi
+        drawString(fontRendererObj, "§7Aktif Hesap:", labelX, y + 3, TEXT_GRAY);
+        String displayName = playerName != null ? "§a" + playerName : "§cBağlı değil";
+        drawString(fontRendererObj, displayName, fieldX, y + 3, TEXT_WHITE);
+        y += 20;
+        
+        // Config dosyası bilgisi
+        drawString(fontRendererObj, "§7Config Dosyası:", labelX, y + 3, TEXT_GRAY);
+        String configName = playerName != null ? "§fconfig_" + playerName + ".cfg" : "§8-";
+        drawString(fontRendererObj, configName, fieldX, y + 3, TEXT_WHITE);
+        y += 30;
+        
+        // Ana Divider
+        drawRect(labelX, y, guiX + GUI_WIDTH - 25, y + 1, 0xFF444444);
+        y += 10;
+        
+        // Main Config başlık
+        drawString(fontRendererObj, "§e§lMain Config (Şablon)", labelX, y, ACCENT_YELLOW);
+        y += 20;
+        
+        // Açıklama
+        drawString(fontRendererObj, "§8Main Config: Tüm hesaplar için ortak şablon", labelX, y, TEXT_DARK);
+        y += 14;
+        drawString(fontRendererObj, "§8config.cfg dosyasıdır.", labelX, y, TEXT_DARK);
+        y += 24;
+        
+        // Import butonu
+        int btnWidth = 140;
+        int btnHeight = 22;
+        int importBtnX = labelX;
+        int importBtnY = y;
+        
+        boolean hoverImport = mouseX >= importBtnX && mouseX < importBtnX + btnWidth && 
+                              mouseY >= importBtnY && mouseY < importBtnY + btnHeight;
+        int importColor = hoverImport ? 0xFF3D7A37 : 0xFF2D5A27;
+        
+        drawRect(importBtnX, importBtnY, importBtnX + btnWidth, importBtnY + btnHeight, importColor);
+        drawRect(importBtnX, importBtnY, importBtnX + btnWidth, importBtnY + 1, 0xFF4D8A47);
+        drawCenteredString(fontRendererObj, "§a⬇ Main'den Import", importBtnX + btnWidth/2, importBtnY + 7, TEXT_WHITE);
+        
+        y += 28;
+        drawString(fontRendererObj, "§8Main Config'i bu hesaba uygula", labelX, y, TEXT_DARK);
+        y += 24;
+        
+        // Export butonu
+        int exportBtnX = labelX;
+        int exportBtnY = y;
+        
+        boolean hoverExport = mouseX >= exportBtnX && mouseX < exportBtnX + btnWidth && 
+                              mouseY >= exportBtnY && mouseY < exportBtnY + btnHeight;
+        int exportColor = hoverExport ? 0xFF7A5A37 : 0xFF5A4027;
+        
+        drawRect(exportBtnX, exportBtnY, exportBtnX + btnWidth, exportBtnY + btnHeight, exportColor);
+        drawRect(exportBtnX, exportBtnY, exportBtnX + btnWidth, exportBtnY + 1, 0xFF8A6A47);
+        drawCenteredString(fontRendererObj, "§6⬆ Main'e Export", exportBtnX + btnWidth/2, exportBtnY + 7, TEXT_WHITE);
+        
+        y += 28;
+        drawString(fontRendererObj, "§8Bu hesabın ayarlarını Main'e kaydet", labelX, y, TEXT_DARK);
+        y += 30;
+        
+        // Divider
+        drawRect(labelX, y, guiX + GUI_WIDTH - 25, y + 1, 0xFF444444);
+        y += 15;
+        
+        // Bilgi
+        drawString(fontRendererObj, "§7Nasıl Kullanılır:", labelX, y, TEXT_GRAY);
+        y += 16;
+        drawString(fontRendererObj, "§81. Bir hesapta ayarları yap", labelX + 10, y, TEXT_DARK);
+        y += 12;
+        drawString(fontRendererObj, "§82. Export ile Main'e kaydet", labelX + 10, y, TEXT_DARK);
+        y += 12;
+        drawString(fontRendererObj, "§83. Diğer hesaplarda Import yap", labelX + 10, y, TEXT_DARK);
+    }
+
     /**
      * Slider + TextField kombinasyonu çizer
      */
@@ -1353,6 +1439,30 @@ public class MuzModGuiModern extends GuiScreen {
                     updateSliderValue(mouseX, sliderX, 100, 0.01f, 1.0f, "turnSpeed");
                 }
             }
+            // Config sub-tab
+            else if (settingsSubTab == 4) {
+                int cfgLabelX = guiX + 25;
+                int btnWidth = 140;
+                int btnHeight = 22;
+                
+                // Import butonu pozisyonu (y hesabı: başlık+24, hesap+20, config+30, divider+10, main başlık+20, açıklama1+14, açıklama2+24)
+                int importBtnY = guiY + 95 + 24 + 20 + 30 + 10 + 20 + 14 + 24;
+                
+                if (mouseX >= cfgLabelX && mouseX < cfgLabelX + btnWidth && 
+                    mouseY >= importBtnY && mouseY < importBtnY + btnHeight) {
+                    // Import from Main Config
+                    importFromMainConfig();
+                }
+                
+                // Export butonu pozisyonu (import + 28 + açıklama + 24)
+                int exportBtnY = importBtnY + 28 + 24;
+                
+                if (mouseX >= cfgLabelX && mouseX < cfgLabelX + btnWidth && 
+                    mouseY >= exportBtnY && mouseY < exportBtnY + btnHeight) {
+                    // Export to Main Config
+                    exportToMainConfig();
+                }
+            }
         }
         
         // Save/Close buttons
@@ -1411,6 +1521,129 @@ public class MuzModGuiModern extends GuiScreen {
             }
         } catch (Exception e) {}
         return null;
+    }
+    
+    /**
+     * Main Config'den (config.cfg) mevcut hesaba import et
+     */
+    private void importFromMainConfig() {
+        try {
+            File clientDir = MuzMod.instance.getClientDir();
+            File mainConfigFile = new File(clientDir, "config.cfg");
+            
+            if (!mainConfigFile.exists()) {
+                MuzMod.LOGGER.warn("[Config] Main config dosyası bulunamadı!");
+                return;
+            }
+            
+            String playerName = MuzMod.instance.getCurrentPlayerName();
+            if (playerName == null) {
+                MuzMod.LOGGER.warn("[Config] Aktif oyuncu yok!");
+                return;
+            }
+            
+            // Main config'i oku
+            File playerConfigFile = new File(clientDir, "config_" + playerName + ".cfg");
+            
+            // Dosyayı kopyala
+            java.nio.file.Files.copy(
+                mainConfigFile.toPath(), 
+                playerConfigFile.toPath(), 
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING
+            );
+            
+            // Config'i yeniden yükle (force reload)
+            MuzMod.instance.loadConfigForPlayer(playerName, true);
+            
+            // GUI field'larını güncelle
+            refreshFieldsFromConfig();
+            
+            MuzMod.LOGGER.info("[Config] Main config imported for " + playerName);
+        } catch (Exception e) {
+            MuzMod.LOGGER.error("[Config] Import error: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Mevcut hesabın config'ini Main Config'e (config.cfg) export et
+     */
+    private void exportToMainConfig() {
+        try {
+            // Önce mevcut ayarları kaydet
+            saveAllSettings();
+            
+            File clientDir = MuzMod.instance.getClientDir();
+            String playerName = MuzMod.instance.getCurrentPlayerName();
+            
+            if (playerName == null) {
+                MuzMod.LOGGER.warn("[Config] Aktif oyuncu yok!");
+                return;
+            }
+            
+            File playerConfigFile = new File(clientDir, "config_" + playerName + ".cfg");
+            File mainConfigFile = new File(clientDir, "config.cfg");
+            
+            if (!playerConfigFile.exists()) {
+                MuzMod.LOGGER.warn("[Config] Player config dosyası bulunamadı!");
+                return;
+            }
+            
+            // Dosyayı kopyala
+            java.nio.file.Files.copy(
+                playerConfigFile.toPath(), 
+                mainConfigFile.toPath(), 
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING
+            );
+            
+            MuzMod.LOGGER.info("[Config] Config exported to main for " + playerName);
+        } catch (Exception e) {
+            MuzMod.LOGGER.error("[Config] Export error: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * GUI field'larını config'den yeniden yükle
+     */
+    private void refreshFieldsFromConfig() {
+        ModConfig config = MuzMod.instance.getConfig();
+        ScheduleManager schedule = MuzMod.instance.getScheduleManager();
+        
+        // Genel
+        fieldDefaultMiningWarp.setText(schedule.getDefaultMiningWarp());
+        fieldDefaultAfkWarp.setText(schedule.getDefaultAfkWarp());
+        fieldRepairThreshold.setText(String.valueOf(config.getRepairDurabilityThreshold()));
+        fieldTimeOffset.setText(String.valueOf(config.getTimeOffsetHours()));
+        fieldDetectRadius.setText(String.valueOf(config.getPlayerDetectionRadius()));
+        fieldRepairClickDelay.setText(String.valueOf(config.getRepairClickDelay()));
+        
+        // Mining
+        fieldInitialWalkMin.setText(String.valueOf(config.getInitialWalkDistanceMin()));
+        fieldInitialWalkMax.setText(String.valueOf(config.getInitialWalkDistanceMax()));
+        fieldWalkYawVar.setText(String.valueOf(config.getWalkYawVariation()));
+        fieldMaxDistFromCenter.setText(String.valueOf(config.getMaxDistanceFromCenter()));
+        fieldSecondWalkMin.setText(String.valueOf(config.getSecondWalkDistanceMin()));
+        fieldSecondWalkMax.setText(String.valueOf(config.getSecondWalkDistanceMax()));
+        fieldSecondWalkAngle.setText(String.valueOf(config.getSecondWalkAngleVariation()));
+        fieldStrafeInterval.setText(String.valueOf(config.getStrafeInterval() / 1000));
+        fieldStrafeDuration.setText(String.valueOf(config.getStrafeDuration()));
+        fieldMiningJitterYaw.setText(String.valueOf(config.getMiningJitterYaw()));
+        fieldMiningJitterPitch.setText(String.valueOf(config.getMiningJitterPitch()));
+        fieldMiningJitterInterval.setText(String.valueOf(config.getMiningJitterInterval()));
+        
+        // OX
+        fieldOxMinPlayers.setText(String.valueOf(config.getOxMinPlayers()));
+        
+        // Obsidyen
+        fieldObsidianJitterYaw.setText(String.valueOf(config.getObsidianJitterYaw()));
+        fieldObsidianJitterPitch.setText(String.valueOf(config.getObsidianJitterPitch()));
+        fieldObsidianJitterInterval.setText(String.valueOf(config.getObsidianJitterInterval()));
+        fieldObsidianAimSpeed.setText(String.valueOf(config.getObsidianAimSpeed()));
+        fieldObsidianTurnSpeed.setText(String.valueOf(config.getObsidianTurnSpeed()));
+        fieldObsidianSellCommand.setText(config.getObsidianSellCommand());
+        fieldObsidianSellDelay.setText(String.valueOf(config.getObsidianSellDelay() / 1000.0));
+        fieldObsidianTargetMin.setText(String.valueOf(config.getObsidianTargetMinOffset()));
+        fieldObsidianTargetMax.setText(String.valueOf(config.getObsidianTargetMaxOffset()));
+        obsidianSellEnabled = config.isObsidianSellEnabled();
     }
     
     private void saveAllSettings() {
