@@ -16,15 +16,11 @@ public class InputSimulator {
     
     /**
      * Hold left click (attack/mine)
+     * Her çağrıda KeyBinding state'i zorla set eder
      */
     public static void holdLeftClick(boolean hold) {
-        if (hold && !leftClickHeld) {
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), true);
-            leftClickHeld = true;
-        } else if (!hold && leftClickHeld) {
-            KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
-            leftClickHeld = false;
-        }
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), hold);
+        leftClickHeld = hold;
     }
     
     /**

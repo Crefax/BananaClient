@@ -533,12 +533,10 @@ public class ObsidianState extends AbstractState {
             }
         }
         
-        // Sürekli sol tık basılı tut (kazma)
-        if (!InputSimulator.isLeftClickHeld()) {
-            InputSimulator.holdLeftClick(true);
-        }
+        // Sürekli sol tık basılı tut (kazma) - her tick'te zorla
+        InputSimulator.holdLeftClick(true);
         
-        // Sürekli ileri yürü (W tuşu)
+        // Sürekli ileri yürü (W tuşu) - her tick'te zorla
         InputSimulator.walkForward(true);
         
         // Baktığımız bloğu güncelle
