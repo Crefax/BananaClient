@@ -338,15 +338,25 @@ public class ObsidianState extends AbstractState {
             return;
         }
         
-        // Dönüş modunda özel işlem
+        // Dönüş modunda özel işlem - smooth turn
         if (isTurning) {
             float yawDiff = turnTargetYaw - mc.thePlayer.rotationYaw;
             while (yawDiff > 180) yawDiff -= 360;
             while (yawDiff < -180) yawDiff += 360;
             
+            // GUI'den turn speed al (0.1-1.0 arası, varsayılan 0.3)
             float turnSpeed = config.getObsidianTurnSpeed();
-            if (Math.abs(yawDiff) > 1.0f) {
-                mc.thePlayer.rotationYaw += yawDiff * turnSpeed;
+            
+            // Smooth dönüş: her tick'te sabit açı ekle
+            float turnStep = 90.0f * turnSpeed; // turnSpeed=0.3 ise tick başına 27 derece
+            
+            if (Math.abs(yawDiff) > turnStep) {
+                // Yönü koru ve sabit hızda dön
+                float sign = yawDiff > 0 ? 1.0f : -1.0f;
+                mc.thePlayer.rotationYaw += sign * turnStep;
+            } else if (Math.abs(yawDiff) > 0.5f) {
+                // Son kısımda yavaşla
+                mc.thePlayer.rotationYaw += yawDiff * 0.5f;
             } else {
                 mc.thePlayer.rotationYaw = turnTargetYaw;
                 isTurning = false;
@@ -523,10 +533,13 @@ public class ObsidianState extends AbstractState {
             }
         }
         
-        // Sürekli sol tık basılı tut
+        // Sürekli sol tık basılı tut (kazma)
         if (!InputSimulator.isLeftClickHeld()) {
             InputSimulator.holdLeftClick(true);
         }
+        
+        // Sürekli ileri yürü (W tuşu)
+        InputSimulator.walkForward(true);
         
         // Baktığımız bloğu güncelle
         MovingObjectPosition mop = mc.objectMouseOver;
@@ -539,7 +552,9 @@ public class ObsidianState extends AbstractState {
         debugInfo = "Dönüyor...";
         setStatus(debugInfo);
         
-        InputSimulator.releaseAll();
+        // Dönüş sırasında sadece ileri yürümeyi durdur, kazma devam etsin
+        InputSimulator.walkForward(false);
+        InputSimulator.holdLeftClick(false);
         
         int playerX = (int) Math.floor(mc.thePlayer.posX);
         int playerZ = (int) Math.floor(mc.thePlayer.posZ);
