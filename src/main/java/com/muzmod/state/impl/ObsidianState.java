@@ -550,9 +550,14 @@ public class ObsidianState extends AbstractState {
         debugInfo = "Dönüyor...";
         setStatus(debugInfo);
         
-        // Dönüş sırasında sadece ileri yürümeyi durdur, kazma devam etsin
+        // Dönüş sırasında sadece ileri yürümeyi durdur
         InputSimulator.walkForward(false);
         InputSimulator.holdLeftClick(false);
+        
+        // Eğer zaten dönüş başlatıldıysa, sadece bekle (handleAim dönüşü yapıyor)
+        if (isTurning) {
+            return;
+        }
         
         int playerX = (int) Math.floor(mc.thePlayer.posX);
         int playerZ = (int) Math.floor(mc.thePlayer.posZ);
@@ -564,7 +569,7 @@ public class ObsidianState extends AbstractState {
         int leftCount = countObsidianInDir(playerX, playerZ, leftDir);
         int rightCount = countObsidianInDir(playerX, playerZ, rightDir);
         
-        MuzMod.LOGGER.info("[Obsidian] Turn - Left: " + leftCount + ", Right: " + rightCount);
+        MuzMod.LOGGER.info("[Obsidian] Turn - Left: " + leftCount + ", Right: " + rightCount + ", Current dir: " + direction);
         
         if (leftCount < 2 && rightCount < 2) {
             // Arkaya bak
@@ -573,7 +578,7 @@ public class ObsidianState extends AbstractState {
             
             if (backCount >= 2) {
                 direction = backDir;
-                MuzMod.LOGGER.info("[Obsidian] Turning back");
+                MuzMod.LOGGER.info("[Obsidian] Turning back to dir: " + direction);
             } else {
                 MuzMod.LOGGER.info("[Obsidian] No obsidian anywhere, done");
                 phase = Phase.DONE;
@@ -581,10 +586,10 @@ public class ObsidianState extends AbstractState {
             }
         } else if (leftCount > rightCount) {
             direction = leftDir;
-            MuzMod.LOGGER.info("[Obsidian] Turning left");
+            MuzMod.LOGGER.info("[Obsidian] Turning left to dir: " + direction);
         } else {
             direction = rightDir;
-            MuzMod.LOGGER.info("[Obsidian] Turning right");
+            MuzMod.LOGGER.info("[Obsidian] Turning right to dir: " + direction);
         }
         
         startTurn(YAWS[direction]);
