@@ -40,6 +40,10 @@ public class DuelAnalyzerState extends AbstractState {
         this.status = "Duel Analyzer ready";
         this.hudRenderer = new DuelHudRenderer();
         this.session = new DuelSession();
+        
+        // Event'leri hemen kaydet (state enable/disable'dan bağımsız)
+        MinecraftForge.EVENT_BUS.register(this);
+        MuzMod.LOGGER.info("[DuelAnalyzer] Initialized and registered events");
     }
     
     public static DuelAnalyzerState getInstance() {
@@ -144,11 +148,20 @@ public class DuelAnalyzerState extends AbstractState {
     @SubscribeEvent
     public void onRenderOverlay(RenderGameOverlayEvent.Post event) {
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
-        if (!analyzing) return;
-        if (session == null) return;
+        
+        if (!analyzing) {
+            return;
+        }
+        
+        if (session == null) {
+            MuzMod.LOGGER.warn("[DuelAnalyzer] Session is null in render!");
+            return;
+        }
         
         // HUD görünürlük kontrolü
-        if (!MuzMod.instance.getConfig().isDuelHudEnabled()) return;
+        if (!MuzMod.instance.getConfig().isDuelHudEnabled()) {
+            return;
+        }
         
         hudRenderer.render();
     }
@@ -183,16 +196,32 @@ public class DuelAnalyzerState extends AbstractState {
      */
     @SubscribeEvent
     public void onLivingDeath(LivingDeathEvent event) {
-        if (!analyzing) return;
-        if (!(event.entity instanceof EntityPlayer)) return;
-        if (session == null) return;
+        MuzMod.LOGGER.info("[DuelAnalyzer] LivingDeathEvent triggered");
+        
+        if (!analyzing) {
+            MuzMod.LOGGER.info("[DuelAnalyzer] Not analyzing, ignoring death");
+            return;
+        }
+        
+        if (!(event.entity instanceof EntityPlayer)) {
+            MuzMod.LOGGER.info("[DuelAnalyzer] Dead entity is not a player");
+            return;
+        }
+        
+        if (session == null) {
+            MuzMod.LOGGER.info("[DuelAnalyzer] Session is null");
+            return;
+        }
         
         EntityPlayer deadPlayer = (EntityPlayer) event.entity;
         String deadPlayerName = deadPlayer.getName();
         
+        MuzMod.LOGGER.info("[DuelAnalyzer] Player died: " + deadPlayerName);
+        MuzMod.LOGGER.info("[DuelAnalyzer] Checking if participant...");
+        
         // Duel'daki oyunculardan biri mi?
         if (session.isParticipant(deadPlayerName)) {
-            MuzMod.LOGGER.info("[DuelAnalyzer] Player died in duel: " + deadPlayerName);
+            MuzMod.LOGGER.info("[DuelAnalyzer] Player is participant! Ending duel...");
             
             // Session'ı sonlandır (JSON kaydet)
             session.endDuel(deadPlayerName);
@@ -213,6 +242,10 @@ public class DuelAnalyzerState extends AbstractState {
             // Analizi sonlandır
             analyzing = false;
             setStatus("Duel bitti - Kazanan: " + winnerName);
+            
+            MuzMod.LOGGER.info("[DuelAnalyzer] Duel ended successfully");
+        } else {
+            MuzMod.LOGGER.info("[DuelAnalyzer] Player is NOT a participant: " + deadPlayerName);
         }
     }
     
