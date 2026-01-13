@@ -29,8 +29,10 @@ public class ScheduleEntry {
     private int dayOfWeek;
     private int startHour;
     private int startMinute;
+    private int startSecond;
     private int endHour;
     private int endMinute;
+    private int endSecond;
     private EventType eventType;
     private String customWarpCommand; // Her etkinlik için özel warp komutu
     private boolean enabled;
@@ -43,6 +45,8 @@ public class ScheduleEntry {
         this.enabled = true;
         this.eventType = EventType.MINING;
         this.customWarpCommand = "";
+        this.startSecond = 0;
+        this.endSecond = 0;
     }
     
     public ScheduleEntry(int dayOfWeek, int startHour, int startMinute, int endHour, int endMinute, EventType eventType) {
@@ -50,8 +54,22 @@ public class ScheduleEntry {
         this.dayOfWeek = dayOfWeek;
         this.startHour = startHour;
         this.startMinute = startMinute;
+        this.startSecond = 0;
         this.endHour = endHour;
         this.endMinute = endMinute;
+        this.endSecond = 0;
+        this.eventType = eventType;
+    }
+    
+    public ScheduleEntry(int dayOfWeek, int startHour, int startMinute, int startSecond, int endHour, int endMinute, int endSecond, EventType eventType) {
+        this();
+        this.dayOfWeek = dayOfWeek;
+        this.startHour = startHour;
+        this.startMinute = startMinute;
+        this.startSecond = startSecond;
+        this.endHour = endHour;
+        this.endMinute = endMinute;
+        this.endSecond = endSecond;
         this.eventType = eventType;
     }
     
@@ -59,11 +77,18 @@ public class ScheduleEntry {
      * Verilen saat bu etkinliğin içinde mi?
      */
     public boolean isActiveAt(int hour, int minute) {
+        return isActiveAt(hour, minute, 0);
+    }
+    
+    /**
+     * Verilen saat ve saniye bu etkinliğin içinde mi?
+     */
+    public boolean isActiveAt(int hour, int minute, int second) {
         if (!enabled) return false;
         
-        int currentTime = hour * 60 + minute;
-        int startTime = startHour * 60 + startMinute;
-        int endTime = endHour * 60 + endMinute;
+        int currentTime = hour * 3600 + minute * 60 + second;
+        int startTime = startHour * 3600 + startMinute * 60 + startSecond;
+        int endTime = endHour * 3600 + endMinute * 60 + endSecond;
         
         // Gece yarısını geçen durumlar için (örn: 23:00 - 02:00)
         if (endTime < startTime) {
@@ -74,31 +99,47 @@ public class ScheduleEntry {
     }
     
     /**
-     * Başlangıç saatini dakika cinsinden döndürür (sıralama için)
+     * Başlangıç saatini saniye cinsinden döndürür (sıralama için)
+     */
+    public int getStartTimeSeconds() {
+        return startHour * 3600 + startMinute * 60 + startSecond;
+    }
+    
+    /**
+     * Başlangıç saatini dakika cinsinden döndürür (geriye uyumluluk için)
      */
     public int getStartTimeMinutes() {
         return startHour * 60 + startMinute;
     }
     
     /**
-     * Formatlanmış saat aralığı
+     * Formatlanmış saat aralığı (saniye dahil)
      */
     public String getTimeRange() {
-        return String.format("%02d:%02d - %02d:%02d", startHour, startMinute, endHour, endMinute);
+        if (startSecond == 0 && endSecond == 0) {
+            return String.format("%02d:%02d - %02d:%02d", startHour, startMinute, endHour, endMinute);
+        }
+        return String.format("%02d:%02d:%02d - %02d:%02d:%02d", startHour, startMinute, startSecond, endHour, endMinute, endSecond);
     }
     
     /**
-     * Başlangıç saati string formatında
+     * Başlangıç saati string formatında (saniye dahil)
      */
     public String getStartTimeStr() {
-        return String.format("%02d:%02d", startHour, startMinute);
+        if (startSecond == 0) {
+            return String.format("%02d:%02d", startHour, startMinute);
+        }
+        return String.format("%02d:%02d:%02d", startHour, startMinute, startSecond);
     }
     
     /**
-     * Bitiş saati string formatında
+     * Bitiş saati string formatında (saniye dahil)
      */
     public String getEndTimeStr() {
-        return String.format("%02d:%02d", endHour, endMinute);
+        if (endSecond == 0) {
+            return String.format("%02d:%02d", endHour, endMinute);
+        }
+        return String.format("%02d:%02d:%02d", endHour, endMinute, endSecond);
     }
     
     /**
@@ -136,11 +177,17 @@ public class ScheduleEntry {
     public int getStartMinute() { return startMinute; }
     public void setStartMinute(int startMinute) { this.startMinute = startMinute; }
     
+    public int getStartSecond() { return startSecond; }
+    public void setStartSecond(int startSecond) { this.startSecond = startSecond; }
+    
     public int getEndHour() { return endHour; }
     public void setEndHour(int endHour) { this.endHour = endHour; }
     
     public int getEndMinute() { return endMinute; }
     public void setEndMinute(int endMinute) { this.endMinute = endMinute; }
+    
+    public int getEndSecond() { return endSecond; }
+    public void setEndSecond(int endSecond) { this.endSecond = endSecond; }
     
     public EventType getEventType() { return eventType; }
     public void setEventType(EventType eventType) { this.eventType = eventType; }

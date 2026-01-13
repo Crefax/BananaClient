@@ -1179,20 +1179,16 @@ public class BananaGui extends GuiScreen {
         String warpCmd = fieldWarpCommand.getText().trim();
         
         if (!isValidTime(startTime) || !isValidTime(endTime)) {
-            MuzMod.instance.sendChat("§c§lHata: §7Geçersiz saat formatı! (HH:MM)");
+            MuzMod.instance.sendChat("§c§lHata: §7Geçersiz saat formatı! (HH:MM veya HH:MM:SS)");
             return;
         }
         
         ScheduleEntry.EventType type = ScheduleEntry.EventType.values()[newEntryType];
         
-        String[] startParts = startTime.split(":");
-        String[] endParts = endTime.split(":");
-        int startHour = Integer.parseInt(startParts[0]);
-        int startMin = Integer.parseInt(startParts[1]);
-        int endHour = Integer.parseInt(endParts[0]);
-        int endMin = Integer.parseInt(endParts[1]);
+        int[] start = parseTime(startTime);
+        int[] end = parseTime(endTime);
         
-        ScheduleEntry entry = new ScheduleEntry(selectedDay, startHour, startMin, endHour, endMin, type);
+        ScheduleEntry entry = new ScheduleEntry(selectedDay, start[0], start[1], start[2], end[0], end[1], end[2], type);
         if (!warpCmd.isEmpty()) {
             entry.setCustomWarpCommand(warpCmd);
         }
@@ -1216,17 +1212,19 @@ public class BananaGui extends GuiScreen {
         String warpCmd = fieldWarpCommand.getText().trim();
         
         if (!isValidTime(startTime) || !isValidTime(endTime)) {
-            MuzMod.instance.sendChat("§c§lHata: §7Geçersiz saat formatı! (HH:MM)");
+            MuzMod.instance.sendChat("§c§lHata: §7Geçersiz saat formatı! (HH:MM veya HH:MM:SS)");
             return;
         }
         
-        String[] startParts = startTime.split(":");
-        String[] endParts = endTime.split(":");
+        int[] start = parseTime(startTime);
+        int[] end = parseTime(endTime);
         
-        entry.setStartHour(Integer.parseInt(startParts[0]));
-        entry.setStartMinute(Integer.parseInt(startParts[1]));
-        entry.setEndHour(Integer.parseInt(endParts[0]));
-        entry.setEndMinute(Integer.parseInt(endParts[1]));
+        entry.setStartHour(start[0]);
+        entry.setStartMinute(start[1]);
+        entry.setStartSecond(start[2]);
+        entry.setEndHour(end[0]);
+        entry.setEndMinute(end[1]);
+        entry.setEndSecond(end[2]);
         entry.setEventType(ScheduleEntry.EventType.values()[newEntryType]);
         entry.setCustomWarpCommand(warpCmd.isEmpty() ? null : warpCmd);
         
@@ -1255,14 +1253,25 @@ public class BananaGui extends GuiScreen {
     private boolean isValidTime(String time) {
         if (time == null || !time.contains(":")) return false;
         String[] parts = time.split(":");
-        if (parts.length != 2) return false;
+        // HH:MM veya HH:MM:SS formatını kabul et
+        if (parts.length != 2 && parts.length != 3) return false;
         try {
             int hour = Integer.parseInt(parts[0]);
             int min = Integer.parseInt(parts[1]);
-            return hour >= 0 && hour <= 23 && min >= 0 && min <= 59;
+            int sec = parts.length == 3 ? Integer.parseInt(parts[2]) : 0;
+            return hour >= 0 && hour <= 23 && min >= 0 && min <= 59 && sec >= 0 && sec <= 59;
         } catch (NumberFormatException e) {
             return false;
         }
+    }
+    
+    // HH:MM veya HH:MM:SS formatından saat, dakika, saniye çıkar
+    private int[] parseTime(String time) {
+        String[] parts = time.split(":");
+        int hour = Integer.parseInt(parts[0]);
+        int min = Integer.parseInt(parts[1]);
+        int sec = parts.length == 3 ? Integer.parseInt(parts[2]) : 0;
+        return new int[]{hour, min, sec};
     }
     
     private void handleSettingsClick(int mouseX, int mouseY, int button) {

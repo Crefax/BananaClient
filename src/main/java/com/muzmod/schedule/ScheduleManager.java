@@ -46,10 +46,17 @@ public class ScheduleManager {
      * Şu anki zamana göre aktif etkinliği bul
      */
     public ScheduleEntry getCurrentEntry(int dayOfWeek, int hour, int minute) {
+        return getCurrentEntry(dayOfWeek, hour, minute, 0);
+    }
+    
+    /**
+     * Şu anki zamana göre aktif etkinliği bul (saniye dahil)
+     */
+    public ScheduleEntry getCurrentEntry(int dayOfWeek, int hour, int minute, int second) {
         if (!scheduleEnabled) return null;
         
         return entries.stream()
-            .filter(e -> e.getDayOfWeek() == dayOfWeek && e.isActiveAt(hour, minute))
+            .filter(e -> e.getDayOfWeek() == dayOfWeek && e.isActiveAt(hour, minute, second))
             .findFirst()
             .orElse(null);
     }
@@ -163,7 +170,14 @@ public class ScheduleManager {
      * Şu anki zamana göre hangi state'te olmalı?
      */
     public ScheduleEntry.EventType getCurrentScheduledType(int dayOfWeek, int hour, int minute) {
-        ScheduleEntry entry = getCurrentEntry(dayOfWeek, hour, minute);
+        return getCurrentScheduledType(dayOfWeek, hour, minute, 0);
+    }
+    
+    /**
+     * Şu anki zamana göre hangi state'te olmalı? (saniye dahil)
+     */
+    public ScheduleEntry.EventType getCurrentScheduledType(int dayOfWeek, int hour, int minute, int second) {
+        ScheduleEntry entry = getCurrentEntry(dayOfWeek, hour, minute, second);
         
         if (entry != null) {
             return entry.getEventType();
@@ -402,40 +416,48 @@ public class ScheduleManager {
     private void createDefaultSchedule() {
         entries.clear();
         
-        // Mining saatleri (1 dk erken git + 20 dk kal = 21 dk)
-        // Hafta içi (Pzt-Cum, 0-4): 03:40, 15:40, 21:40, 23:40 -> 1 dk erken başla
+        // Mining saatleri - 20 saniye erken git (SS:MM:40 olduğunda başla)
+        // Event: 03:40, 15:40, 21:40, 23:40 -> Başlangıç: 03:39:40, 15:39:40, vb.
+        // Hafta içi (Pzt-Cum, 0-4)
         for (int day = 0; day < 5; day++) {
-            entries.add(new ScheduleEntry(day, 3, 39, 4, 0, ScheduleEntry.EventType.MINING));   // 03:40 eventi
-            entries.add(new ScheduleEntry(day, 15, 39, 16, 0, ScheduleEntry.EventType.MINING)); // 15:40 eventi
-            entries.add(new ScheduleEntry(day, 21, 39, 22, 0, ScheduleEntry.EventType.MINING)); // 21:40 eventi
-            entries.add(new ScheduleEntry(day, 23, 39, 0, 0, ScheduleEntry.EventType.MINING));  // 23:40 eventi
+            // 03:40 eventi -> 03:39:40'ta başla
+            entries.add(new ScheduleEntry(day, 3, 39, 40, 4, 0, 0, ScheduleEntry.EventType.MINING));
+            // 15:40 eventi -> 15:39:40'ta başla
+            entries.add(new ScheduleEntry(day, 15, 39, 40, 16, 0, 0, ScheduleEntry.EventType.MINING));
+            // 21:40 eventi -> 21:39:40'ta başla
+            entries.add(new ScheduleEntry(day, 21, 39, 40, 22, 0, 0, ScheduleEntry.EventType.MINING));
+            // 23:40 eventi -> 23:39:40'ta başla
+            entries.add(new ScheduleEntry(day, 23, 39, 40, 0, 0, 0, ScheduleEntry.EventType.MINING));
         }
         
-        // Hafta sonu (Cmt-Paz, 5-6): 03:40, 11:40, 15:40, 21:40, 23:40 -> 1 dk erken başla
+        // Hafta sonu (Cmt-Paz, 5-6): 03:40, 11:40, 15:40, 21:40, 23:40
         for (int day = 5; day < 7; day++) {
-            entries.add(new ScheduleEntry(day, 3, 39, 4, 0, ScheduleEntry.EventType.MINING));   // 03:40 eventi
-            entries.add(new ScheduleEntry(day, 11, 39, 12, 0, ScheduleEntry.EventType.MINING)); // 11:40 eventi
-            entries.add(new ScheduleEntry(day, 15, 39, 16, 0, ScheduleEntry.EventType.MINING)); // 15:40 eventi
-            entries.add(new ScheduleEntry(day, 21, 39, 22, 0, ScheduleEntry.EventType.MINING)); // 21:40 eventi
-            entries.add(new ScheduleEntry(day, 23, 39, 0, 0, ScheduleEntry.EventType.MINING));  // 23:40 eventi
+            entries.add(new ScheduleEntry(day, 3, 39, 40, 4, 0, 0, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 11, 39, 40, 12, 0, 0, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 15, 39, 40, 16, 0, 0, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 21, 39, 40, 22, 0, 0, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 23, 39, 40, 0, 0, 0, ScheduleEntry.EventType.MINING));
         }
         
-        // OX Event saatleri (1 dk erken git + 10 dk kal = :49 - :59)
-        // Hafta içi (Pzt-Cum): 17:50, 00:05 -> 1 dk erken başla, 10 dk
+        // OX Event saatleri - 20 saniye erken git
+        // Hafta içi (Pzt-Cum): 17:50, 00:05
         for (int day = 0; day < 5; day++) {
-            entries.add(new ScheduleEntry(day, 0, 4, 0, 14, ScheduleEntry.EventType.OX));    // 00:05 eventi -> 00:04-00:14
-            entries.add(new ScheduleEntry(day, 17, 49, 17, 59, ScheduleEntry.EventType.OX)); // 17:50 eventi -> 17:49-17:59
+            // 00:05 eventi -> 00:04:40'ta başla
+            entries.add(new ScheduleEntry(day, 0, 4, 40, 0, 15, 0, ScheduleEntry.EventType.OX));
+            // 17:50 eventi -> 17:49:40'ta başla
+            entries.add(new ScheduleEntry(day, 17, 49, 40, 18, 0, 0, ScheduleEntry.EventType.OX));
         }
         
-        // Hafta sonu (Cmt-Paz): 11:00, 17:50, 00:05 -> 1 dk erken başla, 10 dk
+        // Hafta sonu (Cmt-Paz): 11:00, 17:50, 00:05
         for (int day = 5; day < 7; day++) {
-            entries.add(new ScheduleEntry(day, 0, 4, 0, 14, ScheduleEntry.EventType.OX));    // 00:05 eventi -> 00:04-00:14
-            entries.add(new ScheduleEntry(day, 10, 59, 11, 9, ScheduleEntry.EventType.OX));  // 11:00 eventi -> 10:59-11:09
-            entries.add(new ScheduleEntry(day, 17, 49, 17, 59, ScheduleEntry.EventType.OX)); // 17:50 eventi -> 17:49-17:59
+            entries.add(new ScheduleEntry(day, 0, 4, 40, 0, 15, 0, ScheduleEntry.EventType.OX));
+            // 11:00 eventi -> 10:59:40'ta başla
+            entries.add(new ScheduleEntry(day, 10, 59, 40, 11, 10, 0, ScheduleEntry.EventType.OX));
+            entries.add(new ScheduleEntry(day, 17, 49, 40, 18, 0, 0, ScheduleEntry.EventType.OX));
         }
         
         save();
-        MuzMod.LOGGER.info("[Schedule] Created default schedule with Mining and OX events");
+        MuzMod.LOGGER.info("[Schedule] Created default schedule with Mining and OX events (20s early start)");
     }
     
     // Getters & Setters

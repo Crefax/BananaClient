@@ -203,13 +203,14 @@ public class StateManager {
         int timeOffset = MuzMod.instance.getConfig().getTimeOffsetHours();
         int hour = (cal.get(Calendar.HOUR_OF_DAY) + timeOffset + 24) % 24;
         int minute = cal.get(Calendar.MINUTE);
+        int second = cal.get(Calendar.SECOND);
         // Java Calendar: Pazar=1, Pazartesi=2, ... Cumartesi=7
         // Bizim sistem: Pazartesi=0, ... Pazar=6
         int javaDow = cal.get(Calendar.DAY_OF_WEEK);
         int dayOfWeek = (javaDow == Calendar.SUNDAY) ? 6 : javaDow - 2;
         
-        // Schedule'dan aktif event tipini al
-        ScheduleEntry.EventType scheduledType = schedule.getCurrentScheduledType(dayOfWeek, hour, minute);
+        // Schedule'dan aktif event tipini al (saniye dahil)
+        ScheduleEntry.EventType scheduledType = schedule.getCurrentScheduledType(dayOfWeek, hour, minute, second);
         
         // RepairState'e geçiş gerekiyorsa öncelikli kontrol
         if (repairState.shouldActivate() && scheduledType == ScheduleEntry.EventType.MINING) {
