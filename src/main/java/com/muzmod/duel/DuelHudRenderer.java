@@ -49,7 +49,11 @@ public class DuelHudRenderer extends Gui {
             return;
         }
         
-        if (!session.isActive()) {
+        // Session'ın player data'sını kontrol et
+        DuelData p1 = session.getPlayer1Data();
+        DuelData p2 = session.getPlayer2Data();
+        
+        if (p1 == null || p2 == null) {
             return;
         }
         
@@ -58,11 +62,6 @@ public class DuelHudRenderer extends Gui {
         hudY = MuzMod.instance.getConfig().getDuelHudY();
         
         FontRenderer fr = mc.fontRendererObj;
-        
-        DuelData p1 = session.getPlayer1Data();
-        DuelData p2 = session.getPlayer2Data();
-        
-        if (p1 == null || p2 == null) return;
         
         // Arka plan
         drawRect(hudX, hudY, hudX + hudWidth, hudY + hudHeight, BG_COLOR);

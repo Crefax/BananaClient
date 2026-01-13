@@ -108,15 +108,20 @@ public class DuelAnalyzerState extends AbstractState {
     public void stopAnalysis() {
         if (!analyzing) return;
         
-        session.stop();
+        // Session aktifse kaydet
+        if (session.isActive()) {
+            session.saveDuelRecordManual(); // Manuel kayıt
+            session.stop();
+            
+            if (mc.thePlayer != null) {
+                mc.thePlayer.addChatMessage(new net.minecraft.util.ChatComponentText(
+                    "§6[DuelAnalyzer] §cAnaliz durduruldu ve kaydedildi"
+                ));
+            }
+        }
+        
         analyzing = false;
         setStatus("Analiz durduruldu");
-        
-        if (mc.thePlayer != null) {
-            mc.thePlayer.addChatMessage(new net.minecraft.util.ChatComponentText(
-                "§6[DuelAnalyzer] §cAnaliz durduruldu"
-            ));
-        }
     }
     
     /**
@@ -137,6 +142,7 @@ public class DuelAnalyzerState extends AbstractState {
     public void onRenderOverlay(RenderGameOverlayEvent.Post event) {
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
         if (!analyzing) return;
+        if (session == null) return;
         
         // HUD görünürlük kontrolü
         if (!MuzMod.instance.getConfig().isDuelHudEnabled()) return;
@@ -176,16 +182,22 @@ public class DuelAnalyzerState extends AbstractState {
     public void onLivingDeath(LivingDeathEvent event) {
         if (!analyzing) return;
         if (!(event.entity instanceof EntityPlayer)) return;
+        if (session == null) return;
         
         EntityPlayer deadPlayer = (EntityPlayer) event.entity;
+        String deadPlayerName = deadPlayer.getName();
         
         // Duel'daki oyunculardan biri mi?
-        if (session.isParticipant(deadPlayer.getName())) {
-            session.endDuel(deadPlayer.getName());
+        if (session.isParticipant(deadPlayerName)) {
+            MuzMod.LOGGER.info("[DuelAnalyzer] Player died in duel: " + deadPlayerName);
             
-            DuelData winner = session.getOpponentData(deadPlayer.getName());
-            String winnerName = winner != null ? winner.getPlayerName() : "?";
+            // Session'ı sonlandır (JSON kaydet)
+            session.endDuel(deadPlayerName);
             
+            DuelData winner = session.getOpponentData(deadPlayerName);
+            String winnerName = winner != null ? winner.getPlayerName() : "Unknown";
+            
+            // Chat mesajları
             if (mc.thePlayer != null) {
                 mc.thePlayer.addChatMessage(new net.minecraft.util.ChatComponentText(
                     "§6[DuelAnalyzer] §aDuel bitti! Kazanan: §e" + winnerName
@@ -195,6 +207,7 @@ public class DuelAnalyzerState extends AbstractState {
                 ));
             }
             
+            // Analizi sonlandır
             analyzing = false;
             setStatus("Duel bitti - Kazanan: " + winnerName);
         }

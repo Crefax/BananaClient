@@ -339,6 +339,13 @@ public class DuelSession {
         }
     }
     
+    /**
+     * Save duel record manually (when user stops analysis)
+     */
+    public void saveDuelRecordManual() {
+        saveDuelRecord();
+    }
+    
     // ================== HELPER METHODS ==================
     
     private EntityPlayer findPlayer(String name) {
