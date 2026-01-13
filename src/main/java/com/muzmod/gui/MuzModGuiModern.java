@@ -53,7 +53,7 @@ public class MuzModGuiModern extends GuiScreen {
     // Layout
     private int guiX, guiY;
     private static final int GUI_WIDTH = 500;
-    private static final int GUI_HEIGHT = 420;
+    private static final int GUI_HEIGHT = 500;
     
     // Tabs
     private int currentTab = 0;
@@ -70,6 +70,10 @@ public class MuzModGuiModern extends GuiScreen {
     // Obsidyen settings scroll
     private int obsidianSettingsScrollOffset = 0;
     private static final int OBSIDIAN_SETTINGS_SCROLL_MAX = 200; // Maksimum scroll miktarı
+    
+    // Duel settings scroll
+    private int duelSettingsScrollOffset = 0;
+    private static final int DUEL_SETTINGS_SCROLL_MAX = 150; // Maksimum scroll miktarı
     
     // Schedule tab
     private int selectedDay = 0; // 0=Pzt, 6=Paz
@@ -548,7 +552,7 @@ public class MuzModGuiModern extends GuiScreen {
             case 1: drawSettingsMining(mouseX, mouseY, config, y, labelX, fieldX); break;
             case 2: drawSettingsOX(mouseX, mouseY, config, y, labelX, fieldX); break;
             case 3: drawSettingsObsidyen(mouseX, mouseY, config, y - obsidianSettingsScrollOffset, labelX, fieldX); break;
-            case 4: drawSettingsDuel(mouseX, mouseY, config, y, labelX, fieldX); break;
+            case 4: drawSettingsDuel(mouseX, mouseY, config, y - duelSettingsScrollOffset, labelX, fieldX); break;
             case 5: drawSettingsConfig(mouseX, mouseY, y, labelX, fieldX); break;
         }
     }
@@ -1551,23 +1555,28 @@ public class MuzModGuiModern extends GuiScreen {
             }
             // Duel sub-tab
             else if (settingsSubTab == 4) {
+                // Text field tıklamaları
+                fieldDuelPlayer1.mouseClicked(mouseX, mouseY, mouseButton);
+                fieldDuelPlayer2.mouseClicked(mouseX, mouseY, mouseButton);
+                
                 StateManager sm = MuzMod.instance.getStateManager();
                 DuelAnalyzerState duelState = sm.getDuelAnalyzerState();
                 
                 int btnX = guiX + 25;
                 int btnWidth = 120;
                 int btnHeight = 20;
+                int baseY = guiY + 95 - duelSettingsScrollOffset;
                 
                 if (duelState.isAnalyzing()) {
-                    // Stop Analysis butonu - y pozisyonu: 95 + 25(başlık) + 25(durum) + 16(süre) + 8
-                    int stopBtnY = guiY + 95 + 25 + 25 + 16 + 8;
+                    // Stop Analysis butonu - y pozisyonu: baseY + 25(başlık) + 25(durum) + 16(süre) + 8
+                    int stopBtnY = baseY + 25 + 25 + 16 + 8;
                     if (mouseX >= btnX && mouseX < btnX + btnWidth && 
                         mouseY >= stopBtnY && mouseY < stopBtnY + btnHeight) {
                         duelState.stopAnalysis();
                     }
                 } else {
-                    // Start Analysis butonu - y pozisyonu: 95 + 25(başlık) + 25(durum) + 25(player1) + 25(player2) + 8
-                    int startBtnY = guiY + 95 + 25 + 25 + 25 + 25 + 8;
+                    // Start Analysis butonu - y pozisyonu: baseY + 25(başlık) + 25(durum) + 25(player1) + 25(player2) + 8
+                    int startBtnY = baseY + 25 + 25 + 25 + 25 + 8;
                     if (mouseX >= btnX && mouseX < btnX + btnWidth && 
                         mouseY >= startBtnY && mouseY < startBtnY + btnHeight) {
                         String p1 = fieldDuelPlayer1.getText().trim();
@@ -1579,7 +1588,7 @@ public class MuzModGuiModern extends GuiScreen {
                 }
                 
                 // HUD Toggle - y pozisyonu hesabı
-                int hudSectionY = guiY + 95 + 25 + 25 + (duelState.isAnalyzing() ? 16 + 8 + 25 : 25 + 25 + 8 + 25) + 30;
+                int hudSectionY = baseY + 25 + 25 + (duelState.isAnalyzing() ? 16 + 8 + 25 : 25 + 25 + 8 + 25) + 30;
                 int hudToggleBtnY = hudSectionY + 25;
                 if (mouseX >= btnX && mouseX < btnX + 80 && 
                     mouseY >= hudToggleBtnY && mouseY < hudToggleBtnY + btnHeight) {
@@ -1898,6 +1907,17 @@ public class MuzModGuiModern extends GuiScreen {
                 obsidianSettingsScrollOffset = Math.max(0, obsidianSettingsScrollOffset - scrollStep);
             } else if (scroll < 0 && obsidianSettingsScrollOffset < OBSIDIAN_SETTINGS_SCROLL_MAX) {
                 obsidianSettingsScrollOffset = Math.min(OBSIDIAN_SETTINGS_SCROLL_MAX, obsidianSettingsScrollOffset + scrollStep);
+            }
+        }
+        
+        // Scroll wheel for Duel settings
+        if (currentTab == 2 && settingsSubTab == 4) {
+            int scrollStep = 20; // Her scroll için 20 piksel
+            
+            if (scroll > 0 && duelSettingsScrollOffset > 0) {
+                duelSettingsScrollOffset = Math.max(0, duelSettingsScrollOffset - scrollStep);
+            } else if (scroll < 0 && duelSettingsScrollOffset < DUEL_SETTINGS_SCROLL_MAX) {
+                duelSettingsScrollOffset = Math.min(DUEL_SETTINGS_SCROLL_MAX, duelSettingsScrollOffset + scrollStep);
             }
         }
     }
