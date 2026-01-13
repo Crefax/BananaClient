@@ -2,6 +2,7 @@ package com.muzmod.account;
 
 import com.mojang.authlib.GameProfile;
 import com.muzmod.MuzMod;
+import com.muzmod.util.BananaLogger;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraft.client.gui.GuiScreen;
@@ -19,33 +20,36 @@ public class ProxyLoginHandler extends NetHandlerLoginClient {
     private final NetworkManager networkManager;
     private final Minecraft mc;
     private final GuiScreen previousScreen;
+    private final BananaLogger log = BananaLogger.getInstance();
     
     public ProxyLoginHandler(NetworkManager networkManager, Minecraft mc, GuiScreen previousScreen) {
         super(networkManager, mc, previousScreen);
         this.networkManager = networkManager;
         this.mc = mc;
         this.previousScreen = previousScreen;
+        log.proxy("ProxyLoginHandler created");
     }
     
     @Override
     public void handleLoginSuccess(S02PacketLoginSuccess packet) {
-        MuzMod.LOGGER.info("[ProxyLoginHandler] Login successful!");
+        log.proxy("*** LOGIN SUCCESS! ***");
+        log.proxy("Profile: " + packet.getProfile().getName() + " / " + packet.getProfile().getId());
         super.handleLoginSuccess(packet);
     }
     
     @Override
     public void handleDisconnect(S00PacketDisconnect packet) {
-        MuzMod.LOGGER.info("[ProxyLoginHandler] Disconnected: " + packet.func_149603_c().getUnformattedText());
+        log.proxy("*** DISCONNECTED BY SERVER ***");
+        log.proxy("Reason: " + packet.func_149603_c().getUnformattedText());
         super.handleDisconnect(packet);
     }
     
     @Override
     public void handleEncryptionRequest(S01PacketEncryptionRequest packet) {
-        // Offline sunucularda bu çağrılmaz
-        // Online sunucularda encryption gerekir
-        MuzMod.LOGGER.info("[ProxyLoginHandler] Encryption requested - server is online mode");
+        log.proxy("*** ENCRYPTION REQUEST - Online mode server ***");
         
-        // Online mode sunuculara bağlanamayız offline hesapla
+        // Online sunucularda bu çağrılmaz
+        // Online sunucularda encryption gerekir
         mc.displayGuiScreen(new GuiDisconnected(previousScreen, "connect.failed",
             new ChatComponentText("§cSunucu online modda!\n§7Offline hesap ile online sunuculara bağlanamazsınız.")));
         
@@ -54,13 +58,14 @@ public class ProxyLoginHandler extends NetHandlerLoginClient {
     
     @Override
     public void handleEnableCompression(S03PacketEnableCompression packet) {
-        MuzMod.LOGGER.info("[ProxyLoginHandler] Compression enabled: " + packet.getCompressionTreshold());
+        log.proxy("*** COMPRESSION ENABLED: " + packet.getCompressionTreshold() + " ***");
         super.handleEnableCompression(packet);
     }
     
     @Override
     public void onDisconnect(IChatComponent reason) {
-        MuzMod.LOGGER.info("[ProxyLoginHandler] Connection closed: " + reason.getUnformattedText());
+        log.proxy("*** CONNECTION CLOSED ***");
+        log.proxy("Reason: " + reason.getUnformattedText());
         super.onDisconnect(reason);
     }
 }

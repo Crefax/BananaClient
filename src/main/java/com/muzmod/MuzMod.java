@@ -5,6 +5,7 @@ import com.muzmod.handler.EventHandler;
 import com.muzmod.handler.KeyBindHandler;
 import com.muzmod.schedule.ScheduleManager;
 import com.muzmod.state.StateManager;
+import com.muzmod.util.BananaLogger;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -26,7 +27,7 @@ public class MuzMod {
     // Client bilgileri - tek yerden yönetim
     public static final String CLIENT_NAME = "BananaClient";
     public static final String MOD_NAME = CLIENT_NAME; // Alias
-    public static final String VERSION = "0.8.6";
+    public static final String VERSION = "0.9.0";
     public static final String MODID = "bananaclient";
     public static final String GITHUB_URL = "github.com/Crefax/BananaClient";
     
@@ -53,6 +54,9 @@ public class MuzMod {
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         LOGGER.info(CLIENT_NAME + " v" + VERSION + " Pre-Initialization");
+        
+        // BananaLogger'ı başlat
+        BananaLogger.getInstance().info("MuzMod", CLIENT_NAME + " v" + VERSION + " starting...");
         
         // .minecraft/BananaClient/ dizinini oluştur
         File mcDir = Minecraft.getMinecraft().mcDataDir;

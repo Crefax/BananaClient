@@ -2,16 +2,14 @@ package com.muzmod.account;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.muzmod.MuzMod;
+import com.muzmod.util.BananaLogger;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
-import io.netty.channel.local.LocalChannel;
-import io.netty.channel.local.LocalEventLoopGroup;
-import io.netty.channel.local.LocalServerChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
+import io.netty.util.CharsetUtil;
 import net.minecraft.network.EnumPacketDirection;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.util.LazyLoadBase;
@@ -21,15 +19,15 @@ import net.minecraft.util.MessageSerializer;
 import net.minecraft.util.MessageSerializer2;
 
 import java.net.InetAddress;
-import java.net.SocketAddress;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Proxy destekli NetworkManager oluşturucu
- * Minecraft'ın orijinal createNetworkManagerAndConnect metodunu proxy ile wrapper'lar
+ * Kendi SOCKS5 handler'ımızı kullanır (Netty 4.0 için)
  */
 public class ProxyNetworkManager {
     
-    // Event loop group - Minecraft'ınkiyle aynı
     public static final LazyLoadBase<NioEventLoopGroup> CLIENT_NIO_EVENTLOOP = new LazyLoadBase<NioEventLoopGroup>() {
         @Override
         protected NioEventLoopGroup load() {
@@ -43,75 +41,20 @@ public class ProxyNetworkManager {
     public static NetworkManager createNetworkManagerAndConnect(InetAddress address, int serverPort, boolean useNativeTransport) {
         ProxyManager pm = ProxyManager.getInstance();
         
-        // Proxy aktif değilse normal bağlantı
         if (!pm.isProxyEnabled()) {
             MuzMod.LOGGER.info("[ProxyNetworkManager] Proxy disabled, using direct connection");
             return NetworkManager.createNetworkManagerAndConnect(address, serverPort, useNativeTransport);
         }
         
-        // Target = Minecraft sunucusu (Socks5Handler bu adrese tunnel açacak)
-        final String targetHost = address.getHostAddress();
-        final int targetPort = serverPort;
-        
-        MuzMod.LOGGER.info("[ProxyNetworkManager] Target server: " + targetHost + ":" + targetPort);
-        MuzMod.LOGGER.info("[ProxyNetworkManager] Proxy server: " + pm.getProxyHost() + ":" + pm.getProxyPort());
-        
-        final NetworkManager networkmanager = new NetworkManager(EnumPacketDirection.CLIENTBOUND);
-        
-        // SOCKS5 handler oluştur - TARGET host/port ile (Minecraft sunucusu)
-        final Socks5Handler socks5Handler;
-        if (pm.getProxyUsername() != null && !pm.getProxyUsername().isEmpty()) {
-            socks5Handler = new Socks5Handler(targetHost, targetPort, 
-                                              pm.getProxyUsername(), pm.getProxyPassword());
-        } else {
-            socks5Handler = new Socks5Handler(targetHost, targetPort);
-        }
-        
-        Bootstrap bootstrap = new Bootstrap();
-        bootstrap.group(CLIENT_NIO_EVENTLOOP.getValue())
-            .handler(new ChannelInitializer<Channel>() {
-                @Override
-                protected void initChannel(Channel channel) throws Exception {
-                    try {
-                        channel.config().setOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
-                    } catch (ChannelException e) {
-                        // Ignore
-                    }
-                    
-                    // SOCKS5 handler'ı İLK olarak ekle
-                    channel.pipeline()
-                        .addLast("socks5", socks5Handler)
-                        .addLast("timeout", new ReadTimeoutHandler(30))
-                        .addLast("splitter", new MessageDeserializer2())
-                        .addLast("decoder", new MessageDeserializer(EnumPacketDirection.CLIENTBOUND))
-                        .addLast("prepender", new MessageSerializer2())
-                        .addLast("encoder", new MessageSerializer(EnumPacketDirection.SERVERBOUND))
-                        .addLast("packet_handler", networkmanager);
-                }
-            })
-            .channel(NioSocketChannel.class);
-        
-        // PROXY'ye bağlan! (Hedef sunucuya değil!)
-        // Socks5Handler channelActive'de SOCKS5 handshake yapacak ve target'a tunnel açacak
-        try {
-            MuzMod.LOGGER.info("[ProxyNetworkManager] Connecting to PROXY: " + pm.getProxyHost() + ":" + pm.getProxyPort());
-            bootstrap.connect(InetAddress.getByName(pm.getProxyHost()), pm.getProxyPort()).syncUninterruptibly();
-            MuzMod.LOGGER.info("[ProxyNetworkManager] Connected to proxy!");
-        } catch (Exception e) {
-            MuzMod.LOGGER.error("[ProxyNetworkManager] Failed to connect to proxy: " + e.getMessage());
-            throw new RuntimeException("Failed to connect to proxy: " + pm.getProxyHost() + ":" + pm.getProxyPort(), e);
-        }
-        
-        return networkmanager;
+        return createProxyConnection(address.getHostAddress(), serverPort, pm);
     }
     
     /**
-     * Hostname ile bağlantı (DNS çözümleme proxy tarafında yapılır)
+     * Hostname ile bağlantı
      */
     public static NetworkManager createNetworkManagerAndConnect(String hostname, int serverPort, boolean useNativeTransport) {
         ProxyManager pm = ProxyManager.getInstance();
         
-        // Proxy aktif değilse normal bağlantı
         if (!pm.isProxyEnabled()) {
             MuzMod.LOGGER.info("[ProxyNetworkManager] Proxy disabled, using direct connection");
             try {
@@ -121,23 +64,23 @@ public class ProxyNetworkManager {
             }
         }
         
-        // Target = Minecraft sunucusu (hostname ile - DNS proxy tarafında çözülecek)
-        final String targetHost = hostname;
-        final int targetPort = serverPort;
+        return createProxyConnection(hostname, serverPort, pm);
+    }
+    
+    /**
+     * SOCKS5 proxy bağlantısı oluştur
+     */
+    private static NetworkManager createProxyConnection(final String targetHost, final int targetPort, final ProxyManager pm) {
+        BananaLogger log = BananaLogger.getInstance();
         
-        MuzMod.LOGGER.info("[ProxyNetworkManager] Target server: " + targetHost + ":" + targetPort);
-        MuzMod.LOGGER.info("[ProxyNetworkManager] Proxy server: " + pm.getProxyHost() + ":" + pm.getProxyPort());
+        log.proxy("========================================");
+        log.proxy("Creating SOCKS5 proxy connection");
+        log.proxy("Target: " + targetHost + ":" + targetPort);
+        log.proxy("Proxy: " + pm.getProxyHost() + ":" + pm.getProxyPort());
+        log.proxy("========================================");
         
         final NetworkManager networkmanager = new NetworkManager(EnumPacketDirection.CLIENTBOUND);
-        
-        // SOCKS5 handler oluştur - TARGET host/port ile (hostname, IP değil - DNS proxy'de çözülür)
-        final Socks5Handler socks5Handler;
-        if (pm.getProxyUsername() != null && !pm.getProxyUsername().isEmpty()) {
-            socks5Handler = new Socks5Handler(targetHost, targetPort, 
-                                              pm.getProxyUsername(), pm.getProxyPassword());
-        } else {
-            socks5Handler = new Socks5Handler(targetHost, targetPort);
-        }
+        final CountDownLatch tunnelLatch = new CountDownLatch(1);
         
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(CLIENT_NIO_EVENTLOOP.getValue())
@@ -150,27 +93,58 @@ public class ProxyNetworkManager {
                         // Ignore
                     }
                     
-                    // SOCKS5 handler'ı İLK olarak ekle
-                    channel.pipeline()
-                        .addLast("socks5", socks5Handler)
-                        .addLast("timeout", new ReadTimeoutHandler(30))
-                        .addLast("splitter", new MessageDeserializer2())
-                        .addLast("decoder", new MessageDeserializer(EnumPacketDirection.CLIENTBOUND))
-                        .addLast("prepender", new MessageSerializer2())
-                        .addLast("encoder", new MessageSerializer(EnumPacketDirection.SERVERBOUND))
-                        .addLast("packet_handler", networkmanager);
+                    ChannelPipeline pipeline = channel.pipeline();
+                    
+                    // SOCKS5 handler - hedef sunucu bilgisi ile
+                    Socks5Handler socks5Handler;
+                    if (pm.getProxyUsername() != null && !pm.getProxyUsername().isEmpty()) {
+                        socks5Handler = new Socks5Handler(targetHost, targetPort, pm.getProxyUsername(), pm.getProxyPassword());
+                    } else {
+                        socks5Handler = new Socks5Handler(targetHost, targetPort);
+                    }
+                    
+                    // Tunnel kurulduğunda sinyal verecek latch'i set et
+                    socks5Handler.setTunnelLatch(tunnelLatch);
+                    
+                    pipeline.addLast("socks5", socks5Handler);
+                    
+                    // Minecraft handler'ları
+                    pipeline.addLast("timeout", new ReadTimeoutHandler(30));
+                    pipeline.addLast("splitter", new MessageDeserializer2());
+                    pipeline.addLast("decoder", new MessageDeserializer(EnumPacketDirection.CLIENTBOUND));
+                    pipeline.addLast("prepender", new MessageSerializer2());
+                    pipeline.addLast("encoder", new MessageSerializer(EnumPacketDirection.SERVERBOUND));
+                    pipeline.addLast("packet_handler", networkmanager);
+                    
+                    BananaLogger.getInstance().proxy("Pipeline configured with SOCKS5 handler");
                 }
             })
             .channel(NioSocketChannel.class);
         
-        // PROXY'ye bağlan! (Hedef sunucuya değil!)
+        // PROXY'ye bağlan!
+        log.proxy("Connecting to PROXY: " + pm.getProxyHost() + ":" + pm.getProxyPort());
+        
         try {
-            MuzMod.LOGGER.info("[ProxyNetworkManager] Connecting to PROXY: " + pm.getProxyHost() + ":" + pm.getProxyPort());
-            bootstrap.connect(InetAddress.getByName(pm.getProxyHost()), pm.getProxyPort()).syncUninterruptibly();
-            MuzMod.LOGGER.info("[ProxyNetworkManager] Connected to proxy!");
+            bootstrap.connect(pm.getProxyHost(), pm.getProxyPort()).syncUninterruptibly();
+            log.proxy("Connected to proxy!");
+            
+            // SOCKS5 tunnel kurulana kadar bekle (max 30 saniye)
+            log.proxy("Waiting for SOCKS5 tunnel to be established...");
+            boolean tunnelReady = tunnelLatch.await(30, TimeUnit.SECONDS);
+            
+            if (!tunnelReady) {
+                log.error("Proxy", "SOCKS5 tunnel timeout - tunnel not established in 30 seconds");
+                throw new RuntimeException("SOCKS5 tunnel timeout");
+            }
+            
+            log.proxy("SOCKS5 tunnel ready, NetworkManager is now usable");
+            
+        } catch (InterruptedException e) {
+            log.error("Proxy", "Interrupted while waiting for tunnel: " + e.getMessage(), e);
+            throw new RuntimeException("Interrupted while waiting for tunnel", e);
         } catch (Exception e) {
-            MuzMod.LOGGER.error("[ProxyNetworkManager] Failed to connect to proxy: " + e.getMessage());
-            throw new RuntimeException("Failed to connect to proxy: " + pm.getProxyHost() + ":" + pm.getProxyPort(), e);
+            log.error("Proxy", "Connection failed: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to connect to proxy", e);
         }
         
         return networkmanager;

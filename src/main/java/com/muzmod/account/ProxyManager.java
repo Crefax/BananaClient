@@ -44,7 +44,7 @@ public class ProxyManager {
     
     /**
      * Proxy'yi aktifle
-     * Java sistem proxy ayarlarını kullanarak TÜM bağlantıları proxy üzerinden yönlendir
+     * ProxyNetworkManager Netty Socks5ProxyHandler kullanacak
      */
     public void enableProxy() {
         if (proxyHost == null || proxyHost.isEmpty()) {
@@ -54,31 +54,10 @@ public class ProxyManager {
         
         proxyEnabled = true;
         
-        // Java sistem SOCKS proxy ayarları - TÜM socket bağlantıları proxy üzerinden gider
-        System.setProperty("socksProxyHost", proxyHost);
-        System.setProperty("socksProxyPort", String.valueOf(proxyPort));
-        
-        // Proxy auth varsa ayarla
+        MuzMod.LOGGER.info("[ProxyManager] Proxy enabled: " + proxyHost + ":" + proxyPort);
         if (proxyUsername != null && !proxyUsername.isEmpty()) {
-            System.setProperty("java.net.socks.username", proxyUsername);
-            System.setProperty("java.net.socks.password", proxyPassword != null ? proxyPassword : "");
-            
-            // Authenticator ayarla
-            java.net.Authenticator.setDefault(new java.net.Authenticator() {
-                @Override
-                protected java.net.PasswordAuthentication getPasswordAuthentication() {
-                    if (getRequestingProtocol().toLowerCase().contains("socks")) {
-                        return new java.net.PasswordAuthentication(proxyUsername, 
-                            (proxyPassword != null ? proxyPassword : "").toCharArray());
-                    }
-                    return null;
-                }
-            });
             MuzMod.LOGGER.info("[ProxyManager] Proxy auth: " + proxyUsername);
         }
-        
-        MuzMod.LOGGER.info("[ProxyManager] Proxy enabled: " + proxyHost + ":" + proxyPort);
-        MuzMod.LOGGER.info("[ProxyManager] System SOCKS proxy configured - ALL connections will use proxy");
     }
     
     /**
@@ -86,15 +65,7 @@ public class ProxyManager {
      */
     public void disableProxy() {
         proxyEnabled = false;
-        
-        // Sistem proxy ayarlarını temizle
-        System.clearProperty("socksProxyHost");
-        System.clearProperty("socksProxyPort");
-        System.clearProperty("java.net.socks.username");
-        System.clearProperty("java.net.socks.password");
-        java.net.Authenticator.setDefault(null);
-        
-        MuzMod.LOGGER.info("[ProxyManager] Proxy disabled - System SOCKS proxy cleared");
+        MuzMod.LOGGER.info("[ProxyManager] Proxy disabled");
     }
     
     /**

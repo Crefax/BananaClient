@@ -1,6 +1,7 @@
 package com.muzmod.account;
 
 import com.muzmod.MuzMod;
+import com.muzmod.util.BananaLogger;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraft.client.gui.GuiScreen;
@@ -53,29 +54,38 @@ public class GuiProxyConnecting extends GuiScreen {
     
     private void connect() {
         ProxyManager pm = ProxyManager.getInstance();
+        BananaLogger log = BananaLogger.getInstance();
+        
+        log.proxy("============ CONNECTION START ============");
+        log.proxy("ProxyEnabled: " + pm.isProxyEnabled());
+        log.proxy("ProxyHost: " + pm.getProxyHost());
+        log.proxy("ProxyPort: " + pm.getProxyPort());
         
         String[] addressParts = serverData.serverIP.split(":");
         String host = addressParts[0];
         int port = addressParts.length > 1 ? Integer.parseInt(addressParts[1]) : 25565;
         
+        log.proxy("Target Server: " + host + ":" + port);
+        
         if (pm.isProxyEnabled()) {
             statusMessage = "Proxy ile bağlanılıyor...";
-            MuzMod.LOGGER.info("[GuiProxyConnecting] Connecting via proxy to " + host + ":" + port);
+            log.proxy(">>> USING PROXY CONNECTION <<<");
             
             try {
                 // Proxy üzerinden bağlan - HOSTNAME ile (DNS leak önleme)
                 networkManager = ProxyNetworkManager.createNetworkManagerAndConnect(
                     host, port, true);
                 
+                log.proxy("NetworkManager created successfully");
+                
             } catch (Exception e) {
-                MuzMod.LOGGER.error("[GuiProxyConnecting] Proxy connection error: " + e.getMessage());
-                e.printStackTrace();
+                BananaLogger.getInstance().error("Proxy", "Connection error: " + e.getMessage(), e);
                 onConnectionFailed("Proxy bağlantı hatası: " + e.getMessage());
                 return;
             }
         } else {
             statusMessage = "Direkt bağlanılıyor...";
-            MuzMod.LOGGER.info("[GuiProxyConnecting] Direct connection to " + host + ":" + port);
+            BananaLogger.getInstance().proxy(">>> USING DIRECT CONNECTION (NO PROXY) <<<");
             
             try {
                 networkManager = NetworkManager.createNetworkManagerAndConnect(
@@ -94,18 +104,25 @@ public class GuiProxyConnecting extends GuiScreen {
             return;
         }
         
+        BananaLogger.getInstance().proxy("NetworkManager channel open: " + networkManager.isChannelOpen());
+        
         // Network handler ayarla ve handshake başlat
         statusMessage = "Handshake yapılıyor...";
         networkManager.setNetHandler(new ProxyLoginHandler(networkManager, mc, previousScreen));
         
+        BananaLogger.getInstance().proxy("NetHandler set, sending handshake...");
+        
         // Handshake paketi gönder
         networkManager.sendPacket(new C00Handshake(47, host, port, EnumConnectionState.LOGIN));
+        
+        BananaLogger.getInstance().proxy("Handshake packet sent");
         
         // Login paketi gönder
         statusMessage = "Giriş yapılıyor...";
         networkManager.sendPacket(new C00PacketLoginStart(mc.getSession().getProfile()));
         
-        MuzMod.LOGGER.info("[GuiProxyConnecting] Handshake sent, waiting for response...");
+        BananaLogger.getInstance().proxy("Login packet sent for: " + mc.getSession().getProfile().getName());
+        BananaLogger.getInstance().proxy("Waiting for server response...");
     }
     
     private void onConnectionFailed(final String reason) {
@@ -125,12 +142,17 @@ public class GuiProxyConnecting extends GuiScreen {
                 try {
                     networkManager.processReceivedPackets();
                 } catch (Exception e) {
+                    BananaLogger.getInstance().error("GuiProxyConnecting", "Packet processing error: " + e.getMessage(), e);
                     if (!cancelled) {
                         onConnectionFailed("Paket işleme hatası: " + e.getMessage());
                     }
                 }
-            } else if (networkManager.getExitMessage() != null) {
-                onConnectionFailed(networkManager.getExitMessage().getUnformattedText());
+            } else {
+                BananaLogger.getInstance().proxy("Channel closed! Exit message: " + 
+                    (networkManager.getExitMessage() != null ? networkManager.getExitMessage().getUnformattedText() : "null"));
+                if (networkManager.getExitMessage() != null) {
+                    onConnectionFailed(networkManager.getExitMessage().getUnformattedText());
+                }
             }
         }
     }

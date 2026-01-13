@@ -1,16 +1,15 @@
 package com.muzmod.account;
 
 import com.muzmod.MuzMod;
+import com.muzmod.util.BananaLogger;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.util.CharsetUtil;
 
 /**
- * SOCKS5 Proxy Handler for Netty
- * 
- * Bu handler proxy'ye bağlandıktan sonra SOCKS5 handshake yapar
- * ve hedef sunucuya tunnel açar.
+ * SOCKS5 Proxy Handler for Netty 4.0
+ * Proxy'ye bağlandıktan sonra SOCKS5 handshake yapar ve hedef sunucuya tunnel açar.
  */
 public class Socks5Handler extends ChannelInboundHandlerAdapter {
     
@@ -19,7 +18,6 @@ public class Socks5Handler extends ChannelInboundHandlerAdapter {
     private static final byte AUTH_PASSWORD = 0x02;
     private static final byte CMD_CONNECT = 0x01;
     private static final byte ADDR_TYPE_DOMAIN = 0x03;
-    private static final byte ADDR_TYPE_IPV4 = 0x01;
     
     public enum State {
         GREETING,
@@ -34,7 +32,8 @@ public class Socks5Handler extends ChannelInboundHandlerAdapter {
     private final String username;
     private final String password;
     
-    private ChannelHandlerContext savedCtx;
+    // Tunnel kurulduğunda signal verecek latch
+    private java.util.concurrent.CountDownLatch tunnelLatch;
     
     public Socks5Handler(String targetHost, int targetPort) {
         this(targetHost, targetPort, null, null);
@@ -45,16 +44,16 @@ public class Socks5Handler extends ChannelInboundHandlerAdapter {
         this.targetPort = targetPort;
         this.username = username;
         this.password = password;
-        
-        MuzMod.LOGGER.info("[Socks5Handler] Created for target: " + targetHost + ":" + targetPort);
+        BananaLogger.getInstance().proxy("Created for target: " + targetHost + ":" + targetPort);
+    }
+    
+    public void setTunnelLatch(java.util.concurrent.CountDownLatch latch) {
+        this.tunnelLatch = latch;
     }
     
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        this.savedCtx = ctx;
-        MuzMod.LOGGER.info("[Socks5Handler] Channel active, sending greeting...");
-        
-        // SOCKS5 greeting gönder
+        BananaLogger.getInstance().proxy("Channel active, sending SOCKS5 greeting...");
         sendGreeting(ctx);
     }
     
@@ -63,27 +62,25 @@ public class Socks5Handler extends ChannelInboundHandlerAdapter {
         
         ByteBuf buf;
         if (username != null && !username.isEmpty()) {
-            // Username/password auth destekle
             buf = ctx.alloc().buffer(4);
-            buf.writeByte(SOCKS_VERSION);  // VER
-            buf.writeByte(2);               // NMETHODS
-            buf.writeByte(AUTH_NONE);       // NO AUTH
-            buf.writeByte(AUTH_PASSWORD);   // USER/PASS
+            buf.writeByte(SOCKS_VERSION);
+            buf.writeByte(2);
+            buf.writeByte(AUTH_NONE);
+            buf.writeByte(AUTH_PASSWORD);
         } else {
-            // Sadece no-auth
             buf = ctx.alloc().buffer(3);
-            buf.writeByte(SOCKS_VERSION);  // VER
-            buf.writeByte(1);               // NMETHODS
-            buf.writeByte(AUTH_NONE);       // NO AUTH
+            buf.writeByte(SOCKS_VERSION);
+            buf.writeByte(1);
+            buf.writeByte(AUTH_NONE);
         }
         
         ctx.writeAndFlush(buf).addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) {
                 if (future.isSuccess()) {
-                    MuzMod.LOGGER.info("[Socks5Handler] Greeting sent");
+                    BananaLogger.getInstance().proxy("Greeting sent successfully");
                 } else {
-                    MuzMod.LOGGER.error("[Socks5Handler] Failed to send greeting: " + future.cause());
+                    BananaLogger.getInstance().error("Socks5", "Failed to send greeting: " + future.cause());
                 }
             }
         });
@@ -92,7 +89,6 @@ public class Socks5Handler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (state == State.CONNECTED) {
-            // Handshake tamamlandı, veriyi üst katmana ilet
             ctx.fireChannelRead(msg);
             return;
         }
@@ -121,7 +117,7 @@ public class Socks5Handler extends ChannelInboundHandlerAdapter {
     
     private void handleGreetingResponse(ChannelHandlerContext ctx, ByteBuf buf) {
         if (buf.readableBytes() < 2) {
-            MuzMod.LOGGER.error("[Socks5Handler] Greeting response too short");
+            BananaLogger.getInstance().error("Socks5", "Greeting response too short");
             ctx.close();
             return;
         }
@@ -129,27 +125,25 @@ public class Socks5Handler extends ChannelInboundHandlerAdapter {
         byte version = buf.readByte();
         byte method = buf.readByte();
         
-        MuzMod.LOGGER.info("[Socks5Handler] Greeting response: version=" + version + ", method=" + method);
+        BananaLogger.getInstance().proxy("Greeting response: version=" + version + ", method=" + method);
         
         if (version != SOCKS_VERSION) {
-            MuzMod.LOGGER.error("[Socks5Handler] Invalid SOCKS version: " + version);
+            BananaLogger.getInstance().error("Socks5", "Invalid SOCKS version: " + version);
             ctx.close();
             return;
         }
         
         if (method == AUTH_PASSWORD) {
-            // Username/password auth gerekli
-            MuzMod.LOGGER.info("[Socks5Handler] Sending auth...");
+            BananaLogger.getInstance().proxy("Server requires authentication");
             sendAuth(ctx);
         } else if (method == AUTH_NONE) {
-            // Auth gerekmiyor, connect gönder
-            MuzMod.LOGGER.info("[Socks5Handler] No auth required, sending connect...");
+            BananaLogger.getInstance().proxy("No auth required, sending CONNECT");
             sendConnect(ctx);
         } else if (method == (byte) 0xFF) {
-            MuzMod.LOGGER.error("[Socks5Handler] No acceptable auth methods!");
+            BananaLogger.getInstance().error("Socks5", "No acceptable auth methods!");
             ctx.close();
         } else {
-            MuzMod.LOGGER.error("[Socks5Handler] Unsupported auth method: " + method);
+            BananaLogger.getInstance().error("Socks5", "Unsupported auth method: " + method);
             ctx.close();
         }
     }
@@ -161,19 +155,19 @@ public class Socks5Handler extends ChannelInboundHandlerAdapter {
         byte[] passBytes = (password != null ? password : "").getBytes(CharsetUtil.UTF_8);
         
         ByteBuf buf = ctx.alloc().buffer(3 + userBytes.length + passBytes.length);
-        buf.writeByte(0x01);                // Auth version
-        buf.writeByte(userBytes.length);    // Username length
-        buf.writeBytes(userBytes);          // Username
-        buf.writeByte(passBytes.length);    // Password length
-        buf.writeBytes(passBytes);          // Password
+        buf.writeByte(0x01);
+        buf.writeByte(userBytes.length);
+        buf.writeBytes(userBytes);
+        buf.writeByte(passBytes.length);
+        buf.writeBytes(passBytes);
         
         ctx.writeAndFlush(buf);
-        MuzMod.LOGGER.info("[Socks5Handler] Auth sent");
+        BananaLogger.getInstance().proxy("Auth credentials sent");
     }
     
     private void handleAuthResponse(ChannelHandlerContext ctx, ByteBuf buf) {
         if (buf.readableBytes() < 2) {
-            MuzMod.LOGGER.error("[Socks5Handler] Auth response too short");
+            BananaLogger.getInstance().error("Socks5", "Auth response too short");
             ctx.close();
             return;
         }
@@ -181,15 +175,15 @@ public class Socks5Handler extends ChannelInboundHandlerAdapter {
         byte version = buf.readByte();
         byte status = buf.readByte();
         
-        MuzMod.LOGGER.info("[Socks5Handler] Auth response: version=" + version + ", status=" + status);
+        BananaLogger.getInstance().proxy("Auth response: version=" + version + ", status=" + status);
         
         if (status != 0x00) {
-            MuzMod.LOGGER.error("[Socks5Handler] Auth failed! Status: " + status);
+            BananaLogger.getInstance().error("Socks5", "Authentication failed! Status: " + status);
             ctx.close();
             return;
         }
         
-        MuzMod.LOGGER.info("[Socks5Handler] Auth successful, sending connect...");
+        BananaLogger.getInstance().proxy("Authentication successful!");
         sendConnect(ctx);
     }
     
@@ -199,21 +193,21 @@ public class Socks5Handler extends ChannelInboundHandlerAdapter {
         byte[] hostBytes = targetHost.getBytes(CharsetUtil.UTF_8);
         
         ByteBuf buf = ctx.alloc().buffer(7 + hostBytes.length);
-        buf.writeByte(SOCKS_VERSION);       // VER
-        buf.writeByte(CMD_CONNECT);         // CMD = CONNECT
-        buf.writeByte(0x00);                // RSV
-        buf.writeByte(ADDR_TYPE_DOMAIN);    // ATYP = Domain name
-        buf.writeByte(hostBytes.length);    // Domain length
-        buf.writeBytes(hostBytes);          // Domain name
-        buf.writeShort(targetPort);         // DST.PORT
+        buf.writeByte(SOCKS_VERSION);
+        buf.writeByte(CMD_CONNECT);
+        buf.writeByte(0x00);
+        buf.writeByte(ADDR_TYPE_DOMAIN);
+        buf.writeByte(hostBytes.length);
+        buf.writeBytes(hostBytes);
+        buf.writeShort(targetPort);
         
         ctx.writeAndFlush(buf);
-        MuzMod.LOGGER.info("[Socks5Handler] Connect request sent for " + targetHost + ":" + targetPort);
+        BananaLogger.getInstance().proxy("CONNECT request sent for " + targetHost + ":" + targetPort);
     }
     
     private void handleConnectResponse(ChannelHandlerContext ctx, ByteBuf buf) {
         if (buf.readableBytes() < 4) {
-            MuzMod.LOGGER.error("[Socks5Handler] Connect response too short");
+            BananaLogger.getInstance().error("Socks5", "Connect response too short");
             ctx.close();
             return;
         }
@@ -223,60 +217,64 @@ public class Socks5Handler extends ChannelInboundHandlerAdapter {
         buf.readByte(); // RSV
         byte addrType = buf.readByte();
         
-        MuzMod.LOGGER.info("[Socks5Handler] Connect response: version=" + version + 
-                          ", status=" + status + ", addrType=" + addrType);
+        BananaLogger.getInstance().proxy("Connect response: version=" + version + ", status=" + status);
         
-        // Adresi oku ve atla (ilgilenmiyoruz)
+        // Adresi oku ve atla
         try {
             switch (addrType) {
-                case ADDR_TYPE_IPV4:
+                case 0x01: // IPv4
                     if (buf.readableBytes() >= 6) {
-                        buf.skipBytes(4); // IPv4
-                        buf.skipBytes(2); // Port
+                        buf.skipBytes(4);
+                        buf.skipBytes(2);
                     }
                     break;
-                case ADDR_TYPE_DOMAIN:
+                case 0x03: // Domain
                     if (buf.readableBytes() >= 1) {
                         int len = buf.readByte() & 0xFF;
                         if (buf.readableBytes() >= len + 2) {
-                            buf.skipBytes(len); // Domain
-                            buf.skipBytes(2);   // Port
+                            buf.skipBytes(len);
+                            buf.skipBytes(2);
                         }
                     }
                     break;
                 case 0x04: // IPv6
                     if (buf.readableBytes() >= 18) {
-                        buf.skipBytes(16); // IPv6
-                        buf.skipBytes(2);  // Port
+                        buf.skipBytes(16);
+                        buf.skipBytes(2);
                     }
                     break;
             }
         } catch (Exception e) {
-            // Adresi okuyamadık, sorun değil
+            // Ignore
         }
         
         if (status != 0x00) {
-            String errorMsg = getSocksErrorMessage(status);
-            MuzMod.LOGGER.error("[Socks5Handler] Connect failed: " + errorMsg);
+            BananaLogger.getInstance().error("Socks5", "CONNECT failed! Status: " + getSocksError(status));
             ctx.close();
             return;
         }
         
-        // Başarılı! Artık tunnel açık
+        // SUCCESS!
         state = State.CONNECTED;
-        MuzMod.LOGGER.info("[Socks5Handler] *** TUNNEL ESTABLISHED to " + targetHost + ":" + targetPort + " ***");
+        BananaLogger.getInstance().proxy("*** TUNNEL ESTABLISHED to " + targetHost + ":" + targetPort + " ***");
         
-        // Pipeline'dan kendimizi kaldır, artık şeffaf proxy
+        // Tunnel kuruldu sinyali ver
+        if (tunnelLatch != null) {
+            tunnelLatch.countDown();
+            BananaLogger.getInstance().proxy("Tunnel latch signaled");
+        }
+        
+        // Handler'ı kaldır
         ctx.pipeline().remove(this);
         
-        // Upstream handler'lara channel active bildir (Minecraft'ın handshake başlatması için)
+        // Upstream'e bildir
         ctx.fireChannelActive();
     }
     
-    private String getSocksErrorMessage(byte status) {
+    private String getSocksError(byte status) {
         switch (status) {
-            case 0x01: return "General SOCKS server failure";
-            case 0x02: return "Connection not allowed by ruleset";
+            case 0x01: return "General failure";
+            case 0x02: return "Connection not allowed";
             case 0x03: return "Network unreachable";
             case 0x04: return "Host unreachable";
             case 0x05: return "Connection refused";
@@ -289,7 +287,7 @@ public class Socks5Handler extends ChannelInboundHandlerAdapter {
     
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        MuzMod.LOGGER.error("[Socks5Handler] Exception: " + cause.getMessage());
+        BananaLogger.getInstance().error("Socks5", "Exception: " + cause.getMessage());
         cause.printStackTrace();
         ctx.close();
     }
