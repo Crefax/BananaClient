@@ -11,9 +11,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiMultiplayer;
-import net.minecraft.client.multiplayer.GuiConnecting;
 import net.minecraft.client.multiplayer.ServerData;
-import net.minecraftforge.client.event.GuiOpenEvent;
+import net.minecraft.client.multiplayer.ServerList;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -22,6 +21,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /**
  * Main event handler for rendering and other events
@@ -94,84 +94,108 @@ public class EventHandler {
     }
     
     /**
-     * Account Manager butonuna tıklandığında
+     * Account Manager butonuna tıklandığında VE
+     * GuiMultiplayer'da Join Server butonuna tıklandığında (proxy için)
      */
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onGuiAction(GuiScreenEvent.ActionPerformedEvent.Pre event) {
+        // Account Manager button
         if (event.gui instanceof GuiMainMenu) {
             if (event.button.id == ACCOUNT_BUTTON_ID) {
                 Minecraft.getMinecraft().displayGuiScreen(new GuiAccountManager(event.gui));
                 event.setCanceled(true);
+                return;
+            }
+        }
+        
+        // GuiMultiplayer - Join Server button (ID: 1) veya Direct Connect confirm
+        if (event.gui instanceof GuiMultiplayer) {
+            ProxyManager pm = ProxyManager.getInstance();
+            
+            if (pm.isProxyEnabled() && (event.button.id == 1 || event.button.id == 4)) {
+                // ID 1 = Join Server, ID 4 = Direct Connect
+                GuiMultiplayer guiMultiplayer = (GuiMultiplayer) event.gui;
+                
+                ServerData serverData = getSelectedServer(guiMultiplayer);
+                
+                if (serverData != null) {
+                    MuzMod.LOGGER.info("[EventHandler] Intercepting Join Server, using proxy for: " + serverData.serverIP);
+                    
+                    // Cancel the original action
+                    event.setCanceled(true);
+                    
+                    // Open our proxy connecting GUI
+                    Minecraft.getMinecraft().displayGuiScreen(new GuiProxyConnecting(guiMultiplayer, serverData));
+                }
             }
         }
     }
     
     /**
-     * GuiConnecting açılırken proxy aktifse kendi GUI'mizi kullan
+     * GuiMultiplayer'dan seçili sunucuyu al
      */
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onGuiOpen(GuiOpenEvent event) {
-        if (event.gui instanceof GuiConnecting && !(event.gui instanceof GuiProxyConnecting)) {
-            ProxyManager pm = ProxyManager.getInstance();
+    private ServerData getSelectedServer(GuiMultiplayer gui) {
+        try {
+            // Method 1: func_146791_a() - returns selected ServerData
+            try {
+                Method getServerData = GuiMultiplayer.class.getDeclaredMethod("func_146791_a");
+                getServerData.setAccessible(true);
+                Object result = getServerData.invoke(gui);
+                if (result instanceof ServerData) {
+                    return (ServerData) result;
+                }
+            } catch (NoSuchMethodException e) {
+                // Try obfuscated name
+            }
             
-            if (pm.isProxyEnabled()) {
-                // GuiConnecting'den ServerData'yı al
-                try {
-                    GuiConnecting guiConnecting = (GuiConnecting) event.gui;
-                    
-                    // ServerData'yı reflection ile al
-                    ServerData serverData = getServerDataFromGuiConnecting(guiConnecting);
-                    
-                    if (serverData != null) {
-                        MuzMod.LOGGER.info("[EventHandler] Intercepting connection, using proxy GUI");
-                        
-                        // Önceki ekranı al
-                        GuiMultiplayer previousScreen = getPreviousScreenFromGuiConnecting(guiConnecting);
-                        
-                        // Proxy GUI'mizi kullan
-                        event.gui = new GuiProxyConnecting(previousScreen, serverData);
-                    }
-                } catch (Exception e) {
-                    MuzMod.LOGGER.error("[EventHandler] Failed to intercept connection: " + e.getMessage());
-                }
-            }
-        }
-    }
-    
-    private ServerData getServerDataFromGuiConnecting(GuiConnecting gui) {
-        // GuiConnecting'de serverData field'ını bul
-        try {
-            for (Field field : GuiConnecting.class.getDeclaredFields()) {
-                if (field.getType() == ServerData.class) {
-                    field.setAccessible(true);
-                    return (ServerData) field.get(gui);
-                }
-            }
-        } catch (Exception e) {
-            MuzMod.LOGGER.error("[EventHandler] Could not get ServerData: " + e.getMessage());
-        }
-        return null;
-    }
-    
-    private GuiMultiplayer getPreviousScreenFromGuiConnecting(GuiConnecting gui) {
-        // GuiConnecting'de previousGuiScreen field'ını bul
-        try {
-            for (Field field : GuiConnecting.class.getDeclaredFields()) {
-                if (field.getType() == GuiMultiplayer.class || field.getType().getSuperclass() == GuiMultiplayer.class) {
-                    field.setAccessible(true);
-                    return (GuiMultiplayer) field.get(gui);
-                }
-            }
-            // GuiScreen tipinde arayalım
-            for (Field field : GuiConnecting.class.getDeclaredFields()) {
+            // Method 2: Direct field access
+            for (Field field : GuiMultiplayer.class.getDeclaredFields()) {
                 field.setAccessible(true);
                 Object value = field.get(gui);
-                if (value instanceof GuiMultiplayer) {
-                    return (GuiMultiplayer) value;
+                
+                if (value instanceof ServerData) {
+                    ServerData sd = (ServerData) value;
+                    if (sd.serverIP != null && !sd.serverIP.isEmpty()) {
+                        return sd;
+                    }
                 }
             }
+            
+            // Method 3: Get from ServerList using selected index
+            ServerList serverList = null;
+            int selectedIndex = -1;
+            
+            for (Field field : GuiMultiplayer.class.getDeclaredFields()) {
+                field.setAccessible(true);
+                Object value = field.get(gui);
+                
+                if (value instanceof ServerList) {
+                    serverList = (ServerList) value;
+                }
+                
+                // selectedServer index field (usually named something like field_146803_h)
+                if (field.getType() == int.class) {
+                    int intVal = field.getInt(gui);
+                    if (intVal >= 0 && intVal < 1000) { // Reasonable index range
+                        selectedIndex = intVal;
+                    }
+                }
+            }
+            
+            if (serverList != null && selectedIndex >= 0) {
+                try {
+                    ServerData sd = serverList.getServerData(selectedIndex);
+                    if (sd != null) {
+                        return sd;
+                    }
+                } catch (Exception e) {
+                    // Index out of bounds
+                }
+            }
+            
         } catch (Exception e) {
-            MuzMod.LOGGER.error("[EventHandler] Could not get previous screen: " + e.getMessage());
+            MuzMod.LOGGER.error("[EventHandler] Could not get selected server: " + e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }
