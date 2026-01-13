@@ -7,6 +7,9 @@ import java.net.*;
 /**
  * SOCKS5 Proxy Manager
  * Minecraft bağlantılarını proxy üzerinden yönlendirir
+ * 
+ * NOT: Sistem proxy ayarları (socksProxyHost) yerine kendi Netty SOCKS5 handler'ımızı kullanıyoruz.
+ * Bu sayede sadece Minecraft bağlantıları proxy üzerinden gider.
  */
 public class ProxyManager {
     
@@ -18,17 +21,7 @@ public class ProxyManager {
     private String proxyUsername;
     private String proxyPassword;
     
-    // Orijinal proxy ayarları (geri yüklemek için)
-    private String originalProxyHost;
-    private String originalProxyPort;
-    private String originalSocksVersion;
-    
     private ProxyManager() {
-        // Orijinal sistem ayarlarını kaydet
-        originalProxyHost = System.getProperty("socksProxyHost");
-        originalProxyPort = System.getProperty("socksProxyPort");
-        originalSocksVersion = System.getProperty("socksProxyVersion");
-        
         this.proxyEnabled = false;
     }
     
@@ -50,7 +43,8 @@ public class ProxyManager {
     }
     
     /**
-     * Proxy'yi aktifle - Sistem genelinde SOCKS5 proxy ayarla
+     * Proxy'yi aktifle
+     * NOT: Artık sistem proxy ayarları kullanmıyoruz, kendi Netty handler'ımız var
      */
     public void enableProxy() {
         if (proxyHost == null || proxyHost.isEmpty()) {
@@ -58,34 +52,11 @@ public class ProxyManager {
             return;
         }
         
-        try {
-            // SOCKS5 proxy ayarları
-            System.setProperty("socksProxyHost", proxyHost);
-            System.setProperty("socksProxyPort", String.valueOf(proxyPort));
-            System.setProperty("socksProxyVersion", "5");
-            
-            // Proxy authentication (eğer varsa)
-            if (proxyUsername != null && !proxyUsername.isEmpty()) {
-                Authenticator.setDefault(new Authenticator() {
-                    @Override
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        if (getRequestingHost().equalsIgnoreCase(proxyHost)) {
-                            return new PasswordAuthentication(proxyUsername, proxyPassword.toCharArray());
-                        }
-                        return null;
-                    }
-                });
-                
-                // Java SOCKS5 auth ayarı
-                System.setProperty("java.net.socks.username", proxyUsername);
-                System.setProperty("java.net.socks.password", proxyPassword);
-            }
-            
-            proxyEnabled = true;
-            MuzMod.LOGGER.info("[ProxyManager] Proxy enabled: " + proxyHost + ":" + proxyPort);
-            
-        } catch (Exception e) {
-            MuzMod.LOGGER.error("[ProxyManager] Failed to enable proxy: " + e.getMessage());
+        proxyEnabled = true;
+        MuzMod.LOGGER.info("[ProxyManager] Proxy enabled: " + proxyHost + ":" + proxyPort);
+        
+        if (proxyUsername != null && !proxyUsername.isEmpty()) {
+            MuzMod.LOGGER.info("[ProxyManager] Proxy auth: " + proxyUsername);
         }
     }
     
@@ -93,37 +64,8 @@ public class ProxyManager {
      * Proxy'yi devre dışı bırak
      */
     public void disableProxy() {
-        try {
-            // Orijinal ayarlara geri dön
-            if (originalProxyHost != null) {
-                System.setProperty("socksProxyHost", originalProxyHost);
-            } else {
-                System.clearProperty("socksProxyHost");
-            }
-            
-            if (originalProxyPort != null) {
-                System.setProperty("socksProxyPort", originalProxyPort);
-            } else {
-                System.clearProperty("socksProxyPort");
-            }
-            
-            if (originalSocksVersion != null) {
-                System.setProperty("socksProxyVersion", originalSocksVersion);
-            } else {
-                System.clearProperty("socksProxyVersion");
-            }
-            
-            // Auth temizle
-            System.clearProperty("java.net.socks.username");
-            System.clearProperty("java.net.socks.password");
-            Authenticator.setDefault(null);
-            
-            proxyEnabled = false;
-            MuzMod.LOGGER.info("[ProxyManager] Proxy disabled");
-            
-        } catch (Exception e) {
-            MuzMod.LOGGER.error("[ProxyManager] Failed to disable proxy: " + e.getMessage());
-        }
+        proxyEnabled = false;
+        MuzMod.LOGGER.info("[ProxyManager] Proxy disabled");
     }
     
     /**
@@ -158,6 +100,9 @@ public class ProxyManager {
             int responseCode = conn.getResponseCode();
             conn.disconnect();
             
+            // Auth temizle
+            Authenticator.setDefault(null);
+            
             MuzMod.LOGGER.info("[ProxyManager] Proxy test successful, response: " + responseCode);
             return responseCode == 200;
             
@@ -168,7 +113,7 @@ public class ProxyManager {
     }
     
     /**
-     * Proxy nesnesi oluştur (Netty bağlantıları için)
+     * Proxy nesnesi oluştur
      */
     public Proxy getProxy() {
         if (!proxyEnabled || proxyHost == null) {

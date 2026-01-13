@@ -2,6 +2,8 @@ package com.muzmod.handler;
 
 import com.muzmod.MuzMod;
 import com.muzmod.account.AccountManager;
+import com.muzmod.account.GuiProxyConnecting;
+import com.muzmod.account.ProxyManager;
 import com.muzmod.gui.GuiAccountManager;
 import com.muzmod.render.OverlayRenderer;
 import com.muzmod.render.WorldRenderer;
@@ -9,11 +11,17 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiMultiplayer;
+import net.minecraft.client.multiplayer.GuiConnecting;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+
+import java.lang.reflect.Field;
 
 /**
  * Main event handler for rendering and other events
@@ -96,6 +104,76 @@ public class EventHandler {
                 event.setCanceled(true);
             }
         }
+    }
+    
+    /**
+     * GuiConnecting açılırken proxy aktifse kendi GUI'mizi kullan
+     */
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onGuiOpen(GuiOpenEvent event) {
+        if (event.gui instanceof GuiConnecting && !(event.gui instanceof GuiProxyConnecting)) {
+            ProxyManager pm = ProxyManager.getInstance();
+            
+            if (pm.isProxyEnabled()) {
+                // GuiConnecting'den ServerData'yı al
+                try {
+                    GuiConnecting guiConnecting = (GuiConnecting) event.gui;
+                    
+                    // ServerData'yı reflection ile al
+                    ServerData serverData = getServerDataFromGuiConnecting(guiConnecting);
+                    
+                    if (serverData != null) {
+                        MuzMod.LOGGER.info("[EventHandler] Intercepting connection, using proxy GUI");
+                        
+                        // Önceki ekranı al
+                        GuiMultiplayer previousScreen = getPreviousScreenFromGuiConnecting(guiConnecting);
+                        
+                        // Proxy GUI'mizi kullan
+                        event.gui = new GuiProxyConnecting(previousScreen, serverData);
+                    }
+                } catch (Exception e) {
+                    MuzMod.LOGGER.error("[EventHandler] Failed to intercept connection: " + e.getMessage());
+                }
+            }
+        }
+    }
+    
+    private ServerData getServerDataFromGuiConnecting(GuiConnecting gui) {
+        // GuiConnecting'de serverData field'ını bul
+        try {
+            for (Field field : GuiConnecting.class.getDeclaredFields()) {
+                if (field.getType() == ServerData.class) {
+                    field.setAccessible(true);
+                    return (ServerData) field.get(gui);
+                }
+            }
+        } catch (Exception e) {
+            MuzMod.LOGGER.error("[EventHandler] Could not get ServerData: " + e.getMessage());
+        }
+        return null;
+    }
+    
+    private GuiMultiplayer getPreviousScreenFromGuiConnecting(GuiConnecting gui) {
+        // GuiConnecting'de previousGuiScreen field'ını bul
+        try {
+            for (Field field : GuiConnecting.class.getDeclaredFields()) {
+                if (field.getType() == GuiMultiplayer.class || field.getType().getSuperclass() == GuiMultiplayer.class) {
+                    field.setAccessible(true);
+                    return (GuiMultiplayer) field.get(gui);
+                }
+            }
+            // GuiScreen tipinde arayalım
+            for (Field field : GuiConnecting.class.getDeclaredFields()) {
+                field.setAccessible(true);
+                Object value = field.get(gui);
+                if (value instanceof GuiMultiplayer) {
+                    return (GuiMultiplayer) value;
+                }
+            }
+        } catch (Exception e) {
+            MuzMod.LOGGER.error("[EventHandler] Could not get previous screen: " + e.getMessage());
+        }
+        return null;
     }
     
     /**
