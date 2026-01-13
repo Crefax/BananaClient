@@ -94,6 +94,9 @@ public class DuelAnalyzerState extends AbstractState {
         analyzing = true;
         setStatus("Analiz: " + player1 + " vs " + player2);
         
+        // HUD'u otomatik aç
+        MuzMod.instance.getConfig().setDuelHudEnabled(true);
+        
         // Chat mesajı
         if (mc.thePlayer != null) {
             mc.thePlayer.addChatMessage(new net.minecraft.util.ChatComponentText(
