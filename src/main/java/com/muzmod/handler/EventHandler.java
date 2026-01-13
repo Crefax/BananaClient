@@ -11,8 +11,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiMultiplayer;
+import net.minecraft.client.multiplayer.GuiConnecting;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerList;
+import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -28,6 +30,8 @@ import java.lang.reflect.Method;
  */
 public class EventHandler {
     
+    // Son seçilen sunucu - GuiMultiplayer'dan kaydedilir
+    private static ServerData lastSelectedServer = null;
     private final OverlayRenderer overlayRenderer = new OverlayRenderer();
     private final WorldRenderer worldRenderer = new WorldRenderer();
     
@@ -94,6 +98,33 @@ public class EventHandler {
     }
     
     /**
+     * GuiConnecting açıldığında proxy ile değiştir
+     * Bu en güvenilir yol - Minecraft'ın kendi bağlantı GUI'sini yakalıyoruz
+     */
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onGuiOpen(GuiOpenEvent event) {
+        if (event.gui instanceof GuiConnecting) {
+            ProxyManager pm = ProxyManager.getInstance();
+            
+            MuzMod.LOGGER.info("[EventHandler] GuiConnecting detected!");
+            MuzMod.LOGGER.info("[EventHandler] Proxy enabled: " + pm.isProxyEnabled());
+            
+            if (pm.isProxyEnabled() && lastSelectedServer != null) {
+                MuzMod.LOGGER.info("[EventHandler] *** INTERCEPTING GuiConnecting for: " + lastSelectedServer.serverIP + " ***");
+                
+                // GuiConnecting'i iptal et
+                event.setCanceled(true);
+                
+                // Kendi proxy GUI'mizi aç
+                Minecraft.getMinecraft().displayGuiScreen(
+                    new GuiProxyConnecting(null, lastSelectedServer));
+            } else if (pm.isProxyEnabled()) {
+                MuzMod.LOGGER.warn("[EventHandler] Proxy enabled but no lastSelectedServer!");
+            }
+        }
+    }
+    
+    /**
      * Account Manager butonuna tıklandığında VE
      * GuiMultiplayer'da Join Server butonuna tıklandığında (proxy için)
      */
@@ -108,26 +139,17 @@ public class EventHandler {
             }
         }
         
-        // GuiMultiplayer - Join Server button (ID: 1) veya Direct Connect confirm
+        // GuiMultiplayer - her butona basıldığında seçili sunucuyu kaydet
         if (event.gui instanceof GuiMultiplayer) {
-            ProxyManager pm = ProxyManager.getInstance();
+            GuiMultiplayer guiMultiplayer = (GuiMultiplayer) event.gui;
+            ServerData serverData = getSelectedServer(guiMultiplayer);
             
-            if (pm.isProxyEnabled() && (event.button.id == 1 || event.button.id == 4)) {
-                // ID 1 = Join Server, ID 4 = Direct Connect
-                GuiMultiplayer guiMultiplayer = (GuiMultiplayer) event.gui;
-                
-                ServerData serverData = getSelectedServer(guiMultiplayer);
-                
-                if (serverData != null) {
-                    MuzMod.LOGGER.info("[EventHandler] Intercepting Join Server, using proxy for: " + serverData.serverIP);
-                    
-                    // Cancel the original action
-                    event.setCanceled(true);
-                    
-                    // Open our proxy connecting GUI
-                    Minecraft.getMinecraft().displayGuiScreen(new GuiProxyConnecting(guiMultiplayer, serverData));
-                }
+            if (serverData != null) {
+                lastSelectedServer = serverData;
+                MuzMod.LOGGER.info("[EventHandler] Saved selected server: " + serverData.serverIP);
             }
+            
+            MuzMod.LOGGER.info("[EventHandler] GuiMultiplayer button pressed: ID=" + event.button.id);
         }
     }
     
@@ -136,19 +158,72 @@ public class EventHandler {
      */
     private ServerData getSelectedServer(GuiMultiplayer gui) {
         try {
-            // Method 1: func_146791_a() - returns selected ServerData
-            try {
-                Method getServerData = GuiMultiplayer.class.getDeclaredMethod("func_146791_a");
-                getServerData.setAccessible(true);
-                Object result = getServerData.invoke(gui);
-                if (result instanceof ServerData) {
-                    return (ServerData) result;
+            // Method 1: Try getSelectedServer() or func_146791_a()
+            for (Method method : GuiMultiplayer.class.getDeclaredMethods()) {
+                method.setAccessible(true);
+                
+                // Look for method that returns ServerData and has no parameters
+                if (method.getReturnType() == ServerData.class && method.getParameterTypes().length == 0) {
+                    MuzMod.LOGGER.info("[EventHandler] Found ServerData method: " + method.getName());
+                    Object result = method.invoke(gui);
+                    if (result instanceof ServerData) {
+                        ServerData sd = (ServerData) result;
+                        if (sd.serverIP != null && !sd.serverIP.isEmpty()) {
+                            MuzMod.LOGGER.info("[EventHandler] Got server from method: " + sd.serverIP);
+                            return sd;
+                        }
+                    }
                 }
-            } catch (NoSuchMethodException e) {
-                // Try obfuscated name
             }
             
-            // Method 2: Direct field access
+            // Method 2: Look for ServerSelectionList and get selected
+            for (Field field : GuiMultiplayer.class.getDeclaredFields()) {
+                field.setAccessible(true);
+                Object value = field.get(gui);
+                
+                // ServerSelectionList tipini kontrol et
+                if (value != null && value.getClass().getSimpleName().contains("ServerSelectionList")) {
+                    MuzMod.LOGGER.info("[EventHandler] Found ServerSelectionList: " + field.getName());
+                    
+                    // getSelected veya func_148193_k() metodunu dene
+                    for (Method m : value.getClass().getDeclaredMethods()) {
+                        if (m.getReturnType().getSimpleName().contains("ServerListEntry") && 
+                            m.getParameterTypes().length == 0) {
+                            m.setAccessible(true);
+                            Object entry = m.invoke(value);
+                            
+                            if (entry != null) {
+                                // Entry'den ServerData al
+                                for (Method em : entry.getClass().getDeclaredMethods()) {
+                                    if (em.getReturnType() == ServerData.class && em.getParameterTypes().length == 0) {
+                                        em.setAccessible(true);
+                                        ServerData sd = (ServerData) em.invoke(entry);
+                                        if (sd != null && sd.serverIP != null) {
+                                            MuzMod.LOGGER.info("[EventHandler] Got server from list entry: " + sd.serverIP);
+                                            return sd;
+                                        }
+                                    }
+                                }
+                                
+                                // Field olarak da dene
+                                for (Field ef : entry.getClass().getDeclaredFields()) {
+                                    ef.setAccessible(true);
+                                    Object ev = ef.get(entry);
+                                    if (ev instanceof ServerData) {
+                                        ServerData sd = (ServerData) ev;
+                                        if (sd.serverIP != null && !sd.serverIP.isEmpty()) {
+                                            MuzMod.LOGGER.info("[EventHandler] Got server from entry field: " + sd.serverIP);
+                                            return sd;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Method 3: Direct ServerData field
             for (Field field : GuiMultiplayer.class.getDeclaredFields()) {
                 field.setAccessible(true);
                 Object value = field.get(gui);
@@ -156,14 +231,14 @@ public class EventHandler {
                 if (value instanceof ServerData) {
                     ServerData sd = (ServerData) value;
                     if (sd.serverIP != null && !sd.serverIP.isEmpty()) {
+                        MuzMod.LOGGER.info("[EventHandler] Got server from direct field: " + sd.serverIP);
                         return sd;
                     }
                 }
             }
             
-            // Method 3: Get from ServerList using selected index
+            // Method 4: Get from ServerList using selected index
             ServerList serverList = null;
-            int selectedIndex = -1;
             
             for (Field field : GuiMultiplayer.class.getDeclaredFields()) {
                 field.setAccessible(true);
@@ -171,30 +246,32 @@ public class EventHandler {
                 
                 if (value instanceof ServerList) {
                     serverList = (ServerList) value;
+                    MuzMod.LOGGER.info("[EventHandler] Found ServerList: " + field.getName());
+                    break;
                 }
-                
-                // selectedServer index field (usually named something like field_146803_h)
-                if (field.getType() == int.class) {
-                    int intVal = field.getInt(gui);
-                    if (intVal >= 0 && intVal < 1000) { // Reasonable index range
-                        selectedIndex = intVal;
+            }
+            
+            if (serverList != null) {
+                // Try to get selected index from various int fields
+                for (Field field : GuiMultiplayer.class.getDeclaredFields()) {
+                    field.setAccessible(true);
+                    if (field.getType() == int.class) {
+                        int idx = field.getInt(gui);
+                        if (idx >= 0 && idx < serverList.countServers()) {
+                            ServerData sd = serverList.getServerData(idx);
+                            if (sd != null && sd.serverIP != null && !sd.serverIP.isEmpty()) {
+                                MuzMod.LOGGER.info("[EventHandler] Got server from ServerList[" + idx + "]: " + sd.serverIP);
+                                return sd;
+                            }
+                        }
                     }
                 }
             }
             
-            if (serverList != null && selectedIndex >= 0) {
-                try {
-                    ServerData sd = serverList.getServerData(selectedIndex);
-                    if (sd != null) {
-                        return sd;
-                    }
-                } catch (Exception e) {
-                    // Index out of bounds
-                }
-            }
+            MuzMod.LOGGER.warn("[EventHandler] Could not find selected server with any method!");
             
         } catch (Exception e) {
-            MuzMod.LOGGER.error("[EventHandler] Could not get selected server: " + e.getMessage());
+            MuzMod.LOGGER.error("[EventHandler] Exception getting selected server: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
