@@ -50,6 +50,7 @@ public class ModConfig {
     private long antiAfkSmoothSpeed = 500; // Smooth hızı (ms)
     
     // Mining Jitter Settings (AFK bypass için titreme - Obsidyen ile aynı mantık)
+    private boolean miningJitterEnabled = true; // Mining jitter aktif mi
     private float miningJitterYaw = 3.0f;     // Sağ-sol titreme (derece)
     private float miningJitterPitch = 2.0f;   // Yukarı-aşağı titreme (derece)
     private int miningJitterInterval = 800;   // Titreme aralığı (ms)
@@ -102,6 +103,7 @@ public class ModConfig {
     private int oxMinPlayers = 5;     // Minimum oyuncu sayısı
     
     // Obsidyen Jitter Settings (AFK bypass için titreme)
+    private boolean obsidianJitterEnabled = true; // Obsidian jitter aktif mi
     private float obsidianJitterYaw = 3.0f;     // Sağ-sol titreme (derece)
     private float obsidianJitterPitch = 2.0f;   // Yukarı-aşağı titreme (derece)
     private int obsidianJitterInterval = 300;   // Titreme aralığı (ms)
@@ -818,6 +820,31 @@ public class ModConfig {
     public void setDuelHudY(int y) {
         this.duelHudY = y;
         config.get("duel", "hudY", 100).set(y);
+        save();
+    }
+    
+    // Mining Jitter Getters
+    public boolean isMiningJitterEnabled() { return miningJitterEnabled; }
+    
+    // Mining Jitter Setters
+    public void setMiningJitterEnabled(boolean enabled) {
+        this.miningJitterEnabled = enabled;
+        config.get("mining", "miningJitterEnabled", true).set(enabled);
+        save();
+    }
+    
+    // Obsidian Jitter Getters
+    public boolean isObsidianJitterEnabled() { return obsidianJitterEnabled; }
+    
+    // Obsidian Jitter Setters
+    public void setObsidianJitterEnabled(boolean enabled) {
+        this.obsidianJitterEnabled = enabled;
+        config.get("obsidian", "obsidianJitterEnabled", true).set(enabled);
+        save();
+    }
+    
+    // Alias for GUI compatibility
+    public void saveConfig() {
         save();
     }
 }

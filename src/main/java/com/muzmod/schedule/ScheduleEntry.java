@@ -88,6 +88,20 @@ public class ScheduleEntry {
     }
     
     /**
+     * Başlangıç saati string formatında
+     */
+    public String getStartTimeStr() {
+        return String.format("%02d:%02d", startHour, startMinute);
+    }
+    
+    /**
+     * Bitiş saati string formatında
+     */
+    public String getEndTimeStr() {
+        return String.format("%02d:%02d", endHour, endMinute);
+    }
+    
+    /**
      * Gün adını döndürür
      */
     public static String getDayName(int day) {

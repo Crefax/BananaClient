@@ -1,7 +1,7 @@
 package com.muzmod.handler;
 
 import com.muzmod.MuzMod;
-import com.muzmod.gui.MuzModGuiModern;
+import com.muzmod.gui.modern.BananaGui;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -64,7 +64,7 @@ public class ChatCommandHandler {
         // Handle commands
         if (command.equals("bananaclient") || command.equals("bc")) {
             // Open GUI
-            mc.displayGuiScreen(new MuzModGuiModern());
+            mc.displayGuiScreen(new BananaGui());
         }
         else if (command.equals("help")) {
             // Show help

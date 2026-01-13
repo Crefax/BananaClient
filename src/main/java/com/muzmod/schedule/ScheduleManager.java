@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 /**
  * Haftalık zamanlama yöneticisi
  * Etkinlik ekleme, silme, aktif etkinlik bulma
+ * Her oyuncu için ayrı schedule dosyası
  */
 public class ScheduleManager {
     
@@ -22,14 +23,21 @@ public class ScheduleManager {
     private String defaultAfkWarp = "/warp afk";
     private String defaultMiningWarp = "/warp maden";
     
+    private File clientDir;     // Ana dizin (default schedule için)
+    private File schedulesDir;  // Oyuncu schedule'ları için
     private File scheduleFile;
+    private String defaultScheduleName;
+    private String currentPlayerName = null;
     private Gson gson;
     
     private ScheduleEntry.EventType lastScheduledType = null;
     private long lastTypeChangeTime = 0;
     
-    public ScheduleManager(File configDir) {
-        this.scheduleFile = new File(configDir, "schedule.json");
+    public ScheduleManager(File clientDir, File schedulesDir, String defaultScheduleName) {
+        this.clientDir = clientDir;
+        this.schedulesDir = schedulesDir;
+        this.defaultScheduleName = defaultScheduleName;
+        this.scheduleFile = new File(clientDir, defaultScheduleName); // Varsayılan ana dizinde
         this.gson = new GsonBuilder().setPrettyPrinting().create();
         load();
     }
@@ -44,6 +52,111 @@ public class ScheduleManager {
             .filter(e -> e.getDayOfWeek() == dayOfWeek && e.isActiveAt(hour, minute))
             .findFirst()
             .orElse(null);
+    }
+    
+    /**
+     * Oyuncu bazlı schedule yükle
+     * Yeni oyuncu için varsayılan schedule kopyalanır
+     */
+    public void loadForPlayer(String playerName) {
+        if (playerName == null || playerName.isEmpty()) {
+            return;
+        }
+        
+        // Aynı oyuncu için tekrar yükleme
+        if (playerName.equals(currentPlayerName)) {
+            return;
+        }
+        
+        currentPlayerName = playerName;
+        
+        // Oyuncuya özel schedule dosyası: schedules/OyuncuAdi.json
+        File playerScheduleFile = new File(schedulesDir, playerName + ".json");
+        File defaultFile = new File(clientDir, defaultScheduleName); // Ana dizindeki default
+        
+        // Eğer oyuncunun schedule dosyası yoksa, varsayılan varsa kopyala
+        if (!playerScheduleFile.exists() && defaultFile.exists()) {
+            MuzMod.LOGGER.info("[Schedule] Creating schedule for new player: " + playerName + " (copying from default)");
+            copyFile(defaultFile, playerScheduleFile);
+        }
+        
+        // Schedule dosyasını güncelle ve yükle
+        this.scheduleFile = playerScheduleFile;
+        load();
+        
+        MuzMod.LOGGER.info("[Schedule] Loaded for player: " + playerName + " -> " + playerScheduleFile.getName());
+    }
+    
+    /**
+     * Dosya kopyalama yardımcı metodu
+     */
+    private void copyFile(File source, File dest) {
+        try (java.io.FileInputStream fis = new java.io.FileInputStream(source);
+             java.io.FileOutputStream fos = new java.io.FileOutputStream(dest);
+             java.nio.channels.FileChannel sourceChannel = fis.getChannel();
+             java.nio.channels.FileChannel destChannel = fos.getChannel()) {
+            destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
+        } catch (IOException e) {
+            MuzMod.LOGGER.error("[Schedule] Error copying file: " + e.getMessage());
+        }
+    }
+    
+    public String getCurrentPlayerName() {
+        return currentPlayerName;
+    }
+    
+    /**
+     * Mevcut schedule'ı varsayılan olarak kaydet
+     */
+    public boolean exportToDefault() {
+        if (currentPlayerName == null) {
+            MuzMod.LOGGER.warn("[Schedule] No player schedule loaded to export");
+            return false;
+        }
+        
+        File playerScheduleFile = new File(schedulesDir, currentPlayerName + ".json");
+        File defaultFile = new File(clientDir, defaultScheduleName);
+        
+        if (!playerScheduleFile.exists()) {
+            MuzMod.LOGGER.warn("[Schedule] Player schedule file not found");
+            return false;
+        }
+        
+        // Önce kaydet
+        save();
+        
+        // Sonra default'a kopyala
+        copyFile(playerScheduleFile, defaultFile);
+        MuzMod.LOGGER.info("[Schedule] Exported to default: " + currentPlayerName + " -> " + defaultScheduleName);
+        return true;
+    }
+    
+    /**
+     * Varsayılan schedule'ı mevcut hesaba yükle
+     */
+    public boolean importFromDefault() {
+        if (currentPlayerName == null) {
+            MuzMod.LOGGER.warn("[Schedule] No player loaded to import schedule");
+            return false;
+        }
+        
+        File defaultFile = new File(clientDir, defaultScheduleName);
+        File playerScheduleFile = new File(schedulesDir, currentPlayerName + ".json");
+        
+        if (!defaultFile.exists()) {
+            MuzMod.LOGGER.warn("[Schedule] Default schedule file not found");
+            return false;
+        }
+        
+        // Default'tan oyuncu schedule'ına kopyala
+        copyFile(defaultFile, playerScheduleFile);
+        
+        // Yeniden yükle
+        this.scheduleFile = playerScheduleFile;
+        load();
+        
+        MuzMod.LOGGER.info("[Schedule] Imported from default: " + defaultScheduleName + " -> " + currentPlayerName);
+        return true;
     }
     
     /**
@@ -365,5 +478,10 @@ public class ScheduleManager {
         boolean autoAfkWhenIdle;
         String defaultAfkWarp;
         String defaultMiningWarp;
+    }
+    
+    // Alias for GUI compatibility
+    public void saveSchedule() {
+        save();
     }
 }

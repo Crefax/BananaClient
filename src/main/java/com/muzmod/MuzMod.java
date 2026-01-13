@@ -15,13 +15,18 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
 
 @Mod(modid = MuzMod.MODID, version = MuzMod.VERSION, clientSideOnly = true)
 public class MuzMod {
     
     // Client bilgileri - tek yerden yönetim
     public static final String CLIENT_NAME = "BananaClient";
-    public static final String VERSION = "0.7.10";
+    public static final String MOD_NAME = CLIENT_NAME; // Alias
+    public static final String VERSION = "0.8.2";
     public static final String MODID = "bananaclient";
     public static final String GITHUB_URL = "github.com/Crefax/BananaClient";
     
@@ -38,6 +43,12 @@ public class MuzMod {
     
     // Config dizini - .minecraft/BananaClient/
     private File clientDir;
+    private File configsDir;    // Oyuncu config'leri için
+    private File schedulesDir;  // Oyuncu schedule'ları için
+    
+    // Varsayılan config/schedule dosyaları (ana dizinde)
+    private static final String DEFAULT_CONFIG_NAME = "default_config.cfg";
+    private static final String DEFAULT_SCHEDULE_NAME = "default_schedule.json";
     
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -50,17 +61,25 @@ public class MuzMod {
             clientDir.mkdirs();
         }
         
-        // Config dosyası: varsayılan config (oyuncu giriş yapınca hesaba göre yüklenecek)
-        File configFile = new File(clientDir, "config.cfg");
-        config = new ModConfig(configFile);
-        config.load();
+        // Configs dizini: .minecraft/BananaClient/configs/
+        configsDir = new File(clientDir, "configs");
+        if (!configsDir.exists()) {
+            configsDir.mkdirs();
+        }
         
         // Schedule dizini: .minecraft/BananaClient/schedules/
-        File schedulesDir = new File(clientDir, "schedules");
+        schedulesDir = new File(clientDir, "schedules");
         if (!schedulesDir.exists()) {
             schedulesDir.mkdirs();
         }
-        scheduleManager = new ScheduleManager(schedulesDir);
+        
+        // Varsayılan config dosyası (ana dizinde)
+        File defaultConfigFile = new File(clientDir, DEFAULT_CONFIG_NAME);
+        config = new ModConfig(defaultConfigFile);
+        config.load();
+        
+        // Varsayılan schedule (ana dizinde, oyuncu bazlı yüklenecek)
+        scheduleManager = new ScheduleManager(clientDir, schedulesDir, DEFAULT_SCHEDULE_NAME);
     }
     
     @Mod.EventHandler
@@ -98,9 +117,18 @@ public class MuzMod {
         return clientDir;
     }
     
+    public File getConfigsDir() {
+        return configsDir;
+    }
+    
+    public File getSchedulesDir() {
+        return schedulesDir;
+    }
+    
     /**
      * Oyuncu adına göre config yükler
-     * Her hesabın kendi config dosyası olur: config_OyuncuAdi.cfg
+     * Her hesabın kendi config dosyası olur: configs/OyuncuAdi.cfg
+     * Yeni oyuncu için varsayılan config kopyalanır
      */
     public void loadConfigForPlayer(String playerName) {
         loadConfigForPlayer(playerName, false);
@@ -121,16 +149,108 @@ public class MuzMod {
         
         currentPlayerName = playerName;
         
-        // Hesaba özel config dosyası: config_OyuncuAdi.cfg
-        File playerConfigFile = new File(clientDir, "config_" + playerName + ".cfg");
+        // Hesaba özel config dosyası: configs/OyuncuAdi.cfg
+        File playerConfigFile = new File(configsDir, playerName + ".cfg");
         
-        LOGGER.info("Loading config for player: " + playerName + " -> " + playerConfigFile.getName() + (forceReload ? " (forced)" : ""));
+        // Eğer oyuncunun config dosyası yoksa, varsayılan config'i kopyala
+        File defaultConfigFile = new File(clientDir, DEFAULT_CONFIG_NAME);
+        if (!playerConfigFile.exists() && defaultConfigFile.exists()) {
+            LOGGER.info("Creating config for new player: " + playerName + " (copying from default)");
+            copyFile(defaultConfigFile, playerConfigFile);
+        }
+        
+        LOGGER.info("Loading config for player: " + playerName + " -> configs/" + playerConfigFile.getName() + (forceReload ? " (forced)" : ""));
         
         // Yeni config oluştur ve yükle
         config = new ModConfig(playerConfigFile);
         config.load();
         
-        LOGGER.info("Config loaded for " + playerName + ": targetMin=" + config.getObsidianTargetMinOffset() + ", targetMax=" + config.getObsidianTargetMaxOffset());
+        // Oyuncu bazlı schedule yükle
+        scheduleManager.loadForPlayer(playerName);
+        
+        LOGGER.info("Config & Schedule loaded for " + playerName);
+    }
+    
+    /**
+     * Mevcut config'i varsayılan olarak kaydet (Default'a aktar)
+     */
+    public boolean exportConfigToDefault() {
+        if (currentPlayerName == null) {
+            LOGGER.warn("No player config loaded to export");
+            return false;
+        }
+        
+        File playerConfigFile = new File(configsDir, currentPlayerName + ".cfg");
+        File defaultConfigFile = new File(clientDir, DEFAULT_CONFIG_NAME);
+        
+        if (!playerConfigFile.exists()) {
+            LOGGER.warn("Player config file not found: " + playerConfigFile.getName());
+            return false;
+        }
+        
+        // Önce mevcut config'i kaydet
+        config.save();
+        
+        // Sonra default'a kopyala
+        copyFile(playerConfigFile, defaultConfigFile);
+        LOGGER.info("Config exported to default: " + currentPlayerName + " -> default_config.cfg");
+        return true;
+    }
+    
+    /**
+     * Varsayılan config'i mevcut hesaba yükle (Default'tan al)
+     */
+    public boolean importConfigFromDefault() {
+        if (currentPlayerName == null) {
+            LOGGER.warn("No player loaded to import config");
+            return false;
+        }
+        
+        File defaultConfigFile = new File(clientDir, DEFAULT_CONFIG_NAME);
+        File playerConfigFile = new File(configsDir, currentPlayerName + ".cfg");
+        
+        if (!defaultConfigFile.exists()) {
+            LOGGER.warn("Default config file not found");
+            return false;
+        }
+        
+        // Default'tan oyuncu config'ine kopyala
+        copyFile(defaultConfigFile, playerConfigFile);
+        
+        // Config'i yeniden yükle
+        config = new ModConfig(playerConfigFile);
+        config.load();
+        
+        LOGGER.info("Config imported from default: default_config.cfg -> " + currentPlayerName);
+        return true;
+    }
+    
+    /**
+     * Schedule'ı varsayılan olarak kaydet
+     */
+    public boolean exportScheduleToDefault() {
+        return scheduleManager.exportToDefault();
+    }
+    
+    /**
+     * Varsayılan schedule'ı yükle
+     */
+    public boolean importScheduleFromDefault() {
+        return scheduleManager.importFromDefault();
+    }
+    
+    /**
+     * Dosya kopyalama yardımcı metodu
+     */
+    private void copyFile(File source, File dest) {
+        try (FileInputStream fis = new FileInputStream(source);
+             FileOutputStream fos = new FileOutputStream(dest);
+             FileChannel sourceChannel = fis.getChannel();
+             FileChannel destChannel = fos.getChannel()) {
+            destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
+        } catch (IOException e) {
+            LOGGER.error("Error copying file: " + e.getMessage());
+        }
     }
     
     public String getCurrentPlayerName() {
@@ -153,5 +273,22 @@ public class MuzMod {
     
     public void toggleBot() {
         setBotEnabled(!botEnabled);
+    }
+    
+    /**
+     * Send a chat message to the player (client-side only)
+     */
+    public void sendChat(String message) {
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.thePlayer != null) {
+            mc.thePlayer.addChatMessage(new net.minecraft.util.ChatComponentText(message));
+        }
+    }
+    
+    /**
+     * Get the DuelAnalyzerState from StateManager
+     */
+    public com.muzmod.duel.DuelAnalyzerState getDuelAnalyzerState() {
+        return stateManager != null ? stateManager.getDuelAnalyzerState() : null;
     }
 }

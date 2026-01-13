@@ -4,6 +4,7 @@ import com.muzmod.MuzMod;
 import com.muzmod.duel.DuelAnalyzerState;
 import com.muzmod.gui.MuzModGui;
 import com.muzmod.gui.MuzModGuiModern;
+import com.muzmod.gui.modern.BananaGui;
 import com.muzmod.navigation.NavigationManager;
 import com.muzmod.schedule.ScheduleEntry;
 import com.muzmod.schedule.ScheduleManager;
@@ -96,7 +97,8 @@ public class StateManager {
         // NOT: Repair ve Obsidian state'ler GUI içinde çalışabilir
         if (mc.currentScreen != null) {
             boolean isOurGui = mc.currentScreen instanceof MuzModGui || 
-                              mc.currentScreen instanceof MuzModGuiModern;
+                              mc.currentScreen instanceof MuzModGuiModern ||
+                              mc.currentScreen instanceof BananaGui;
             boolean isChat = mc.currentScreen instanceof GuiChat;
             boolean isRepairState = currentState != null && currentState.getName().equals("Tamir");
             boolean isObsidianState = currentState != null && currentState.getName().equals("Obsidyen");
@@ -125,9 +127,15 @@ public class StateManager {
     }
     
     private void checkStateTransition() {
-        // Manuel override aktifse, otomatik geçiş yapma
+        // Manuel override aktifse ve 5 dakikadan az geçtiyse, otomatik geçiş yapma
         if (manualOverride) {
-            return;
+            // 5 dakika sonra override'ı kaldır (300000ms)
+            if (System.currentTimeMillis() - manualOverrideTime > 300000) {
+                manualOverride = false;
+                MuzMod.LOGGER.info("[StateManager] Manual override expired");
+            } else {
+                return;
+            }
         }
         
         // SafeState aktifse, müdahale etme
@@ -143,6 +151,12 @@ public class StateManager {
             if (step < 8) {
                 return; // RepairState çalışıyor, müdahale etme
             }
+        }
+        
+        // Schedule enabled kontrolü ve senkronizasyon
+        ScheduleManager schedule = MuzMod.instance.getScheduleManager();
+        if (schedule != null) {
+            useScheduleBasedTransition = schedule.isScheduleEnabled();
         }
         
         // Schedule tabanlı geçiş
@@ -351,6 +365,48 @@ public class StateManager {
     
     public DuelAnalyzerState getDuelAnalyzerState() {
         return duelAnalyzerState;
+    }
+    
+    /**
+     * Change to a state by name (for GUI use)
+     * Enables manual override so schedule doesn't interfere
+     */
+    public void changeToState(String stateName) {
+        if (stateName == null) return;
+        
+        // idle dışında manuel override'u aktifleştir
+        if (!stateName.equalsIgnoreCase("idle")) {
+            manualOverride = true;
+            manualOverrideTime = System.currentTimeMillis();
+            MuzMod.LOGGER.info("[StateManager] Manual override enabled via changeToState: " + stateName);
+        } else {
+            manualOverride = false;
+        }
+        
+        switch (stateName.toLowerCase()) {
+            case "idle":
+                transitionTo(idleState);
+                break;
+            case "mining":
+            case "mine":
+                transitionTo(miningState);
+                break;
+            case "afk":
+                transitionTo(afkState);
+                break;
+            case "repair":
+                transitionTo(repairState);
+                break;
+            case "ox":
+                transitionTo(oxState);
+                break;
+            case "obsidian":
+            case "obsidyen":
+                transitionTo(obsidianState);
+                break;
+            default:
+                MuzMod.LOGGER.warn("Unknown state: " + stateName);
+        }
     }
     
     public List<IState> getAllStates() {

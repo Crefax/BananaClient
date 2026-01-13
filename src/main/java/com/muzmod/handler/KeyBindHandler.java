@@ -1,7 +1,7 @@
 package com.muzmod.handler;
 
 import com.muzmod.MuzMod;
-import com.muzmod.gui.MuzModGuiModern;
+import com.muzmod.gui.modern.BananaGui;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -41,7 +41,7 @@ public class KeyBindHandler {
         if (mc.theWorld == null || mc.thePlayer == null) return;
         
         if (keyOpenGui.isPressed()) {
-            mc.displayGuiScreen(new MuzModGuiModern());
+            mc.displayGuiScreen(new BananaGui());
         }
         
         if (keyToggleBot.isPressed()) {
