@@ -71,6 +71,7 @@ public class MuzMod {
         
         MinecraftForge.EVENT_BUS.register(new EventHandler());
         MinecraftForge.EVENT_BUS.register(new KeyBindHandler());
+        MinecraftForge.EVENT_BUS.register(new com.muzmod.handler.ChatCommandHandler());
         MinecraftForge.EVENT_BUS.register(stateManager);
         
         KeyBindHandler.registerKeyBinds();
