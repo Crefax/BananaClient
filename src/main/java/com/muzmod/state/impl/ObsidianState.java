@@ -704,6 +704,9 @@ public class ObsidianState extends AbstractState {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (!isEnabled()) return;
         
+        // HUD kapalıysa blok renderını da yapma
+        if (!MuzMod.instance.getConfig().isShowOverlay()) return;
+        
         float partialTicks = event.partialTicks;
         
         // Kamera pozisyonunu hesapla
@@ -711,23 +714,25 @@ public class ObsidianState extends AbstractState {
         double camY = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * partialTicks;
         double camZ = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * partialTicks;
         
-        // Kırmızı hedef
+        // Kırmızı hedef (+1 Y offset)
         if (redTarget != null) {
-            renderBlockOutline(redTarget, 1, 0, 0, 0.8f, camX, camY, camZ);
+            BlockPos renderPos = new BlockPos(redTarget.getX(), redTarget.getY() + 1, redTarget.getZ());
+            renderBlockOutline(renderPos, 1.0f, 0.0f, 0.0f, 1.0f, camX, camY, camZ);
         }
         
-        // Sarı hedef
+        // Sarı hedef (+1 Y offset)
         if (yellowTarget != null) {
-            renderBlockOutline(yellowTarget, 1, 1, 0, 0.6f, camX, camY, camZ);
+            BlockPos renderPos = new BlockPos(yellowTarget.getX(), yellowTarget.getY() + 1, yellowTarget.getZ());
+            renderBlockOutline(renderPos, 1.0f, 1.0f, 0.0f, 1.0f, camX, camY, camZ);
         }
         
-        // Yeşil - şu an baktığımız blok
+        // Yeşil - şu an baktığımız blok (offset yok, gerçek pozisyon)
         if (currentMiningBlock != null) {
             Block block = mc.theWorld.getBlockState(currentMiningBlock).getBlock();
             if (block == Blocks.obsidian) {
-                renderBlockOutline(currentMiningBlock, 0, 1, 0, 0.8f, camX, camY, camZ);
+                renderBlockOutline(currentMiningBlock, 0.0f, 1.0f, 0.0f, 1.0f, camX, camY, camZ);
             } else if (block != Blocks.air) {
-                renderBlockOutline(currentMiningBlock, 1, 0.5f, 0, 0.8f, camX, camY, camZ); // Turuncu (yanlış)
+                renderBlockOutline(currentMiningBlock, 1.0f, 0.5f, 0.0f, 1.0f, camX, camY, camZ); // Turuncu (yanlış)
             }
         }
     }
@@ -745,43 +750,55 @@ public class ObsidianState extends AbstractState {
         GlStateManager.pushMatrix();
         GlStateManager.disableTexture2D();
         GlStateManager.disableDepth();
+        GlStateManager.disableLighting();
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glLineWidth(2.0f);
+        GlStateManager.disableAlpha();
+        GL11.glLineWidth(3.0f);
+        
+        // Renk ayarla
+        GlStateManager.color(r, g, b, a);
         
         Tessellator tessellator = Tessellator.getInstance();
         WorldRenderer wr = tessellator.getWorldRenderer();
         
-        wr.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
-        wr.pos(box.minX, box.minY, box.minZ).color(r, g, b, a).endVertex();
-        wr.pos(box.maxX, box.minY, box.minZ).color(r, g, b, a).endVertex();
-        wr.pos(box.maxX, box.minY, box.maxZ).color(r, g, b, a).endVertex();
-        wr.pos(box.minX, box.minY, box.maxZ).color(r, g, b, a).endVertex();
-        wr.pos(box.minX, box.minY, box.minZ).color(r, g, b, a).endVertex();
+        // Alt yüz
+        wr.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION);
+        wr.pos(box.minX, box.minY, box.minZ).endVertex();
+        wr.pos(box.maxX, box.minY, box.minZ).endVertex();
+        wr.pos(box.maxX, box.minY, box.maxZ).endVertex();
+        wr.pos(box.minX, box.minY, box.maxZ).endVertex();
+        wr.pos(box.minX, box.minY, box.minZ).endVertex();
         tessellator.draw();
         
-        wr.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
-        wr.pos(box.minX, box.maxY, box.minZ).color(r, g, b, a).endVertex();
-        wr.pos(box.maxX, box.maxY, box.minZ).color(r, g, b, a).endVertex();
-        wr.pos(box.maxX, box.maxY, box.maxZ).color(r, g, b, a).endVertex();
-        wr.pos(box.minX, box.maxY, box.maxZ).color(r, g, b, a).endVertex();
-        wr.pos(box.minX, box.maxY, box.minZ).color(r, g, b, a).endVertex();
+        // Üst yüz
+        wr.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION);
+        wr.pos(box.minX, box.maxY, box.minZ).endVertex();
+        wr.pos(box.maxX, box.maxY, box.minZ).endVertex();
+        wr.pos(box.maxX, box.maxY, box.maxZ).endVertex();
+        wr.pos(box.minX, box.maxY, box.maxZ).endVertex();
+        wr.pos(box.minX, box.maxY, box.minZ).endVertex();
         tessellator.draw();
         
-        wr.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
-        wr.pos(box.minX, box.minY, box.minZ).color(r, g, b, a).endVertex();
-        wr.pos(box.minX, box.maxY, box.minZ).color(r, g, b, a).endVertex();
-        wr.pos(box.maxX, box.minY, box.minZ).color(r, g, b, a).endVertex();
-        wr.pos(box.maxX, box.maxY, box.minZ).color(r, g, b, a).endVertex();
-        wr.pos(box.maxX, box.minY, box.maxZ).color(r, g, b, a).endVertex();
-        wr.pos(box.maxX, box.maxY, box.maxZ).color(r, g, b, a).endVertex();
-        wr.pos(box.minX, box.minY, box.maxZ).color(r, g, b, a).endVertex();
-        wr.pos(box.minX, box.maxY, box.maxZ).color(r, g, b, a).endVertex();
+        // Dikey çizgiler
+        wr.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION);
+        wr.pos(box.minX, box.minY, box.minZ).endVertex();
+        wr.pos(box.minX, box.maxY, box.minZ).endVertex();
+        wr.pos(box.maxX, box.minY, box.minZ).endVertex();
+        wr.pos(box.maxX, box.maxY, box.minZ).endVertex();
+        wr.pos(box.maxX, box.minY, box.maxZ).endVertex();
+        wr.pos(box.maxX, box.maxY, box.maxZ).endVertex();
+        wr.pos(box.minX, box.minY, box.maxZ).endVertex();
+        wr.pos(box.minX, box.maxY, box.maxZ).endVertex();
         tessellator.draw();
         
+        // GL state'i geri yükle
+        GlStateManager.enableAlpha();
         GlStateManager.disableBlend();
         GlStateManager.enableDepth();
+        GlStateManager.enableLighting();
         GlStateManager.enableTexture2D();
+        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
         GlStateManager.popMatrix();
     }
     
