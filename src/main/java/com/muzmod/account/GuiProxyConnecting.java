@@ -63,14 +63,13 @@ public class GuiProxyConnecting extends GuiScreen {
             MuzMod.LOGGER.info("[GuiProxyConnecting] Connecting via proxy to " + host + ":" + port);
             
             try {
-                // Proxy üzerinden bağlan
+                // Proxy üzerinden bağlan - HOSTNAME ile (DNS leak önleme)
                 networkManager = ProxyNetworkManager.createNetworkManagerAndConnect(
-                    InetAddress.getByName(host), port, true);
+                    host, port, true);
                 
-            } catch (UnknownHostException e) {
-                onConnectionFailed("Sunucu bulunamadı: " + host);
-                return;
             } catch (Exception e) {
+                MuzMod.LOGGER.error("[GuiProxyConnecting] Proxy connection error: " + e.getMessage());
+                e.printStackTrace();
                 onConnectionFailed("Proxy bağlantı hatası: " + e.getMessage());
                 return;
             }

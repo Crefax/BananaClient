@@ -6,14 +6,13 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.util.CharsetUtil;
 
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-
 /**
- * SOCKS5 Proxy Handler for Netty 4.0
- * Minecraft sunucu bağlantılarını SOCKS5 proxy üzerinden yönlendirir
+ * SOCKS5 Proxy Handler for Netty
+ * 
+ * Bu handler proxy'ye bağlandıktan sonra SOCKS5 handshake yapar
+ * ve hedef sunucuya tunnel açar.
  */
-public class Socks5Handler extends ChannelDuplexHandler {
+public class Socks5Handler extends ChannelInboundHandlerAdapter {
     
     private static final byte SOCKS_VERSION = 0x05;
     private static final byte AUTH_NONE = 0x00;
@@ -22,100 +21,79 @@ public class Socks5Handler extends ChannelDuplexHandler {
     private static final byte ADDR_TYPE_DOMAIN = 0x03;
     private static final byte ADDR_TYPE_IPV4 = 0x01;
     
-    private enum State {
-        INIT,
-        AUTH_SENT,
-        AUTH_RESPONSE,
-        CONNECT_SENT,
+    public enum State {
+        GREETING,
+        AUTH,
+        CONNECT,
         CONNECTED
     }
     
-    private State state = State.INIT;
-    private final String proxyHost;
-    private final int proxyPort;
+    private State state = State.GREETING;
+    private final String targetHost;
+    private final int targetPort;
     private final String username;
     private final String password;
-    private String targetHost;
-    private int targetPort;
     
-    private ChannelPromise connectPromise;
-    private ByteBuf pendingData;
+    private ChannelHandlerContext savedCtx;
     
-    public Socks5Handler(String proxyHost, int proxyPort) {
-        this(proxyHost, proxyPort, null, null);
+    public Socks5Handler(String targetHost, int targetPort) {
+        this(targetHost, targetPort, null, null);
     }
     
-    public Socks5Handler(String proxyHost, int proxyPort, String username, String password) {
-        this.proxyHost = proxyHost;
-        this.proxyPort = proxyPort;
+    public Socks5Handler(String targetHost, int targetPort, String username, String password) {
+        this.targetHost = targetHost;
+        this.targetPort = targetPort;
         this.username = username;
         this.password = password;
+        
+        MuzMod.LOGGER.info("[Socks5Handler] Created for target: " + targetHost + ":" + targetPort);
     }
     
     @Override
-    public void connect(ChannelHandlerContext ctx, SocketAddress remoteAddress, 
-                       SocketAddress localAddress, ChannelPromise promise) throws Exception {
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        this.savedCtx = ctx;
+        MuzMod.LOGGER.info("[Socks5Handler] Channel active, sending greeting...");
         
-        if (remoteAddress instanceof InetSocketAddress) {
-            InetSocketAddress targetAddr = (InetSocketAddress) remoteAddress;
-            this.targetHost = targetAddr.getHostString();
-            this.targetPort = targetAddr.getPort();
-            this.connectPromise = promise;
-            
-            // Proxy'ye bağlan (hedef yerine)
-            InetSocketAddress proxyAddr = new InetSocketAddress(proxyHost, proxyPort);
-            
-            MuzMod.LOGGER.info("[Socks5Handler] Connecting to proxy " + proxyHost + ":" + proxyPort + 
-                            " for target " + targetHost + ":" + targetPort);
-            
-            // Gerçek bağlantıyı proxy'ye yap
-            ChannelPromise proxyPromise = ctx.newPromise();
-            proxyPromise.addListener(new ChannelFutureListener() {
-                @Override
-                public void operationComplete(ChannelFuture future) throws Exception {
-                    if (future.isSuccess()) {
-                        // Proxy'ye bağlandık, SOCKS5 handshake başlat
-                        sendGreeting(ctx);
-                    } else {
-                        connectPromise.setFailure(future.cause());
-                    }
-                }
-            });
-            
-            super.connect(ctx, proxyAddr, localAddress, proxyPromise);
-        } else {
-            super.connect(ctx, remoteAddress, localAddress, promise);
-        }
+        // SOCKS5 greeting gönder
+        sendGreeting(ctx);
     }
     
     private void sendGreeting(ChannelHandlerContext ctx) {
-        state = State.AUTH_SENT;
+        state = State.GREETING;
         
         ByteBuf buf;
         if (username != null && !username.isEmpty()) {
             // Username/password auth destekle
-            buf = Unpooled.buffer(4);
-            buf.writeByte(SOCKS_VERSION);
-            buf.writeByte(2); // 2 auth method
-            buf.writeByte(AUTH_NONE);
-            buf.writeByte(AUTH_PASSWORD);
+            buf = ctx.alloc().buffer(4);
+            buf.writeByte(SOCKS_VERSION);  // VER
+            buf.writeByte(2);               // NMETHODS
+            buf.writeByte(AUTH_NONE);       // NO AUTH
+            buf.writeByte(AUTH_PASSWORD);   // USER/PASS
         } else {
             // Sadece no-auth
-            buf = Unpooled.buffer(3);
-            buf.writeByte(SOCKS_VERSION);
-            buf.writeByte(1); // 1 auth method
-            buf.writeByte(AUTH_NONE);
+            buf = ctx.alloc().buffer(3);
+            buf.writeByte(SOCKS_VERSION);  // VER
+            buf.writeByte(1);               // NMETHODS
+            buf.writeByte(AUTH_NONE);       // NO AUTH
         }
         
-        ctx.writeAndFlush(buf);
-        MuzMod.LOGGER.debug("[Socks5Handler] Sent greeting");
+        ctx.writeAndFlush(buf).addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) {
+                if (future.isSuccess()) {
+                    MuzMod.LOGGER.info("[Socks5Handler] Greeting sent");
+                } else {
+                    MuzMod.LOGGER.error("[Socks5Handler] Failed to send greeting: " + future.cause());
+                }
+            }
+        });
     }
     
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (state == State.CONNECTED) {
-            // Proxy handshake tamamlandı, normal data akışı
-            super.channelRead(ctx, msg);
+            // Handshake tamamlandı, veriyi üst katmana ilet
+            ctx.fireChannelRead(msg);
             return;
         }
         
@@ -123,172 +101,181 @@ public class Socks5Handler extends ChannelDuplexHandler {
         
         try {
             switch (state) {
-                case AUTH_SENT:
+                case GREETING:
+                    handleGreetingResponse(ctx, buf);
+                    break;
+                case AUTH:
                     handleAuthResponse(ctx, buf);
                     break;
-                    
-                case AUTH_RESPONSE:
-                    handleAuthResult(ctx, buf);
-                    break;
-                    
-                case CONNECT_SENT:
+                case CONNECT:
                     handleConnectResponse(ctx, buf);
                     break;
-                    
                 default:
-                    buf.release();
-                    break;
+                    ctx.fireChannelRead(msg);
+                    return;
             }
-        } catch (Exception e) {
+        } finally {
             buf.release();
-            failConnect(ctx, e);
         }
     }
     
-    private void handleAuthResponse(ChannelHandlerContext ctx, ByteBuf buf) {
+    private void handleGreetingResponse(ChannelHandlerContext ctx, ByteBuf buf) {
         if (buf.readableBytes() < 2) {
-            buf.release();
+            MuzMod.LOGGER.error("[Socks5Handler] Greeting response too short");
+            ctx.close();
             return;
         }
         
         byte version = buf.readByte();
         byte method = buf.readByte();
-        buf.release();
+        
+        MuzMod.LOGGER.info("[Socks5Handler] Greeting response: version=" + version + ", method=" + method);
         
         if (version != SOCKS_VERSION) {
-            failConnect(ctx, new Exception("Invalid SOCKS version: " + version));
+            MuzMod.LOGGER.error("[Socks5Handler] Invalid SOCKS version: " + version);
+            ctx.close();
             return;
         }
         
-        MuzMod.LOGGER.debug("[Socks5Handler] Auth method selected: " + method);
-        
         if (method == AUTH_PASSWORD) {
-            // Username/password auth gönder
+            // Username/password auth gerekli
+            MuzMod.LOGGER.info("[Socks5Handler] Sending auth...");
             sendAuth(ctx);
-            state = State.AUTH_RESPONSE;
         } else if (method == AUTH_NONE) {
             // Auth gerekmiyor, connect gönder
+            MuzMod.LOGGER.info("[Socks5Handler] No auth required, sending connect...");
             sendConnect(ctx);
+        } else if (method == (byte) 0xFF) {
+            MuzMod.LOGGER.error("[Socks5Handler] No acceptable auth methods!");
+            ctx.close();
         } else {
-            failConnect(ctx, new Exception("Unsupported auth method: " + method));
+            MuzMod.LOGGER.error("[Socks5Handler] Unsupported auth method: " + method);
+            ctx.close();
         }
     }
     
     private void sendAuth(ChannelHandlerContext ctx) {
-        byte[] userBytes = username.getBytes(CharsetUtil.UTF_8);
-        byte[] passBytes = password.getBytes(CharsetUtil.UTF_8);
+        state = State.AUTH;
         
-        ByteBuf buf = Unpooled.buffer(3 + userBytes.length + passBytes.length);
-        buf.writeByte(0x01); // Auth version
-        buf.writeByte(userBytes.length);
-        buf.writeBytes(userBytes);
-        buf.writeByte(passBytes.length);
-        buf.writeBytes(passBytes);
+        byte[] userBytes = (username != null ? username : "").getBytes(CharsetUtil.UTF_8);
+        byte[] passBytes = (password != null ? password : "").getBytes(CharsetUtil.UTF_8);
+        
+        ByteBuf buf = ctx.alloc().buffer(3 + userBytes.length + passBytes.length);
+        buf.writeByte(0x01);                // Auth version
+        buf.writeByte(userBytes.length);    // Username length
+        buf.writeBytes(userBytes);          // Username
+        buf.writeByte(passBytes.length);    // Password length
+        buf.writeBytes(passBytes);          // Password
         
         ctx.writeAndFlush(buf);
-        MuzMod.LOGGER.debug("[Socks5Handler] Sent auth credentials");
+        MuzMod.LOGGER.info("[Socks5Handler] Auth sent");
     }
     
-    private void handleAuthResult(ChannelHandlerContext ctx, ByteBuf buf) {
+    private void handleAuthResponse(ChannelHandlerContext ctx, ByteBuf buf) {
         if (buf.readableBytes() < 2) {
-            buf.release();
+            MuzMod.LOGGER.error("[Socks5Handler] Auth response too short");
+            ctx.close();
             return;
         }
         
         byte version = buf.readByte();
         byte status = buf.readByte();
-        buf.release();
+        
+        MuzMod.LOGGER.info("[Socks5Handler] Auth response: version=" + version + ", status=" + status);
         
         if (status != 0x00) {
-            failConnect(ctx, new Exception("SOCKS5 authentication failed! Status: " + status));
+            MuzMod.LOGGER.error("[Socks5Handler] Auth failed! Status: " + status);
+            ctx.close();
             return;
         }
         
-        MuzMod.LOGGER.debug("[Socks5Handler] Auth successful");
+        MuzMod.LOGGER.info("[Socks5Handler] Auth successful, sending connect...");
         sendConnect(ctx);
     }
     
     private void sendConnect(ChannelHandlerContext ctx) {
-        state = State.CONNECT_SENT;
+        state = State.CONNECT;
         
         byte[] hostBytes = targetHost.getBytes(CharsetUtil.UTF_8);
         
-        ByteBuf buf = Unpooled.buffer(7 + hostBytes.length);
-        buf.writeByte(SOCKS_VERSION);
-        buf.writeByte(CMD_CONNECT);
-        buf.writeByte(0x00); // Reserved
-        buf.writeByte(ADDR_TYPE_DOMAIN); // Domain name
-        buf.writeByte(hostBytes.length);
-        buf.writeBytes(hostBytes);
-        buf.writeShort(targetPort);
+        ByteBuf buf = ctx.alloc().buffer(7 + hostBytes.length);
+        buf.writeByte(SOCKS_VERSION);       // VER
+        buf.writeByte(CMD_CONNECT);         // CMD = CONNECT
+        buf.writeByte(0x00);                // RSV
+        buf.writeByte(ADDR_TYPE_DOMAIN);    // ATYP = Domain name
+        buf.writeByte(hostBytes.length);    // Domain length
+        buf.writeBytes(hostBytes);          // Domain name
+        buf.writeShort(targetPort);         // DST.PORT
         
         ctx.writeAndFlush(buf);
-        MuzMod.LOGGER.debug("[Socks5Handler] Sent connect request for " + targetHost + ":" + targetPort);
+        MuzMod.LOGGER.info("[Socks5Handler] Connect request sent for " + targetHost + ":" + targetPort);
     }
     
     private void handleConnectResponse(ChannelHandlerContext ctx, ByteBuf buf) {
         if (buf.readableBytes() < 4) {
-            buf.release();
+            MuzMod.LOGGER.error("[Socks5Handler] Connect response too short");
+            ctx.close();
             return;
         }
         
         byte version = buf.readByte();
         byte status = buf.readByte();
-        buf.readByte(); // Reserved
+        buf.readByte(); // RSV
         byte addrType = buf.readByte();
         
-        // Adres bilgisini oku ve atla
-        switch (addrType) {
-            case ADDR_TYPE_IPV4:
-                if (buf.readableBytes() >= 6) {
-                    buf.skipBytes(4); // IPv4
-                    buf.skipBytes(2); // Port
-                }
-                break;
-            case ADDR_TYPE_DOMAIN:
-                if (buf.readableBytes() >= 1) {
-                    int len = buf.readByte() & 0xFF;
-                    if (buf.readableBytes() >= len + 2) {
-                        buf.skipBytes(len); // Domain
+        MuzMod.LOGGER.info("[Socks5Handler] Connect response: version=" + version + 
+                          ", status=" + status + ", addrType=" + addrType);
+        
+        // Adresi oku ve atla (ilgilenmiyoruz)
+        try {
+            switch (addrType) {
+                case ADDR_TYPE_IPV4:
+                    if (buf.readableBytes() >= 6) {
+                        buf.skipBytes(4); // IPv4
                         buf.skipBytes(2); // Port
                     }
-                }
-                break;
-            case 0x04: // IPv6
-                if (buf.readableBytes() >= 18) {
-                    buf.skipBytes(16); // IPv6
-                    buf.skipBytes(2); // Port
-                }
-                break;
+                    break;
+                case ADDR_TYPE_DOMAIN:
+                    if (buf.readableBytes() >= 1) {
+                        int len = buf.readByte() & 0xFF;
+                        if (buf.readableBytes() >= len + 2) {
+                            buf.skipBytes(len); // Domain
+                            buf.skipBytes(2);   // Port
+                        }
+                    }
+                    break;
+                case 0x04: // IPv6
+                    if (buf.readableBytes() >= 18) {
+                        buf.skipBytes(16); // IPv6
+                        buf.skipBytes(2);  // Port
+                    }
+                    break;
+            }
+        } catch (Exception e) {
+            // Adresi okuyamadık, sorun değil
         }
-        
-        buf.release();
         
         if (status != 0x00) {
             String errorMsg = getSocksErrorMessage(status);
-            failConnect(ctx, new Exception("SOCKS5 connect failed: " + errorMsg));
+            MuzMod.LOGGER.error("[Socks5Handler] Connect failed: " + errorMsg);
+            ctx.close();
             return;
         }
         
-        // Bağlantı başarılı!
+        // Başarılı! Artık tunnel açık
         state = State.CONNECTED;
-        MuzMod.LOGGER.info("[Socks5Handler] Connected to " + targetHost + ":" + targetPort + " via proxy!");
+        MuzMod.LOGGER.info("[Socks5Handler] *** TUNNEL ESTABLISHED to " + targetHost + ":" + targetPort + " ***");
         
-        // Orijinal connect promise'i başarılı yap
-        if (connectPromise != null) {
-            connectPromise.setSuccess();
-        }
+        // Pipeline'dan kendimizi kaldır, artık şeffaf proxy
+        ctx.pipeline().remove(this);
         
-        // Bekleyen data varsa gönder
-        if (pendingData != null && pendingData.isReadable()) {
-            ctx.writeAndFlush(pendingData);
-            pendingData = null;
-        }
+        // Upstream handler'lara channel active bildir (Minecraft'ın handshake başlatması için)
+        ctx.fireChannelActive();
     }
     
     private String getSocksErrorMessage(byte status) {
         switch (status) {
-            case 0x01: return "General failure";
+            case 0x01: return "General SOCKS server failure";
             case 0x02: return "Connection not allowed by ruleset";
             case 0x03: return "Network unreachable";
             case 0x04: return "Host unreachable";
@@ -300,37 +287,10 @@ public class Socks5Handler extends ChannelDuplexHandler {
         }
     }
     
-    private void failConnect(ChannelHandlerContext ctx, Exception e) {
-        MuzMod.LOGGER.error("[Socks5Handler] Connection failed: " + e.getMessage());
-        
-        if (connectPromise != null) {
-            connectPromise.setFailure(e);
-        }
-        
-        ctx.close();
-    }
-    
     @Override
-    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if (state != State.CONNECTED) {
-            // Handshake tamamlanmadan data gönderme, beklet
-            if (msg instanceof ByteBuf) {
-                if (pendingData == null) {
-                    pendingData = Unpooled.buffer();
-                }
-                pendingData.writeBytes((ByteBuf) msg);
-                ((ByteBuf) msg).release();
-                promise.setSuccess();
-                return;
-            }
-        }
-        
-        super.write(ctx, msg, promise);
-    }
-    
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         MuzMod.LOGGER.error("[Socks5Handler] Exception: " + cause.getMessage());
-        failConnect(ctx, new Exception(cause));
+        cause.printStackTrace();
+        ctx.close();
     }
 }
