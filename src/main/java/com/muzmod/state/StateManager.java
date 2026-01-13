@@ -1,6 +1,7 @@
 package com.muzmod.state;
 
 import com.muzmod.MuzMod;
+import com.muzmod.duel.DuelAnalyzerState;
 import com.muzmod.gui.MuzModGui;
 import com.muzmod.gui.MuzModGuiModern;
 import com.muzmod.navigation.NavigationManager;
@@ -38,6 +39,7 @@ public class StateManager {
     private SafeState safeState;
     private OXState oxState;
     private ObsidianState obsidianState;
+    private DuelAnalyzerState duelAnalyzerState;
     
     private int tickCounter = 0;
     private static final int CHECK_INTERVAL = 20; // Check every second (20 ticks)
@@ -62,6 +64,7 @@ public class StateManager {
         safeState = new SafeState();
         oxState = new OXState();
         obsidianState = new ObsidianState();
+        duelAnalyzerState = new DuelAnalyzerState();
         
         states.add(idleState);
         states.add(afkState);
@@ -70,6 +73,7 @@ public class StateManager {
         states.add(safeState);
         states.add(oxState);
         states.add(obsidianState);
+        states.add(duelAnalyzerState);
         
         // Sort by priority (highest first)
         states.sort(Comparator.comparingInt(IState::getPriority).reversed());
@@ -343,6 +347,10 @@ public class StateManager {
     
     public ObsidianState getObsidianState() {
         return obsidianState;
+    }
+    
+    public DuelAnalyzerState getDuelAnalyzerState() {
+        return duelAnalyzerState;
     }
     
     public List<IState> getAllStates() {

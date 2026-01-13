@@ -119,6 +119,11 @@ public class ModConfig {
     private int obsidianTargetMinOffset = 0;   // En yakın hedef offset (0 = en son blok)
     private int obsidianTargetMaxOffset = 10;  // En uzak hedef offset (10 = son bloktan 10 geri)
     
+    // Duel Analyzer Settings
+    private boolean duelHudEnabled = true;     // Duel HUD görünür mü
+    private int duelHudX = 10;                 // HUD X pozisyonu
+    private int duelHudY = 100;                // HUD Y pozisyonu
+    
     public ModConfig(File configFile) {
         config = new Configuration(configFile);
     }
@@ -297,6 +302,14 @@ public class ModConfig {
                 "Minimum target offset from last obsidian (0 = last block)");
             obsidianTargetMaxOffset = config.getInt("targetMaxOffset", "obsidian", 10, 0, 50,
                 "Maximum target offset from last obsidian (10 = 10 blocks before last)");
+            
+            // Duel Analyzer Settings
+            duelHudEnabled = config.getBoolean("hudEnabled", "duel", true,
+                "Enable Duel Analyzer HUD");
+            duelHudX = config.getInt("hudX", "duel", 10, 0, 2000,
+                "Duel HUD X position");
+            duelHudY = config.getInt("hudY", "duel", 100, 0, 2000,
+                "Duel HUD Y position");
             
             // Mining Jitter (AFK bypass)
             miningJitterYaw = config.getFloat("jitterYaw", "mining_jitter", 3.0f, 0.0f, 20.0f,
@@ -781,6 +794,30 @@ public class ModConfig {
     public void setRepairClickDelay(float delay) {
         this.repairClickDelay = delay;
         config.get("repair", "clickDelay", 2.0f).set(delay);
+        save();
+    }
+    
+    // Duel Analyzer Getters
+    public boolean isDuelHudEnabled() { return duelHudEnabled; }
+    public int getDuelHudX() { return duelHudX; }
+    public int getDuelHudY() { return duelHudY; }
+    
+    // Duel Analyzer Setters
+    public void setDuelHudEnabled(boolean enabled) {
+        this.duelHudEnabled = enabled;
+        config.get("duel", "hudEnabled", true).set(enabled);
+        save();
+    }
+    
+    public void setDuelHudX(int x) {
+        this.duelHudX = x;
+        config.get("duel", "hudX", 10).set(x);
+        save();
+    }
+    
+    public void setDuelHudY(int y) {
+        this.duelHudY = y;
+        config.get("duel", "hudY", 100).set(y);
         save();
     }
 }

@@ -2,9 +2,11 @@ package com.muzmod.gui;
 
 import com.muzmod.MuzMod;
 import com.muzmod.config.ModConfig;
+import com.muzmod.duel.DuelAnalyzerState;
 import com.muzmod.schedule.ScheduleEntry;
 import com.muzmod.schedule.ScheduleManager;
 import com.muzmod.state.IState;
+import com.muzmod.state.StateManager;
 import com.muzmod.state.impl.SafeState;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
@@ -58,8 +60,8 @@ public class MuzModGuiModern extends GuiScreen {
     private String[] tabNames = {"Genel", "Zamanlama", "Ayarlar"};
     
     // Settings sub-tabs
-    private int settingsSubTab = 0; // 0=Genel, 1=Mining, 2=OX, 3=Obsidyen, 4=Config
-    private String[] settingsSubTabs = {"Genel", "Mining", "OX", "Obsidyen", "Config"};
+    private int settingsSubTab = 0; // 0=Genel, 1=Mining, 2=OX, 3=Obsidyen, 4=Duel, 5=Config
+    private String[] settingsSubTabs = {"Genel", "Mining", "OX", "Obsidyen", "Duel", "Config"};
     
     // Mining settings scroll
     private int miningSettingsScrollOffset = 0;
@@ -102,6 +104,9 @@ public class MuzModGuiModern extends GuiScreen {
     private GuiTextField fieldObsidianSellCommand, fieldObsidianSellDelay;
     private GuiTextField fieldObsidianTargetMin, fieldObsidianTargetMax;
     private boolean obsidianSellEnabled = true;
+    
+    // Duel Analyzer fields
+    private GuiTextField fieldDuelPlayer1, fieldDuelPlayer2;
     
     // Slider için drag state
     private boolean draggingAimSpeed = false;
@@ -174,6 +179,10 @@ public class MuzModGuiModern extends GuiScreen {
         fieldObsidianTargetMin = createField(setX, setY, 40, String.valueOf(config.getObsidianTargetMinOffset()), 3);
         fieldObsidianTargetMax = createField(setX, setY, 40, String.valueOf(config.getObsidianTargetMaxOffset()), 3);
         obsidianSellEnabled = config.isObsidianSellEnabled();
+        
+        // Duel Analyzer fields
+        fieldDuelPlayer1 = createField(setX, setY, 100, "", 16);
+        fieldDuelPlayer2 = createField(setX, setY + 25, 100, "", 16);
         
         // Legacy field for compatibility
         fieldWalkDist = fieldInitialWalkMin;
@@ -539,7 +548,8 @@ public class MuzModGuiModern extends GuiScreen {
             case 1: drawSettingsMining(mouseX, mouseY, config, y, labelX, fieldX); break;
             case 2: drawSettingsOX(mouseX, mouseY, config, y, labelX, fieldX); break;
             case 3: drawSettingsObsidyen(mouseX, mouseY, config, y - obsidianSettingsScrollOffset, labelX, fieldX); break;
-            case 4: drawSettingsConfig(mouseX, mouseY, y, labelX, fieldX); break;
+            case 4: drawSettingsDuel(mouseX, mouseY, config, y, labelX, fieldX); break;
+            case 5: drawSettingsConfig(mouseX, mouseY, y, labelX, fieldX); break;
         }
     }
     
@@ -949,6 +959,106 @@ public class MuzModGuiModern extends GuiScreen {
     /**
      * Config Import/Export sekmesi
      */
+    private void drawSettingsDuel(int mouseX, int mouseY, ModConfig config, int y, int labelX, int fieldX) {
+        DuelAnalyzerState duelState = DuelAnalyzerState.getInstance();
+        boolean isAnalyzing = duelState != null && duelState.isAnalyzing();
+        
+        // Başlık
+        drawString(fontRendererObj, "§e§lDuel Analyzer", labelX, y, ACCENT_YELLOW);
+        y += 24;
+        
+        // Durum
+        String statusText = isAnalyzing ? "§aAnaliz Aktif" : "§7Pasif";
+        drawString(fontRendererObj, "Durum: " + statusText, labelX, y, TEXT_WHITE);
+        y += 20;
+        
+        // Eğer analiz aktifse, durumu göster
+        if (isAnalyzing && duelState.getSession() != null) {
+            drawString(fontRendererObj, "§7Süre: §f" + duelState.getSession().getSessionDurationFormatted(), labelX, y, TEXT_GRAY);
+            y += 30;
+            
+            // Durdur butonu
+            int stopBtnX = labelX;
+            int stopBtnY = y;
+            int btnWidth = 120;
+            int btnHeight = 22;
+            
+            boolean hoverStop = mouseX >= stopBtnX && mouseX < stopBtnX + btnWidth && 
+                               mouseY >= stopBtnY && mouseY < stopBtnY + btnHeight;
+            drawRect(stopBtnX, stopBtnY, stopBtnX + btnWidth, stopBtnY + btnHeight, hoverStop ? ACCENT_RED : 0xFF8B0000);
+            drawCenteredString(fontRendererObj, "§cAnalizi Durdur", stopBtnX + btnWidth/2, stopBtnY + 7, TEXT_WHITE);
+            
+            y += 40;
+        } else {
+            // Yeni analiz başlatma
+            drawString(fontRendererObj, "§7Oyuncu 1:", labelX, y + 3, TEXT_GRAY);
+            drawFieldBackground(fieldDuelPlayer1, fieldX, y);
+            fieldDuelPlayer1.xPosition = fieldX;
+            fieldDuelPlayer1.yPosition = y;
+            fieldDuelPlayer1.drawTextBox();
+            
+            y += 28;
+            drawString(fontRendererObj, "§7Oyuncu 2:", labelX, y + 3, TEXT_GRAY);
+            drawFieldBackground(fieldDuelPlayer2, fieldX, y);
+            fieldDuelPlayer2.xPosition = fieldX;
+            fieldDuelPlayer2.yPosition = y;
+            fieldDuelPlayer2.drawTextBox();
+            
+            y += 35;
+            
+            // Başlat butonu
+            int startBtnX = labelX;
+            int startBtnY = y;
+            int btnWidth = 140;
+            int btnHeight = 22;
+            
+            boolean canStart = fieldDuelPlayer1.getText().length() > 0 && fieldDuelPlayer2.getText().length() > 0;
+            boolean hoverStart = mouseX >= startBtnX && mouseX < startBtnX + btnWidth && 
+                                mouseY >= startBtnY && mouseY < startBtnY + btnHeight;
+            int startColor = canStart ? (hoverStart ? ACCENT_GREEN : 0xFF2E7D32) : BG_BUTTON;
+            
+            drawRect(startBtnX, startBtnY, startBtnX + btnWidth, startBtnY + btnHeight, startColor);
+            String startText = canStart ? "§a▶ Analizi Başlat" : "§8▶ Analizi Başlat";
+            drawCenteredString(fontRendererObj, startText, startBtnX + btnWidth/2, startBtnY + 7, TEXT_WHITE);
+            
+            y += 35;
+        }
+        
+        // HUD Ayarları
+        drawRect(labelX, y, guiX + GUI_WIDTH - 25, y + 1, 0xFF444444);
+        y += 15;
+        
+        drawString(fontRendererObj, "§b§lHUD Ayarları", labelX, y, ACCENT_CYAN);
+        y += 20;
+        
+        // HUD toggle
+        boolean hudEnabled = config.isDuelHudEnabled();
+        drawToggle(labelX, y, "HUD Göster", hudEnabled, mouseX, mouseY);
+        y += 25;
+        
+        // HUD pozisyonu
+        drawString(fontRendererObj, "§7HUD Pozisyonu: §f" + config.getDuelHudX() + ", " + config.getDuelHudY(), labelX, y, TEXT_GRAY);
+        y += 14;
+        drawString(fontRendererObj, "§8(HUD'u sürükleyerek değiştirebilirsin)", labelX, y, TEXT_DARK);
+        y += 30;
+        
+        // Bilgi
+        drawRect(labelX, y, guiX + GUI_WIDTH - 25, y + 1, 0xFF444444);
+        y += 15;
+        
+        drawString(fontRendererObj, "§7Özellikler:", labelX, y, TEXT_GRAY);
+        y += 14;
+        drawString(fontRendererObj, "§8• Hit sayısı takibi", labelX + 10, y, TEXT_DARK);
+        y += 12;
+        drawString(fontRendererObj, "§8• Altın/Encli elma tüketimi", labelX + 10, y, TEXT_DARK);
+        y += 12;
+        drawString(fontRendererObj, "§8• Kırılan zırh takibi", labelX + 10, y, TEXT_DARK);
+        y += 12;
+        drawString(fontRendererObj, "§8• Kılıç bilgisi (lore dahil)", labelX + 10, y, TEXT_DARK);
+        y += 12;
+        drawString(fontRendererObj, "§8• Ölümde JSON kayıt", labelX + 10, y, TEXT_DARK);
+    }
+
     private void drawSettingsConfig(int mouseX, int mouseY, int y, int labelX, int fieldX) {
         String playerName = MuzMod.instance.getCurrentPlayerName();
         
@@ -1439,8 +1549,45 @@ public class MuzModGuiModern extends GuiScreen {
                     updateSliderValue(mouseX, sliderX, 100, 0.01f, 1.0f, "turnSpeed");
                 }
             }
-            // Config sub-tab
+            // Duel sub-tab
             else if (settingsSubTab == 4) {
+                StateManager sm = MuzMod.instance.getStateManager();
+                DuelAnalyzerState duelState = sm.getDuelAnalyzerState();
+                
+                int btnX = guiX + 25;
+                int btnWidth = 120;
+                int btnHeight = 20;
+                
+                if (duelState.isAnalyzing()) {
+                    // Stop Analysis butonu - y pozisyonu: 95 + 25(başlık) + 25(durum) + 16(süre) + 8
+                    int stopBtnY = guiY + 95 + 25 + 25 + 16 + 8;
+                    if (mouseX >= btnX && mouseX < btnX + btnWidth && 
+                        mouseY >= stopBtnY && mouseY < stopBtnY + btnHeight) {
+                        duelState.stopAnalysis();
+                    }
+                } else {
+                    // Start Analysis butonu - y pozisyonu: 95 + 25(başlık) + 25(durum) + 25(player1) + 25(player2) + 8
+                    int startBtnY = guiY + 95 + 25 + 25 + 25 + 25 + 8;
+                    if (mouseX >= btnX && mouseX < btnX + btnWidth && 
+                        mouseY >= startBtnY && mouseY < startBtnY + btnHeight) {
+                        String p1 = fieldDuelPlayer1.getText().trim();
+                        String p2 = fieldDuelPlayer2.getText().trim();
+                        if (!p1.isEmpty() && !p2.isEmpty()) {
+                            duelState.startAnalysis(p1, p2);
+                        }
+                    }
+                }
+                
+                // HUD Toggle - y pozisyonu hesabı
+                int hudSectionY = guiY + 95 + 25 + 25 + (duelState.isAnalyzing() ? 16 + 8 + 25 : 25 + 25 + 8 + 25) + 30;
+                int hudToggleBtnY = hudSectionY + 25;
+                if (mouseX >= btnX && mouseX < btnX + 80 && 
+                    mouseY >= hudToggleBtnY && mouseY < hudToggleBtnY + btnHeight) {
+                    config.setDuelHudEnabled(!config.isDuelHudEnabled());
+                }
+            }
+            // Config sub-tab
+            else if (settingsSubTab == 5) {
                 int cfgLabelX = guiX + 25;
                 int btnWidth = 140;
                 int btnHeight = 22;
@@ -1807,6 +1954,9 @@ public class MuzModGuiModern extends GuiScreen {
                 fieldObsidianSellDelay.textboxKeyTyped(typedChar, keyCode);
                 fieldObsidianTargetMin.textboxKeyTyped(typedChar, keyCode);
                 fieldObsidianTargetMax.textboxKeyTyped(typedChar, keyCode);
+            } else if (settingsSubTab == 4) {
+                fieldDuelPlayer1.textboxKeyTyped(typedChar, keyCode);
+                fieldDuelPlayer2.textboxKeyTyped(typedChar, keyCode);
             }
         }
     }
