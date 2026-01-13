@@ -39,8 +39,19 @@ public class DuelHudRenderer extends Gui {
      * Render the HUD
      */
     public void render() {
-        DuelSession session = DuelAnalyzerState.getInstance().getSession();
-        if (session == null || !session.isActive()) return;
+        DuelAnalyzerState state = DuelAnalyzerState.getInstance();
+        if (state == null) {
+            return;
+        }
+        
+        DuelSession session = state.getSession();
+        if (session == null) {
+            return;
+        }
+        
+        if (!session.isActive()) {
+            return;
+        }
         
         // HUD pozisyonunu config'den al
         hudX = MuzMod.instance.getConfig().getDuelHudX();

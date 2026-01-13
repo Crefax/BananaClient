@@ -53,7 +53,7 @@ public class MuzModGuiModern extends GuiScreen {
     // Layout
     private int guiX, guiY;
     private static final int GUI_WIDTH = 500;
-    private static final int GUI_HEIGHT = 500;
+    private static final int GUI_HEIGHT = 420;
     
     // Tabs
     private int currentTab = 0;
@@ -73,7 +73,7 @@ public class MuzModGuiModern extends GuiScreen {
     
     // Duel settings scroll
     private int duelSettingsScrollOffset = 0;
-    private static final int DUEL_SETTINGS_SCROLL_MAX = 150; // Maksimum scroll miktarı
+    private static final int DUEL_SETTINGS_SCROLL_MAX = 300; // Maksimum scroll miktarı
     
     // Schedule tab
     private int selectedDay = 0; // 0=Pzt, 6=Paz
