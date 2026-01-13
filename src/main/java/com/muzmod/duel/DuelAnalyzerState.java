@@ -127,6 +127,9 @@ public class DuelAnalyzerState extends AbstractState {
             }
         }
         
+        // HUD'u kapat
+        MuzMod.instance.getConfig().setDuelHudEnabled(false);
+        
         analyzing = false;
         setStatus("Analiz durduruldu");
     }
@@ -238,6 +241,9 @@ public class DuelAnalyzerState extends AbstractState {
                     "§6[DuelAnalyzer] §7Kayıt .minecraft/BananaClient/duel_records/ klasörüne kaydedildi"
                 ));
             }
+            
+            // HUD'u kapat
+            MuzMod.instance.getConfig().setDuelHudEnabled(false);
             
             // Analizi sonlandır
             analyzing = false;
