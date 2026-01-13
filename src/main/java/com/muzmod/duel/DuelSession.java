@@ -240,11 +240,9 @@ public class DuelSession {
                 data.addGoldenAppleEaten();
             }
             MuzMod.LOGGER.info("[DuelAnalyzer] " + playerName + " ate " + eaten + " golden apple(s) [" + lastGolden + " -> " + currentCounts[0] + "]");
-            // Sadece azaldığında güncelle
             lastGoldenAppleCount.put(playerName, currentCounts[0]);
         } else if (currentCounts[0] > lastGolden) {
-            // Arttı - yeni elma aldı, son sayıyı güncelle ama yeme sayma
-            MuzMod.LOGGER.info("[DuelAnalyzer] " + playerName + " gained golden apples [" + lastGolden + " -> " + currentCounts[0] + "]");
+            // Arttı - yeni elma aldı, son sayıyı güncelle (yeme sayılmaz)
             lastGoldenAppleCount.put(playerName, currentCounts[0]);
         }
         
@@ -254,11 +252,9 @@ public class DuelSession {
                 data.addEnchantedAppleEaten();
             }
             MuzMod.LOGGER.info("[DuelAnalyzer] " + playerName + " ate " + eaten + " enchanted apple(s) [" + lastEnchanted + " -> " + currentCounts[1] + "]");
-            // Sadece azaldığında güncelle
             lastEnchantedAppleCount.put(playerName, currentCounts[1]);
         } else if (currentCounts[1] > lastEnchanted) {
-            // Arttı - yeni elma aldı, son sayıyı güncelle ama yeme sayma
-            MuzMod.LOGGER.info("[DuelAnalyzer] " + playerName + " gained enchanted apples [" + lastEnchanted + " -> " + currentCounts[1] + "]");
+            // Arttı - yeni elma aldı, son sayıyı güncelle (yeme sayılmaz)
             lastEnchantedAppleCount.put(playerName, currentCounts[1]);
         }
     }
