@@ -40,6 +40,10 @@ public class DuelSession {
     private Map<String, Integer> lastGoldenAppleCount = new HashMap<>();
     private Map<String, Integer> lastEnchantedAppleCount = new HashMap<>();
     
+    // Son hit zamanları (aynı hit'in birden fazla sayılmasını önlemek için)
+    private Map<String, Long> lastHitTime = new HashMap<>();
+    private static final long HIT_COOLDOWN_MS = 100; // 100ms cooldown
+    
     public DuelSession() {
     }
     
@@ -226,16 +230,22 @@ public class DuelSession {
     private void checkAppleConsumption(String playerName, EntityPlayer player, DuelData data) {
         int[] currentCounts = countApples(player);
         
-        int lastGolden = lastGoldenAppleCount.getOrDefault(playerName, 0);
-        int lastEnchanted = lastEnchantedAppleCount.getOrDefault(playerName, 0);
+        int lastGolden = lastGoldenAppleCount.getOrDefault(playerName, currentCounts[0]);
+        int lastEnchanted = lastEnchantedAppleCount.getOrDefault(playerName, currentCounts[1]);
         
-        // Azaldıysa yendi
+        // Sadece azaldıysa yendi (arttıysa veya aynıysa ignore et)
         if (currentCounts[0] < lastGolden) {
             int eaten = lastGolden - currentCounts[0];
             for (int i = 0; i < eaten; i++) {
                 data.addGoldenAppleEaten();
             }
-            MuzMod.LOGGER.info("[DuelAnalyzer] " + playerName + " ate " + eaten + " golden apple(s)");
+            MuzMod.LOGGER.info("[DuelAnalyzer] " + playerName + " ate " + eaten + " golden apple(s) [" + lastGolden + " -> " + currentCounts[0] + "]");
+            // Sadece azaldığında güncelle
+            lastGoldenAppleCount.put(playerName, currentCounts[0]);
+        } else if (currentCounts[0] > lastGolden) {
+            // Arttı - yeni elma aldı, son sayıyı güncelle ama yeme sayma
+            MuzMod.LOGGER.info("[DuelAnalyzer] " + playerName + " gained golden apples [" + lastGolden + " -> " + currentCounts[0] + "]");
+            lastGoldenAppleCount.put(playerName, currentCounts[0]);
         }
         
         if (currentCounts[1] < lastEnchanted) {
@@ -243,11 +253,14 @@ public class DuelSession {
             for (int i = 0; i < eaten; i++) {
                 data.addEnchantedAppleEaten();
             }
-            MuzMod.LOGGER.info("[DuelAnalyzer] " + playerName + " ate " + eaten + " enchanted apple(s)");
+            MuzMod.LOGGER.info("[DuelAnalyzer] " + playerName + " ate " + eaten + " enchanted apple(s) [" + lastEnchanted + " -> " + currentCounts[1] + "]");
+            // Sadece azaldığında güncelle
+            lastEnchantedAppleCount.put(playerName, currentCounts[1]);
+        } else if (currentCounts[1] > lastEnchanted) {
+            // Arttı - yeni elma aldı, son sayıyı güncelle ama yeme sayma
+            MuzMod.LOGGER.info("[DuelAnalyzer] " + playerName + " gained enchanted apples [" + lastEnchanted + " -> " + currentCounts[1] + "]");
+            lastEnchantedAppleCount.put(playerName, currentCounts[1]);
         }
-        
-        lastGoldenAppleCount.put(playerName, currentCounts[0]);
-        lastEnchantedAppleCount.put(playerName, currentCounts[1]);
     }
     
     /**
@@ -285,11 +298,24 @@ public class DuelSession {
         // Sadece duel'daki oyuncuları say
         if (!isParticipant(attackerName) || !isParticipant(victimName)) return;
         
+        // Aynı hit'in birden fazla sayılmasını önle (100ms cooldown)
+        String hitKey = attackerName + "->" + victimName;
+        long currentTime = System.currentTimeMillis();
+        Long lastTime = lastHitTime.get(hitKey);
+        
+        if (lastTime != null && (currentTime - lastTime) < HIT_COOLDOWN_MS) {
+            // Çok kısa sürede aynı hit, ignore et
+            return;
+        }
+        
+        lastHitTime.put(hitKey, currentTime);
+        
         DuelData attacker = getPlayerData(attackerName);
         DuelData victim = getPlayerData(victimName);
         
         if (attacker != null) {
             attacker.addHitGiven();
+            MuzMod.LOGGER.info("[DuelAnalyzer] " + attackerName + " hit " + victimName + " (total: " + attacker.getHitsGiven() + ")");
         }
         if (victim != null) {
             victim.addHitReceived();
