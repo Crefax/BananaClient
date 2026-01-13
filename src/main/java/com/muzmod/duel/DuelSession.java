@@ -169,7 +169,7 @@ public class DuelSession {
     }
     
     /**
-     * Check if armor pieces broke
+     * Check if armor pieces broke or lost durability
      */
     private void checkArmorBreak(String playerName, EntityPlayer player, DuelData data) {
         ItemStack[] lastArmor = lastArmorStates.get(playerName);
@@ -185,15 +185,34 @@ public class DuelSession {
             ItemStack last = lastArmor[i];
             ItemStack current = currentArmor[i];
             
-            // Önceki tick'te vardı, şimdi yok = kırıldı
+            // Durability kontrolü - eğer aynı item hala varsa
+            if (last != null && current != null) {
+                // Aynı item tipiyse durability değişimini kontrol et
+                if (Item.getIdFromItem(last.getItem()) == Item.getIdFromItem(current.getItem())) {
+                    int lastDurability = last.getMaxDamage() - last.getItemDamage();
+                    int currentDurability = current.getMaxDamage() - current.getItemDamage();
+                    
+                    if (currentDurability < lastDurability) {
+                        int durabilityLost = lastDurability - currentDurability;
+                        switch (i) {
+                            case 0: data.addBootsDurabilityLost(durabilityLost); break;
+                            case 1: data.addLeggingsDurabilityLost(durabilityLost); break;
+                            case 2: data.addChestplateDurabilityLost(durabilityLost); break;
+                            case 3: data.addHelmetDurabilityLost(durabilityLost); break;
+                        }
+                    }
+                }
+            }
+            
+            // Önceki tick'te vardı, şimdi yok = kırıldı (tamamen)
             if (last != null && current == null) {
                 switch (i) {
-                    case 0: data.addBootsLost(); break;
-                    case 1: data.addLeggingsLost(); break;
-                    case 2: data.addChestplateLost(); break;
-                    case 3: data.addHelmetLost(); break;
+                    case 0: data.addBootsBroken(); break;
+                    case 1: data.addLeggingsBroken(); break;
+                    case 2: data.addChestplateBroken(); break;
+                    case 3: data.addHelmetBroken(); break;
                 }
-                MuzMod.LOGGER.info("[DuelAnalyzer] " + playerName + " lost armor slot " + i);
+                MuzMod.LOGGER.info("[DuelAnalyzer] " + playerName + " broke armor slot " + i);
             }
             
             // Durumu güncelle

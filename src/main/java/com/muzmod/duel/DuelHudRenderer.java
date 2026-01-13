@@ -21,7 +21,7 @@ public class DuelHudRenderer extends Gui {
     
     // HUD boyutları
     private int hudWidth = 200;
-    private int hudHeight = 180;
+    private int hudHeight = 220;
     
     // Renkler
     private static final int BG_COLOR = 0xAA000000;       // Yarı saydam siyah
@@ -105,17 +105,21 @@ public class DuelHudRenderer extends Gui {
         drawStatRow(fr, y, "Altın Elma", p1.getGoldenApplesEaten(), p2.getGoldenApplesEaten(), col1X, col2X);
         y += 11;
         
-        // Kırılan zırh
-        drawStatRow(fr, y, "Kask", p1.getHelmetsLost(), p2.getHelmetsLost(), col1X, col2X);
+        // Kırılan zırh (broken count)
+        drawStatRow(fr, y, "Kırılan Zırh", p1.getTotalArmorBroken(), p2.getTotalArmorBroken(), col1X, col2X);
         y += 11;
         
-        drawStatRow(fr, y, "Göğüslük", p1.getChestplatesLost(), p2.getChestplatesLost(), col1X, col2X);
+        // Toplam kaybedilen durability
+        drawStatRow(fr, y, "Kask Dura", p1.getTotalHelmetDurabilityLost(), p2.getTotalHelmetDurabilityLost(), col1X, col2X);
         y += 11;
         
-        drawStatRow(fr, y, "Pantolon", p1.getLeggingsLost(), p2.getLeggingsLost(), col1X, col2X);
+        drawStatRow(fr, y, "Göğüs Dura", p1.getTotalChestplateDurabilityLost(), p2.getTotalChestplateDurabilityLost(), col1X, col2X);
         y += 11;
         
-        drawStatRow(fr, y, "Bot", p1.getBootsLost(), p2.getBootsLost(), col1X, col2X);
+        drawStatRow(fr, y, "Pant Dura", p1.getTotalLeggingsDurabilityLost(), p2.getTotalLeggingsDurabilityLost(), col1X, col2X);
+        y += 11;
+        
+        drawStatRow(fr, y, "Bot Dura", p1.getTotalBootsDurabilityLost(), p2.getTotalBootsDurabilityLost(), col1X, col2X);
         y += 14;
         
         // Kılıç bilgisi

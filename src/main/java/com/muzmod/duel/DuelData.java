@@ -29,11 +29,17 @@ public class DuelData {
     private int goldenApplesEaten = 0;      // Normal altın elma
     private int enchantedApplesEaten = 0;   // Enchanted (Notch) elma
     
-    // Kırılan zırh parçaları
-    private int helmetsLost = 0;
-    private int chestplatesLost = 0;
-    private int leggingsLost = 0;
-    private int bootsLost = 0;
+    // Kırılan zırh parçaları (tamamen kırıldığında)
+    private int helmetsBroken = 0;
+    private int chestplatesBroken = 0;
+    private int leggingsBroken = 0;
+    private int bootsBroken = 0;
+    
+    // Kaybedilen toplam durability
+    private int totalHelmetDurabilityLost = 0;
+    private int totalChestplateDurabilityLost = 0;
+    private int totalLeggingsDurabilityLost = 0;
+    private int totalBootsDurabilityLost = 0;
     
     // Kılıç bilgisi
     private SwordInfo swordInfo;
@@ -68,20 +74,39 @@ public class DuelData {
     public int getEnchantedApplesEaten() { return enchantedApplesEaten; }
     public void addEnchantedAppleEaten() { enchantedApplesEaten++; }
     
-    public int getHelmetsLost() { return helmetsLost; }
-    public void addHelmetLost() { helmetsLost++; }
+    // Armor broken counts
+    public int getHelmetsBroken() { return helmetsBroken; }
+    public void addHelmetBroken() { helmetsBroken++; }
     
-    public int getChestplatesLost() { return chestplatesLost; }
-    public void addChestplateLost() { chestplatesLost++; }
+    public int getChestplatesBroken() { return chestplatesBroken; }
+    public void addChestplateBroken() { chestplatesBroken++; }
     
-    public int getLeggingsLost() { return leggingsLost; }
-    public void addLeggingsLost() { leggingsLost++; }
+    public int getLeggingsBroken() { return leggingsBroken; }
+    public void addLeggingsBroken() { leggingsBroken++; }
     
-    public int getBootsLost() { return bootsLost; }
-    public void addBootsLost() { bootsLost++; }
+    public int getBootsBroken() { return bootsBroken; }
+    public void addBootsBroken() { bootsBroken++; }
     
-    public int getTotalArmorLost() {
-        return helmetsLost + chestplatesLost + leggingsLost + bootsLost;
+    public int getTotalArmorBroken() {
+        return helmetsBroken + chestplatesBroken + leggingsBroken + bootsBroken;
+    }
+    
+    // Durability lost
+    public int getTotalHelmetDurabilityLost() { return totalHelmetDurabilityLost; }
+    public void addHelmetDurabilityLost(int amount) { totalHelmetDurabilityLost += amount; }
+    
+    public int getTotalChestplateDurabilityLost() { return totalChestplateDurabilityLost; }
+    public void addChestplateDurabilityLost(int amount) { totalChestplateDurabilityLost += amount; }
+    
+    public int getTotalLeggingsDurabilityLost() { return totalLeggingsDurabilityLost; }
+    public void addLeggingsDurabilityLost(int amount) { totalLeggingsDurabilityLost += amount; }
+    
+    public int getTotalBootsDurabilityLost() { return totalBootsDurabilityLost; }
+    public void addBootsDurabilityLost(int amount) { totalBootsDurabilityLost += amount; }
+    
+    public int getTotalArmorDurabilityLost() {
+        return totalHelmetDurabilityLost + totalChestplateDurabilityLost + 
+               totalLeggingsDurabilityLost + totalBootsDurabilityLost;
     }
     
     public SwordInfo getSwordInfo() { return swordInfo; }
