@@ -108,7 +108,7 @@ public class ObsidianState extends AbstractState {
     
     @Override
     public String getName() {
-        return "obsidian";
+        return "Obsidyen";
     }
     
     @Override
@@ -195,6 +195,10 @@ public class ObsidianState extends AbstractState {
             if (elapsed >= sellDelay) {
                 waitingForCevir = false;
                 MuzMod.LOGGER.info("[Obsidian] Sell komutu bekleme bitti, devam ediliyor");
+                // Satış sonrası yeni hedef bul
+                phase = Phase.FIND_TARGET;
+                redTarget = null;
+                yellowTarget = null;
             } else {
                 setStatus("Bekleniyor... " + ((sellDelay - elapsed) / 1000) + "s");
                 return;
@@ -287,13 +291,24 @@ public class ObsidianState extends AbstractState {
     
     /**
      * Önüne oyuncu var mı kontrol et
+     * İki koşuldan biri tetiklerse durdurur:
+     * 1) Halka içine (detectRadius) giren herhangi bir oyuncu
+     * 2) Crosshair tam bir oyuncuya bakıyorsa (mc.objectMouseOver ile)
      */
     private EntityPlayer getBlockingPlayer() {
         if (mc.thePlayer == null) return null;
         
-        double range = 3.0;
+        ModConfig config = MuzMod.instance.getConfig();
+        
+        // Oyuncu algılama kapalıysa hiç kontrol etme
+        if (!config.isObsidianPlayerDetectionEnabled()) {
+            return null;
+        }
+        
+        double detectRadius = config.getPlayerDetectionRadius();
         List<EntityPlayer> players = mc.theWorld.playerEntities;
         
+        // Koşul 1: Halka içine giren oyuncu (açıdan bağımsız)
         for (EntityPlayer player : players) {
             if (player == mc.thePlayer) continue;
             
@@ -302,14 +317,18 @@ public class ObsidianState extends AbstractState {
             double dz = player.posZ - mc.thePlayer.posZ;
             double dist = Math.sqrt(dx * dx + dz * dz);
             
-            if (dist <= range && Math.abs(dy) <= 2) {
-                double yaw = Math.toRadians(lockedYaw);
-                double lookX = -Math.sin(yaw);
-                double lookZ = Math.cos(yaw);
-                
-                double dot = (dx * lookX + dz * lookZ) / (dist + 0.001);
-                if (dot > 0.5) {
-                    return player;
+            if (dist <= detectRadius && Math.abs(dy) <= 2) {
+                return player;
+            }
+        }
+        
+        // Koşul 2: Crosshair tam bir oyuncuya bakıyorsa
+        MovingObjectPosition mop = mc.objectMouseOver;
+        if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY) {
+            if (mop.entityHit instanceof EntityPlayer) {
+                EntityPlayer hitPlayer = (EntityPlayer) mop.entityHit;
+                if (hitPlayer != mc.thePlayer) {
+                    return hitPlayer;
                 }
             }
         }
@@ -550,9 +569,9 @@ public class ObsidianState extends AbstractState {
         debugInfo = "Dönüyor...";
         setStatus(debugInfo);
         
-        // Dönüş sırasında sadece ileri yürümeyi durdur
-        InputSimulator.walkForward(false);
+        // Dönüş sırasında kırmayı durdur ama ileri yürümeye devam et
         InputSimulator.holdLeftClick(false);
+        InputSimulator.walkForward(true);
         
         // Eğer zaten dönüş başlatıldıysa, sadece bekle (handleAim dönüşü yapıyor)
         if (isTurning) {

@@ -70,6 +70,7 @@ public class BananaGui extends GuiScreen {
     // General settings
     private ModernTextField defaultMiningWarpField;
     private ModernTextField defaultAfkWarpField;
+    private ModernTextField discordWebhookField;
     private ModernSlider repairThresholdSlider;
     private ModernSlider timeOffsetSlider;
     private ModernSlider detectRadiusSlider;
@@ -108,6 +109,7 @@ public class BananaGui extends GuiScreen {
     private ModernSlider obsidianAimSpeedSlider;
     private ModernSlider obsidianTurnSpeedSlider;
     private ModernToggle obsidianSellToggle;
+    private ModernToggle obsidianPlayerDetectionToggle;
     private ModernTextField obsidianSellCommandField;
     private ModernSlider obsidianSellDelaySlider;
     private ModernSlider obsidianTargetMinSlider;
@@ -256,7 +258,12 @@ public class BananaGui extends GuiScreen {
         defaultAfkWarpField.setText(schedule.getDefaultAfkWarp());
         textFields.add(defaultAfkWarpField);
         
-        repairThresholdSlider = new ModernSlider(contentX, settingsY + 90, 200, 20, "Tamir Eşiği", 50, 2000, config.getRepairDurabilityThreshold());
+        discordWebhookField = new ModernTextField(contentX, settingsY + 70, 420, 24, "Discord Webhook URL");
+        discordWebhookField.setText(config.getDiscordWebhookUrl());
+        discordWebhookField.setMaxLength(200);
+        textFields.add(discordWebhookField);
+        
+        repairThresholdSlider = new ModernSlider(contentX, settingsY + 110, 200, 20, "Tamir Eşiği", 50, 2000, config.getRepairDurabilityThreshold());
         repairThresholdSlider.setIntegerMode(true);
         repairThresholdSlider.setSuffix(" dur");
         sliders.add(repairThresholdSlider);
@@ -266,8 +273,8 @@ public class BananaGui extends GuiScreen {
         timeOffsetSlider.setSuffix("h");
         sliders.add(timeOffsetSlider);
         
-        detectRadiusSlider = new ModernSlider(contentX, settingsY + 140, 200, 20, "Oyuncu Algılama", 1, 50, config.getPlayerDetectionRadius());
-        detectRadiusSlider.setIntegerMode(true);
+        detectRadiusSlider = new ModernSlider(contentX, settingsY + 140, 200, 20, "Oyuncu Algılama", 1.0, 5.0, config.getPlayerDetectionRadius());
+        detectRadiusSlider.setStep(0.1);
         detectRadiusSlider.setSuffix(" blok");
         sliders.add(detectRadiusSlider);
         
@@ -366,16 +373,19 @@ public class BananaGui extends GuiScreen {
         obsidianJitterIntervalSlider.setSuffix("ms");
         sliders.add(obsidianJitterIntervalSlider);
         
-        obsidianAimSpeedSlider = new ModernSlider(contentX, settingsY + 80, 200, 20, "Aim Hızı", 0.1, 5, config.getObsidianAimSpeed());
-        obsidianAimSpeedSlider.setStep(0.1);
+        obsidianAimSpeedSlider = new ModernSlider(contentX, settingsY + 80, 200, 20, "Aim Hızı", 0.01, 1.0, config.getObsidianAimSpeed());
+        obsidianAimSpeedSlider.setStep(0.01);
         sliders.add(obsidianAimSpeedSlider);
         
-        obsidianTurnSpeedSlider = new ModernSlider(contentX + 220, settingsY + 80, 200, 20, "Dönüş Hızı", 1, 20, config.getObsidianTurnSpeed());
-        obsidianTurnSpeedSlider.setStep(0.5);
+        obsidianTurnSpeedSlider = new ModernSlider(contentX + 220, settingsY + 80, 200, 20, "Dönüş Hızı", 0.0, 1.0, config.getObsidianTurnSpeed());
+        obsidianTurnSpeedSlider.setStep(0.01);
         sliders.add(obsidianTurnSpeedSlider);
         
         obsidianSellToggle = new ModernToggle(contentX, settingsY + 130, "Otomatik Satış", config.isObsidianSellEnabled());
         toggles.add(obsidianSellToggle);
+        
+        obsidianPlayerDetectionToggle = new ModernToggle(contentX + 150, settingsY + 130, "Oyuncu Algılama", config.isObsidianPlayerDetectionEnabled());
+        toggles.add(obsidianPlayerDetectionToggle);
         
         obsidianSellCommandField = new ModernTextField(contentX + 130, settingsY + 160, 150, 24, "/sell all");
         obsidianSellCommandField.setText(config.getObsidianSellCommand());
@@ -777,16 +787,20 @@ public class BananaGui extends GuiScreen {
         defaultAfkWarpField.setPosition(x + 130, y + 35);
         defaultAfkWarpField.render(mouseX, mouseY);
         
-        repairThresholdSlider.setPosition(x, y + 90);
+        GuiRenderUtils.drawText("§7Discord Webhook:", x, y + 75, GuiTheme.TEXT_SECONDARY);
+        discordWebhookField.setPosition(x + 120, y + 70);
+        discordWebhookField.render(mouseX, mouseY);
+        
+        repairThresholdSlider.setPosition(x, y + 110);
         repairThresholdSlider.render(mouseX, mouseY);
         
-        timeOffsetSlider.setPosition(x + 220, y + 90);
+        timeOffsetSlider.setPosition(x + 220, y + 110);
         timeOffsetSlider.render(mouseX, mouseY);
         
-        detectRadiusSlider.setPosition(x, y + 140);
+        detectRadiusSlider.setPosition(x, y + 160);
         detectRadiusSlider.render(mouseX, mouseY);
         
-        repairClickDelaySlider.setPosition(x + 220, y + 140);
+        repairClickDelaySlider.setPosition(x + 220, y + 160);
         repairClickDelaySlider.render(mouseX, mouseY);
     }
     
@@ -908,6 +922,9 @@ public class BananaGui extends GuiScreen {
         
         obsidianSellToggle.setPosition(x, scrollY + 130);
         obsidianSellToggle.render(mouseX, mouseY);
+        
+        obsidianPlayerDetectionToggle.setPosition(x + 150, scrollY + 130);
+        obsidianPlayerDetectionToggle.render(mouseX, mouseY);
         
         GuiRenderUtils.drawText("§7Satış Komutu:", x, scrollY + 165, GuiTheme.TEXT_SECONDARY);
         obsidianSellCommandField.setPosition(x + 100, scrollY + 160);
@@ -1281,6 +1298,7 @@ public class BananaGui extends GuiScreen {
             case 0: // General
                 defaultMiningWarpField.mouseClicked(mouseX, mouseY, button);
                 defaultAfkWarpField.mouseClicked(mouseX, mouseY, button);
+                discordWebhookField.mouseClicked(mouseX, mouseY, button);
                 repairThresholdSlider.mouseClicked(mouseX, mouseY, button);
                 timeOffsetSlider.mouseClicked(mouseX, mouseY, button);
                 detectRadiusSlider.mouseClicked(mouseX, mouseY, button);
@@ -1329,6 +1347,9 @@ public class BananaGui extends GuiScreen {
                 obsidianTurnSpeedSlider.mouseClicked(mouseX, mouseY, button);
                 if (obsidianSellToggle.mouseClicked(mouseX, mouseY, button)) {
                     config.setObsidianSellEnabled(obsidianSellToggle.isEnabled());
+                }
+                if (obsidianPlayerDetectionToggle.mouseClicked(mouseX, mouseY, button)) {
+                    config.setObsidianPlayerDetectionEnabled(obsidianPlayerDetectionToggle.isEnabled());
                 }
                 obsidianSellCommandField.mouseClicked(mouseX, mouseY, button);
                 obsidianSellDelaySlider.mouseClicked(mouseX, mouseY, button);
@@ -1486,9 +1507,10 @@ public class BananaGui extends GuiScreen {
         // General settings
         schedule.setDefaultMiningWarp(defaultMiningWarpField.getText());
         schedule.setDefaultAfkWarp(defaultAfkWarpField.getText());
+        config.setDiscordWebhookUrl(discordWebhookField.getText());
         config.setRepairDurabilityThreshold(repairThresholdSlider.getIntValue());
         config.setTimeOffsetHours(timeOffsetSlider.getIntValue());
-        config.setPlayerDetectionRadius(detectRadiusSlider.getIntValue());
+        config.setPlayerDetectionRadius(detectRadiusSlider.getValue());
         config.setRepairClickDelay((float)repairClickDelaySlider.getValue());
         
         // Mining settings
@@ -1520,6 +1542,7 @@ public class BananaGui extends GuiScreen {
         config.setObsidianAimSpeed((float)obsidianAimSpeedSlider.getValue());
         config.setObsidianTurnSpeed((float)obsidianTurnSpeedSlider.getValue());
         config.setObsidianSellEnabled(obsidianSellToggle.isEnabled());
+        config.setObsidianPlayerDetectionEnabled(obsidianPlayerDetectionToggle.isEnabled());
         config.setObsidianSellCommand(obsidianSellCommandField.getText());
         config.setObsidianSellDelay((int)(obsidianSellDelaySlider.getValue() * 1000));
         config.setObsidianTargetMinOffset(obsidianTargetMinSlider.getIntValue());
@@ -1559,6 +1582,7 @@ public class BananaGui extends GuiScreen {
         // General settings
         defaultMiningWarpField.setText(schedule.getDefaultMiningWarp());
         defaultAfkWarpField.setText(schedule.getDefaultAfkWarp());
+        discordWebhookField.setText(config.getDiscordWebhookUrl());
         repairThresholdSlider.setValue(config.getRepairDurabilityThreshold());
         timeOffsetSlider.setValue(config.getTimeOffsetHours());
         detectRadiusSlider.setValue(config.getPlayerDetectionRadius());
@@ -1593,6 +1617,7 @@ public class BananaGui extends GuiScreen {
         obsidianAimSpeedSlider.setValue(config.getObsidianAimSpeed());
         obsidianTurnSpeedSlider.setValue(config.getObsidianTurnSpeed());
         obsidianSellToggle.setEnabled(config.isObsidianSellEnabled());
+        obsidianPlayerDetectionToggle.setEnabled(config.isObsidianPlayerDetectionEnabled());
         obsidianSellCommandField.setText(config.getObsidianSellCommand());
         obsidianSellDelaySlider.setValue(config.getObsidianSellDelay() / 1000.0);
         obsidianTargetMinSlider.setValue(config.getObsidianTargetMinOffset());

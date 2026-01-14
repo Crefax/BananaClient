@@ -208,8 +208,10 @@ public class ModernSlider {
             return String.valueOf((int)value);
         } else if (step >= 1) {
             return String.valueOf((int)value);
-        } else {
+        } else if (step >= 0.1) {
             return String.format("%.1f", value);
+        } else {
+            return String.format("%.2f", value);
         }
     }
     

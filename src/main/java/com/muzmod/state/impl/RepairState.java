@@ -58,10 +58,10 @@ public class RepairState extends AbstractState {
         // Önceki state'i kaydet (dönüş için)
         com.muzmod.state.IState prevState = MuzMod.instance.getStateManager().getPreviousState();
         if (prevState != null) {
-            String prevName = prevState.getName().toLowerCase();
-            // Mining veya Obsidian'dan geliyorsak hatırla
-            if (prevName.equals("mining") || prevName.equals("obsidian")) {
-                previousStateName = prevName; // "mining" veya "obsidian"
+            String prevName = prevState.getName();
+            // Mining veya Obsidyen'dan geliyorsak hatırla
+            if (prevName.equals("Mining") || prevName.equals("Obsidyen")) {
+                previousStateName = prevName.toLowerCase().equals("obsidyen") ? "obsidian" : "mining";
                 MuzMod.LOGGER.info("[Repair] Önceki state kaydedildi: " + previousStateName);
             } else {
                 // Idle, AFK veya diğer state'lerden geliyorsak, repair sonrası bir yere gitme

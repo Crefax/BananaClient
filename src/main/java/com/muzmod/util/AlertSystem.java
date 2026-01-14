@@ -21,6 +21,9 @@ public class AlertSystem {
         String message = accountName + " isimli hesabınızın önüne " + blockingPlayerName + " isimli kullanıcı geçti.";
         
         sendAlert(title, message);
+        
+        // Discord webhook gönder
+        DiscordWebhook.sendPlayerBlockingAlert(accountName, blockingPlayerName);
     }
     
     /**
@@ -31,6 +34,22 @@ public class AlertSystem {
         String message = accountName + " isimli hesabınız " + blockName + " bloğunu kazmaya çalıştığı için durduruldu.";
         
         sendAlert(title, message);
+        
+        // Discord webhook gönder
+        DiscordWebhook.sendWrongBlockAlert(accountName, blockName);
+    }
+    
+    /**
+     * Kritik uyarı gönder - Halka içine oyuncu girdi
+     */
+    public static void alertRadiusEntry(String accountName, String nearbyPlayer) {
+        String title = "BananaClient";
+        String message = accountName + " isimli hesabınızın algılama alanına " + nearbyPlayer + " isimli kullanıcı girdi.";
+        
+        sendAlert(title, message);
+        
+        // Discord webhook gönder
+        DiscordWebhook.sendRadiusAlert(accountName, nearbyPlayer);
     }
     
     /**

@@ -212,6 +212,8 @@ public class OverlayRenderer {
                 return 0x6; // Gold
             case "Güvenli":
                 return 0xC; // Red
+            case "Obsidyen":
+                return 0x5; // Purple
             default:
                 return 0xF; // White
         }

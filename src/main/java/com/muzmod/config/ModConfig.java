@@ -121,10 +121,17 @@ public class ModConfig {
     private int obsidianTargetMinOffset = 0;   // En yakın hedef offset (0 = en son blok)
     private int obsidianTargetMaxOffset = 10;  // En uzak hedef offset (10 = son bloktan 10 geri)
     
+    // Obsidyen Player Detection Settings
+    private boolean obsidianPlayerDetectionEnabled = true; // Oyuncu algılama aktif mi
+    
     // Duel Analyzer Settings
     private boolean duelHudEnabled = true;     // Duel HUD görünür mü
     private int duelHudX = 10;                 // HUD X pozisyonu
     private int duelHudY = 100;                // HUD Y pozisyonu
+    
+    // Discord Webhook Settings
+    private String discordWebhookUrl = "";     // Discord webhook URL
+    private boolean discordWebhookEnabled = true; // Webhook aktif mi
     
     public ModConfig(File configFile) {
         config = new Configuration(configFile);
@@ -288,8 +295,8 @@ public class ModConfig {
             // Obsidyen Aim Hızı
             obsidianAimSpeed = config.getFloat("aimSpeed", "obsidian", 0.15f, 0.01f, 1.0f,
                 "Normal aim rotation speed (0.01 - 1.0)");
-            obsidianTurnSpeed = config.getFloat("turnSpeed", "obsidian", 0.40f, 0.01f, 1.0f,
-                "Turn aim rotation speed when reaching target (0.01 - 1.0)");
+            obsidianTurnSpeed = config.getFloat("turnSpeed", "obsidian", 0.40f, 0.0f, 1.0f,
+                "Turn aim rotation speed when reaching target (0.0 - 1.0)");
             
             // Obsidyen Sell Settings
             obsidianSellEnabled = config.getBoolean("sellEnabled", "obsidian", true,
@@ -305,6 +312,10 @@ public class ModConfig {
             obsidianTargetMaxOffset = config.getInt("targetMaxOffset", "obsidian", 10, 0, 50,
                 "Maximum target offset from last obsidian (10 = 10 blocks before last)");
             
+            // Obsidyen Player Detection Settings
+            obsidianPlayerDetectionEnabled = config.getBoolean("playerDetectionEnabled", "obsidian", true,
+                "Enable player detection (stop when player blocks or enters radius)");
+            
             // Duel Analyzer Settings
             duelHudEnabled = config.getBoolean("hudEnabled", "duel", true,
                 "Enable Duel Analyzer HUD");
@@ -312,6 +323,12 @@ public class ModConfig {
                 "Duel HUD X position");
             duelHudY = config.getInt("hudY", "duel", 100, 0, 2000,
                 "Duel HUD Y position");
+            
+            // Discord Webhook Settings
+            discordWebhookUrl = config.getString("webhookUrl", "discord", "",
+                "Discord webhook URL for alerts");
+            discordWebhookEnabled = config.getBoolean("webhookEnabled", "discord", true,
+                "Enable Discord webhook notifications");
             
             // Mining Jitter (AFK bypass)
             miningJitterYaw = config.getFloat("jitterYaw", "mining_jitter", 3.0f, 0.0f, 20.0f,
@@ -523,7 +540,7 @@ public class ModConfig {
     }
     
     public void setObsidianTurnSpeed(float val) {
-        this.obsidianTurnSpeed = Math.max(0.01f, Math.min(1.0f, val));
+        this.obsidianTurnSpeed = Math.max(0.0f, Math.min(1.0f, val));
         config.get("obsidian", "turnSpeed", 0.40f).set(this.obsidianTurnSpeed);
         save();
     }
@@ -564,6 +581,15 @@ public class ModConfig {
     public void setObsidianTargetMaxOffset(int val) {
         this.obsidianTargetMaxOffset = Math.max(0, Math.min(50, val));
         config.get("obsidian", "targetMaxOffset", 10).set(this.obsidianTargetMaxOffset);
+        save();
+    }
+    
+    // Obsidyen Player Detection Getters/Setters
+    public boolean isObsidianPlayerDetectionEnabled() { return obsidianPlayerDetectionEnabled; }
+    
+    public void setObsidianPlayerDetectionEnabled(boolean enabled) {
+        this.obsidianPlayerDetectionEnabled = enabled;
+        config.get("obsidian", "playerDetectionEnabled", true).set(enabled);
         save();
     }
     
@@ -820,6 +846,23 @@ public class ModConfig {
     public void setDuelHudY(int y) {
         this.duelHudY = y;
         config.get("duel", "hudY", 100).set(y);
+        save();
+    }
+    
+    // Discord Webhook Getters
+    public String getDiscordWebhookUrl() { return discordWebhookUrl; }
+    public boolean isDiscordWebhookEnabled() { return discordWebhookEnabled; }
+    
+    // Discord Webhook Setters
+    public void setDiscordWebhookUrl(String url) {
+        this.discordWebhookUrl = url;
+        config.get("discord", "webhookUrl", "").set(url);
+        save();
+    }
+    
+    public void setDiscordWebhookEnabled(boolean enabled) {
+        this.discordWebhookEnabled = enabled;
+        config.get("discord", "webhookEnabled", true).set(enabled);
         save();
     }
     

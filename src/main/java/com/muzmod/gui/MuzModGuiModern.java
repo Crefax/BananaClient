@@ -895,7 +895,7 @@ public class MuzModGuiModern extends GuiScreen {
         
         // Dönüş Aim Hızı - Slider + Field
         drawString(fontRendererObj, "§7Dönüş Aim:", labelX, y + 3, TEXT_GRAY);
-        drawSliderWithField(fieldX, y, 100, config.getObsidianTurnSpeed(), 0.01f, 1.0f, 
+        drawSliderWithField(fieldX, y, 100, config.getObsidianTurnSpeed(), 0.0f, 1.0f, 
             fieldObsidianTurnSpeed, mouseX, mouseY, "turnSpeed");
         
         y += 30;

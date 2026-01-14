@@ -143,6 +143,11 @@ public class StateManager {
             return;
         }
         
+        // ObsidianState aktifse, müdahale etme (manuel başlatılan state)
+        if (currentState instanceof ObsidianState) {
+            return;
+        }
+        
         // RepairState aktifse ve tamamlanmadıysa, state değişimini engelle
         if (currentState instanceof RepairState) {
             RepairState repair = (RepairState) currentState;
