@@ -710,6 +710,10 @@ public class ObsidianState extends AbstractState {
     private void handleConvertGui(ModConfig config) {
         long now = System.currentTimeMillis();
         
+        // GUI açılmışsa veya bekliyorsa, kazma ve yürümeyi durdur
+        InputSimulator.releaseAll();
+        InputSimulator.walkForward(false);
+        
         // GUI açılması için bekle
         if (waitingForCevir && !inConvertGui) {
             // GUI açık mı kontrol et
@@ -759,8 +763,8 @@ public class ObsidianState extends AbstractState {
             GuiChest guiChest = (GuiChest) mc.currentScreen;
             ContainerChest container = (ContainerChest) guiChest.inventorySlots;
             
-            // Hangi slot'a tıklanacak? 0=Kağıt, 4=Obsidyen (resimdeki sıraya göre)
-            int targetSlot = config.getObsidianConvertItem() == 0 ? 0 : 4;
+            // Hangi slot'a tıklanacak? Kağıt=slot 11, Obsidyen=slot 15 (Atölye GUI'sindeki pozisyon)
+            int targetSlot = config.getObsidianConvertItem() == 0 ? 11 : 15;
             
             // Slot'u kontrol et
             if (targetSlot < container.inventorySlots.size()) {

@@ -5,11 +5,13 @@ import com.muzmod.config.ModConfig;
 import com.muzmod.schedule.ScheduleEntry;
 import com.muzmod.schedule.ScheduleManager;
 import com.muzmod.state.IState;
+import com.muzmod.state.impl.ObsidianState;
 import com.muzmod.state.impl.RepairState;
 import com.muzmod.state.impl.SafeState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.item.ItemPickaxe;
 import net.minecraft.item.ItemStack;
 
@@ -80,8 +82,17 @@ public class OverlayRenderer {
                 // State status
                 String status = currentState.getStatus();
                 if (status != null && !status.isEmpty()) {
-                    fr.drawStringWithShadow("§8" + status, x, y, 0xFFFFFF);
-                    y += lineHeight;
+                    // ObsidianState için 0.8 scale kullan
+                    if (currentState instanceof ObsidianState) {
+                        GlStateManager.pushMatrix();
+                        GlStateManager.scale(0.8f, 0.8f, 1.0f);
+                        fr.drawStringWithShadow("§8" + status, (int)(x / 0.8f), (int)(y / 0.8f), 0xFFFFFF);
+                        GlStateManager.popMatrix();
+                        y += (int)(lineHeight * 0.8f);
+                    } else {
+                        fr.drawStringWithShadow("§8" + status, x, y, 0xFFFFFF);
+                        y += lineHeight;
+                    }
                 }
                 
                 // RepairState debug info
