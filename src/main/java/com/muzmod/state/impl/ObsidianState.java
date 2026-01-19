@@ -769,14 +769,28 @@ public class ObsidianState extends AbstractState {
             // Hangi slot'a tıklanacak? Kağıt=slot 11, Obsidyen=slot 15 (Atölye GUI'sindeki pozisyon)
             int targetSlot = config.getObsidianConvertItem() == 0 ? 11 : 15;
             
-            // Slot'u kontrol et
+            // Kendi envanterimizde kaç tane büyüsüz obsidyen var?
+            int normalObsidianCount = countNormalObsidianInInventory();
+            
+            // 128'den az (2 stack'ten az) kaldıysa GUI'yi kapat
+            if (normalObsidianCount < 128) {
+                MuzMod.LOGGER.info("[Obsidian] Envanterde " + normalObsidianCount + " büyüsüz obsidyen kaldı (<128), GUI kapatılıyor...");
+                mc.thePlayer.closeScreen();
+                inConvertGui = false;
+                emptySlotCheckCount = 0;
+                phase = Phase.FIND_TARGET;
+                redTarget = null;
+                yellowTarget = null;
+                return;
+            }
+            
+            // Slot'u kontrol et ve tıkla
             if (targetSlot < container.inventorySlots.size()) {
                 Slot slot = container.inventorySlots.get(targetSlot);
                 ItemStack stack = slot.getStack();
                 
-                // Eğer item varsa ve sayısı > 0 ise tıkla
+                // Eğer GUI'deki item varsa tıkla
                 if (stack != null && stack.stackSize > 0) {
-                    emptySlotCheckCount = 0; // Sıfırla
                     // 100ms aralıklarla sürekli tıkla
                     if (now - lastGuiClickTime >= GUI_CLICK_INTERVAL) {
                         lastGuiClickTime = now;
@@ -791,26 +805,33 @@ public class ObsidianState extends AbstractState {
                         );
                         
                         String itemName = config.getObsidianConvertItem() == 0 ? "Kağıt" : "Obsidyen";
-                        setStatus("Çevriliyor... " + itemName + " x" + stack.stackSize);
+                        setStatus("Çevriliyor... " + itemName + " (Kalan: " + normalObsidianCount + ")");
                     }
                 } else {
-                    // Sayı 0 veya item yok - birkaç kez doğrulama yap
-                    emptySlotCheckCount++;
-                    if (emptySlotCheckCount >= EMPTY_SLOT_CONFIRM_COUNT) {
-                        // Gerçekten boş, GUI'yi kapat
-                        MuzMod.LOGGER.info("[Obsidian] Çevirme tamamlandı, GUI kapatılıyor...");
-                        mc.thePlayer.closeScreen();
-                        inConvertGui = false;
-                        emptySlotCheckCount = 0;
-                        phase = Phase.FIND_TARGET;
-                        redTarget = null;
-                        yellowTarget = null;
-                    } else {
-                        setStatus("Doğrulanıyor... " + emptySlotCheckCount + "/" + EMPTY_SLOT_CONFIRM_COUNT);
-                    }
+                    // GUI'deki slot boş ama envanterde hala var, bekle (server gecikmesi)
+                    setStatus("Slot yenileniyor... (Kalan: " + normalObsidianCount + ")");
                 }
             }
         }
+    }
+    
+    /**
+     * Envanterdeki büyüsüz (normal) obsidyen sayısını sayar
+     */
+    private int countNormalObsidianInInventory() {
+        int count = 0;
+        if (mc.thePlayer == null) return 0;
+        
+        for (int i = 0; i < mc.thePlayer.inventory.mainInventory.length; i++) {
+            ItemStack stack = mc.thePlayer.inventory.mainInventory[i];
+            if (stack != null && stack.getItem() == Item.getItemFromBlock(Blocks.obsidian)) {
+                // Büyülü mü kontrol et - büyülü değilse say
+                if (!stack.isItemEnchanted()) {
+                    count += stack.stackSize;
+                }
+            }
+        }
+        return count;
     }
     
     // ===================== RENDERING =====================
