@@ -90,7 +90,9 @@ public class ObsidianState extends AbstractState {
     // GUI tıklama sistemi (yeni /obsiçevir)
     private boolean inConvertGui = false;
     private long lastGuiClickTime = 0;
-    private static final long GUI_CLICK_INTERVAL = 50; // 50ms aralıklarla tıkla
+    private static final long GUI_CLICK_INTERVAL = 100; // 100ms aralıklarla tıkla
+    private int emptySlotCheckCount = 0; // Boş slot kontrol sayacı
+    private static final int EMPTY_SLOT_CONFIRM_COUNT = 5; // 5 kez boş görülmesi gerekiyor
     
     // Focus kontrolü
     private boolean hadFocus = true;
@@ -727,6 +729,7 @@ public class ObsidianState extends AbstractState {
                     inConvertGui = true;
                     waitingForCevir = false;
                     lastGuiClickTime = now;
+                    emptySlotCheckCount = 0;
                     MuzMod.LOGGER.info("[Obsidian] Atölye GUI açıldı, tıklama başlıyor...");
                 }
             } else {
@@ -773,7 +776,8 @@ public class ObsidianState extends AbstractState {
                 
                 // Eğer item varsa ve sayısı > 0 ise tıkla
                 if (stack != null && stack.stackSize > 0) {
-                    // 50ms aralıklarla tıkla
+                    emptySlotCheckCount = 0; // Sıfırla
+                    // 100ms aralıklarla sürekli tıkla
                     if (now - lastGuiClickTime >= GUI_CLICK_INTERVAL) {
                         lastGuiClickTime = now;
                         
@@ -790,13 +794,20 @@ public class ObsidianState extends AbstractState {
                         setStatus("Çevriliyor... " + itemName + " x" + stack.stackSize);
                     }
                 } else {
-                    // Sayı 0 veya item yok - GUI'yi kapat
-                    MuzMod.LOGGER.info("[Obsidian] Çevirme tamamlandı, GUI kapatılıyor...");
-                    mc.thePlayer.closeScreen();
-                    inConvertGui = false;
-                    phase = Phase.FIND_TARGET;
-                    redTarget = null;
-                    yellowTarget = null;
+                    // Sayı 0 veya item yok - birkaç kez doğrulama yap
+                    emptySlotCheckCount++;
+                    if (emptySlotCheckCount >= EMPTY_SLOT_CONFIRM_COUNT) {
+                        // Gerçekten boş, GUI'yi kapat
+                        MuzMod.LOGGER.info("[Obsidian] Çevirme tamamlandı, GUI kapatılıyor...");
+                        mc.thePlayer.closeScreen();
+                        inConvertGui = false;
+                        emptySlotCheckCount = 0;
+                        phase = Phase.FIND_TARGET;
+                        redTarget = null;
+                        yellowTarget = null;
+                    } else {
+                        setStatus("Doğrulanıyor... " + emptySlotCheckCount + "/" + EMPTY_SLOT_CONFIRM_COUNT);
+                    }
                 }
             }
         }
