@@ -292,8 +292,8 @@ public class ObsidianState extends AbstractState {
     /**
      * Önüne oyuncu var mı kontrol et
      * İki koşuldan biri tetiklerse durdurur:
-     * 1) Halka içine (detectRadius) giren herhangi bir oyuncu
-     * 2) Crosshair tam bir oyuncuya bakıyorsa (mc.objectMouseOver ile)
+     * Sadece crosshair önüne oyuncu geçerse algıla (bloğu kıramayacak durumda)
+     * Halka kontrolü kaldırıldı - sadece crosshair'e bakan oyuncu engel sayılır
      */
     private EntityPlayer getBlockingPlayer() {
         if (mc.thePlayer == null) return null;
@@ -305,24 +305,8 @@ public class ObsidianState extends AbstractState {
             return null;
         }
         
-        double detectRadius = config.getPlayerDetectionRadius();
-        List<EntityPlayer> players = mc.theWorld.playerEntities;
-        
-        // Koşul 1: Halka içine giren oyuncu (açıdan bağımsız)
-        for (EntityPlayer player : players) {
-            if (player == mc.thePlayer) continue;
-            
-            double dx = player.posX - mc.thePlayer.posX;
-            double dy = player.posY - mc.thePlayer.posY;
-            double dz = player.posZ - mc.thePlayer.posZ;
-            double dist = Math.sqrt(dx * dx + dz * dz);
-            
-            if (dist <= detectRadius && Math.abs(dy) <= 2) {
-                return player;
-            }
-        }
-        
-        // Koşul 2: Crosshair tam bir oyuncuya bakıyorsa
+        // Sadece crosshair tam bir oyuncuya bakıyorsa engel say
+        // Bu, oyuncunun bloğu kıramayacağı anlamına gelir
         MovingObjectPosition mop = mc.objectMouseOver;
         if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY) {
             if (mop.entityHit instanceof EntityPlayer) {

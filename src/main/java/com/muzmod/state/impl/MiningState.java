@@ -633,10 +633,6 @@ public class MiningState extends AbstractState {
     }
     
     private void handleMiningPhase(ModConfig config) {
-        // === HER TICK KAZMA TUŞU KONTROLÜ ===
-        // Öncelikle her zaman sol tık basılı olsun
-        InputSimulator.holdLeftClick(true);
-        
         // Kazma durability kontrolü - düşükse tamire gönder
         if (RepairState.needsRepair(config)) {
             InputSimulator.releaseLeftClick();
@@ -651,29 +647,41 @@ public class MiningState extends AbstractState {
         
         // GUI açıksa bekle (GUI kapanınca devam edecek)
         if (mc.currentScreen != null) {
+            InputSimulator.releaseLeftClick();
             setStatus("GUI açık, bekleniyor...");
             return;
         }
         
-        // === FOCUS KONTROLÜ (Alt-tab sonrası aim bozulmasını önle) ===
+        // === FOCUS KONTROLÜ ===
+        // Focus yokken kazma başlatma, focus gelince otomatik başlat
         boolean currentFocus = mc.inGameHasFocus;
         if (!currentFocus) {
+            // Focus yok - kazma durdur ve bekle
+            InputSimulator.releaseLeftClick();
             hadFocus = false;
-            // Focus yokken sadece kazma kontrolü yap, aim değiştirme
             setStatus("Focus yok, bekleniyor...");
-        } else if (!hadFocus && currentFocus) {
-            // Focus yeni kazanıldı - grace period başlat
+            return; // Focus yokken hiçbirşey yapma
+        }
+        
+        // Focus var - eğer yeni kazandıysak grace period başlat
+        if (!hadFocus && currentFocus) {
             hadFocus = true;
             focusRegainTime = System.currentTimeMillis();
+            lastMiningCheckTime = 0; // Hemen kazma kontrolü tetikle
+            MuzMod.LOGGER.info("[Mining] Focus geri geldi, kazma yeniden başlatılıyor");
         }
         
         // Grace period içindeyse jitter ve pitch limit uygulama
         boolean inFocusGracePeriod = (System.currentTimeMillis() - focusRegainTime < FOCUS_GRACE_PERIOD);
         
+        // === HER TICK KAZMA TUŞU KONTROLÜ ===
+        // Focus var, her zaman sol tık basılı olsun
+        InputSimulator.holdLeftClick(true);
+        
         // === PERİYODİK KAZMA KONTROLÜ ===
         // Her 500ms kazma durumunu kontrol et, kazmıyorsa yeniden başlat
         long now = System.currentTimeMillis();
-        if (now - lastMiningCheckTime >= 500) { // 500ms = daha sık kontrol
+        if (now - lastMiningCheckTime >= 500) {
             lastMiningCheckTime = now;
             
             // Kazma işlemi var mı kontrol et

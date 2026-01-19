@@ -27,7 +27,7 @@ public class MuzMod {
     // Client bilgileri - tek yerden yönetim
     public static final String CLIENT_NAME = "BananaClient";
     public static final String MOD_NAME = CLIENT_NAME; // Alias
-    public static final String VERSION = "0.9.3";
+    public static final String VERSION = "0.9.5";
     public static final String MODID = "bananaclient";
     public static final String GITHUB_URL = "github.com/Crefax/BananaClient";
     

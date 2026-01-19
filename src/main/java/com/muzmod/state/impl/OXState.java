@@ -312,6 +312,7 @@ public class OXState implements IState {
     
     /**
      * Etraftaki oyuncuların pozisyonlarını analiz et
+     * Zıplayan oyuncuları da say - 10 blok aşağıya kadar kontrol et
      */
     private void analyzePlayerPositions(EntityPlayerSP player) {
         playersOnLime = 0;
@@ -324,18 +325,25 @@ public class OXState implements IState {
             if (other == player) continue;
             if (other.getDistanceToEntity(player) > 30) continue;
             
-            // Oyuncunun altındaki bloğu kontrol et
-            BlockPos feetPos = new BlockPos(other.posX, other.posY - 0.5, other.posZ);
-            IBlockState blockState = mc.theWorld.getBlockState(feetPos);
-            Block block = blockState.getBlock();
-            
-            if (block == Blocks.stained_hardened_clay) {
-                EnumDyeColor color = blockState.getValue(BlockColored.COLOR);
-                if (color == EnumDyeColor.LIME) {
-                    playersOnLime++;
-                } else if (color == EnumDyeColor.RED) {
-                    playersOnRed++;
+            // Oyuncunun altındaki blokları kontrol et (zıplayan oyuncular için 10 blok aşağıya kadar)
+            EnumDyeColor foundColor = null;
+            for (int yOffset = 0; yOffset <= 10; yOffset++) {
+                BlockPos checkPos = new BlockPos(other.posX, other.posY - 0.5 - yOffset, other.posZ);
+                IBlockState blockState = mc.theWorld.getBlockState(checkPos);
+                Block block = blockState.getBlock();
+                
+                if (block == Blocks.stained_hardened_clay) {
+                    foundColor = blockState.getValue(BlockColored.COLOR);
+                    break; // İlk bulunan renkli bloğu kullan
+                } else if (block != Blocks.air) {
+                    break; // Hava değilse ve renkli değilse dur
                 }
+            }
+            
+            if (foundColor == EnumDyeColor.LIME) {
+                playersOnLime++;
+            } else if (foundColor == EnumDyeColor.RED) {
+                playersOnRed++;
             }
         }
         

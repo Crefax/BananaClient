@@ -396,11 +396,11 @@ public class BananaGui extends GuiScreen {
         obsidianSellDelaySlider.setSuffix("s");
         sliders.add(obsidianSellDelaySlider);
         
-        obsidianTargetMinSlider = new ModernSlider(contentX, settingsY + 210, 180, 20, "Hedef Min Offset", 0, 10, config.getObsidianTargetMinOffset());
+        obsidianTargetMinSlider = new ModernSlider(contentX, settingsY + 210, 180, 20, "Hedef Min Offset", 0, 30, config.getObsidianTargetMinOffset());
         obsidianTargetMinSlider.setIntegerMode(true);
         sliders.add(obsidianTargetMinSlider);
         
-        obsidianTargetMaxSlider = new ModernSlider(contentX + 200, settingsY + 210, 180, 20, "Hedef Max Offset", 0, 10, config.getObsidianTargetMaxOffset());
+        obsidianTargetMaxSlider = new ModernSlider(contentX + 200, settingsY + 210, 180, 20, "Hedef Max Offset", 0, 30, config.getObsidianTargetMaxOffset());
         obsidianTargetMaxSlider.setIntegerMode(true);
         sliders.add(obsidianTargetMaxSlider);
         
