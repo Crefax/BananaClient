@@ -110,6 +110,7 @@ public class BananaGui extends GuiScreen {
     private ModernSlider obsidianTurnSpeedSlider;
     private ModernToggle obsidianSellToggle;
     private ModernToggle obsidianPlayerDetectionToggle;
+    private ModernToggle obsidianConvertItemToggle; // Kağıt/Obsidyen seçimi
     private ModernTextField obsidianSellCommandField;
     private ModernSlider obsidianSellDelaySlider;
     private ModernSlider obsidianTargetMinSlider;
@@ -387,7 +388,11 @@ public class BananaGui extends GuiScreen {
         obsidianPlayerDetectionToggle = new ModernToggle(contentX + 150, settingsY + 130, "Oyuncu Algılama", config.isObsidianPlayerDetectionEnabled());
         toggles.add(obsidianPlayerDetectionToggle);
         
-        obsidianSellCommandField = new ModernTextField(contentX + 130, settingsY + 160, 150, 24, "/sell all");
+        // Çevirme item seçimi (0=Kağıt, 1=Obsidyen) - Toggle olarak göster
+        obsidianConvertItemToggle = new ModernToggle(contentX + 300, settingsY + 130, "Obsidyen Çevir", config.getObsidianConvertItem() == 1);
+        toggles.add(obsidianConvertItemToggle);
+        
+        obsidianSellCommandField = new ModernTextField(contentX + 130, settingsY + 160, 150, 24, "/obsiçevir");
         obsidianSellCommandField.setText(config.getObsidianSellCommand());
         textFields.add(obsidianSellCommandField);
         
@@ -926,6 +931,9 @@ public class BananaGui extends GuiScreen {
         obsidianPlayerDetectionToggle.setPosition(x + 150, scrollY + 130);
         obsidianPlayerDetectionToggle.render(mouseX, mouseY);
         
+        obsidianConvertItemToggle.setPosition(x + 300, scrollY + 130);
+        obsidianConvertItemToggle.render(mouseX, mouseY);
+        
         GuiRenderUtils.drawText("§7Satış Komutu:", x, scrollY + 165, GuiTheme.TEXT_SECONDARY);
         obsidianSellCommandField.setPosition(x + 100, scrollY + 160);
         obsidianSellCommandField.render(mouseX, mouseY);
@@ -1351,6 +1359,9 @@ public class BananaGui extends GuiScreen {
                 if (obsidianPlayerDetectionToggle.mouseClicked(mouseX, mouseY, button)) {
                     config.setObsidianPlayerDetectionEnabled(obsidianPlayerDetectionToggle.isEnabled());
                 }
+                if (obsidianConvertItemToggle.mouseClicked(mouseX, mouseY, button)) {
+                    config.setObsidianConvertItem(obsidianConvertItemToggle.isEnabled() ? 1 : 0);
+                }
                 obsidianSellCommandField.mouseClicked(mouseX, mouseY, button);
                 obsidianSellDelaySlider.mouseClicked(mouseX, mouseY, button);
                 obsidianTargetMinSlider.mouseClicked(mouseX, mouseY, button);
@@ -1543,6 +1554,7 @@ public class BananaGui extends GuiScreen {
         config.setObsidianTurnSpeed((float)obsidianTurnSpeedSlider.getValue());
         config.setObsidianSellEnabled(obsidianSellToggle.isEnabled());
         config.setObsidianPlayerDetectionEnabled(obsidianPlayerDetectionToggle.isEnabled());
+        config.setObsidianConvertItem(obsidianConvertItemToggle.isEnabled() ? 1 : 0);
         config.setObsidianSellCommand(obsidianSellCommandField.getText());
         config.setObsidianSellDelay((int)(obsidianSellDelaySlider.getValue() * 1000));
         config.setObsidianTargetMinOffset(obsidianTargetMinSlider.getIntValue());
@@ -1618,6 +1630,7 @@ public class BananaGui extends GuiScreen {
         obsidianTurnSpeedSlider.setValue(config.getObsidianTurnSpeed());
         obsidianSellToggle.setEnabled(config.isObsidianSellEnabled());
         obsidianPlayerDetectionToggle.setEnabled(config.isObsidianPlayerDetectionEnabled());
+        obsidianConvertItemToggle.setEnabled(config.getObsidianConvertItem() == 1);
         obsidianSellCommandField.setText(config.getObsidianSellCommand());
         obsidianSellDelaySlider.setValue(config.getObsidianSellDelay() / 1000.0);
         obsidianTargetMinSlider.setValue(config.getObsidianTargetMinOffset());

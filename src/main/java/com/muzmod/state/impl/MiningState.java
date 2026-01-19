@@ -645,53 +645,52 @@ public class MiningState extends AbstractState {
             return;
         }
         
-        // GUI açıksa bekle (GUI kapanınca devam edecek)
-        if (mc.currentScreen != null) {
-            InputSimulator.releaseLeftClick();
-            setStatus("GUI açık, bekleniyor...");
-            return;
-        }
-        
-        // === FOCUS KONTROLÜ ===
-        // Focus yokken kazma başlatma, focus gelince otomatik başlat
-        boolean currentFocus = mc.inGameHasFocus;
-        if (!currentFocus) {
-            // Focus yok - kazma durdur ve bekle
-            InputSimulator.releaseLeftClick();
-            hadFocus = false;
-            setStatus("Focus yok, bekleniyor...");
-            return; // Focus yokken hiçbirşey yapma
-        }
-        
-        // Focus var - eğer yeni kazandıysak grace period başlat
-        if (!hadFocus && currentFocus) {
-            hadFocus = true;
-            focusRegainTime = System.currentTimeMillis();
-            lastMiningCheckTime = 0; // Hemen kazma kontrolü tetikle
-            MuzMod.LOGGER.info("[Mining] Focus geri geldi, kazma yeniden başlatılıyor");
-        }
-        
-        // Grace period içindeyse jitter ve pitch limit uygulama
-        boolean inFocusGracePeriod = (System.currentTimeMillis() - focusRegainTime < FOCUS_GRACE_PERIOD);
-        
         // === HER TICK KAZMA TUŞU KONTROLÜ ===
-        // Focus var, her zaman sol tık basılı olsun
+        // Focus olsun olmasın, GUI açık olsun olmasın her zaman kaz
+        // Her tick'te sol tık basılı tut
         InputSimulator.holdLeftClick(true);
         
-        // === PERİYODİK KAZMA KONTROLÜ ===
-        // Her 500ms kazma durumunu kontrol et, kazmıyorsa yeniden başlat
+        // === AGRESIF KAZMA KONTROLÜ ===
+        // Her 200ms kazma durumunu kontrol et, kazmıyorsa yeniden başlat
         long now = System.currentTimeMillis();
-        if (now - lastMiningCheckTime >= 500) {
+        if (now - lastMiningCheckTime >= 200) {
             lastMiningCheckTime = now;
             
-            // Kazma işlemi var mı kontrol et
+            // Kazma işlemi var mı kontrol et (swing animation)
             if (!mc.thePlayer.isSwingInProgress) {
-                // Kazmıyor! Sol tıkı release/press yap
+                // Kazmıyor! Zorla yeniden başlat
                 InputSimulator.releaseLeftClick();
                 InputSimulator.holdLeftClick(true);
                 MuzMod.LOGGER.info("[Mining] Kazma durdu, yeniden başlatıldı");
             }
         }
+        
+        // Ekstra güvenlik: Her 5 tick'te bir (100ms) zorla sol tık
+        if (now % 100 < 50) {
+            InputSimulator.holdLeftClick(true);
+        }
+        
+        // GUI açıksa sadece kazma yap, aim değiştirme
+        if (mc.currentScreen != null) {
+            setStatus("GUI açık, kazma devam ediyor...");
+            return;
+        }
+        
+        // Focus yoksa sadece kazma yap, aim değiştirme
+        boolean currentFocus = mc.inGameHasFocus;
+        if (!currentFocus) {
+            setStatus("Focus yok, kazma devam ediyor...");
+            return;
+        }
+        
+        // Focus kontrolü - grace period için
+        if (!hadFocus && currentFocus) {
+            hadFocus = true;
+            focusRegainTime = System.currentTimeMillis();
+        }
+        
+        // Grace period içindeyse jitter ve pitch limit uygulama
+        boolean inFocusGracePeriod = (System.currentTimeMillis() - focusRegainTime < FOCUS_GRACE_PERIOD);
         
         // Pitch limit kontrolü (30-60 derece arası) - sadece sınır dışındaysa ve focus grace period dışındaysa düzelt
         enforcePitchLimits(inFocusGracePeriod);

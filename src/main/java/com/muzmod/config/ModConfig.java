@@ -114,8 +114,9 @@ public class ModConfig {
     
     // Obsidyen Sell Settings (inv dolunca komut gönderme)
     private boolean obsidianSellEnabled = true;     // Satış özelliği açık mı
-    private String obsidianSellCommand = "/obsicevir";  // Satış komutu
-    private int obsidianSellDelay = 1000;           // Komut sonrası bekleme (ms)
+    private String obsidianSellCommand = "/obsiçevir";  // Satış komutu
+    private int obsidianSellDelay = 5000;           // Komut sonrası bekleme (ms)
+    private int obsidianConvertItem = 0;            // 0=Kağıt, 1=Obsidyen
     
     // Obsidyen Target Distance Settings (kırmızı hedef mesafesi)
     private int obsidianTargetMinOffset = 0;   // En yakın hedef offset (0 = en son blok)
@@ -301,10 +302,12 @@ public class ModConfig {
             // Obsidyen Sell Settings
             obsidianSellEnabled = config.getBoolean("sellEnabled", "obsidian", true,
                 "Enable auto-sell when inventory is full");
-            obsidianSellCommand = config.getString("sellCommand", "obsidian", "/obsicevir",
+            obsidianSellCommand = config.getString("sellCommand", "obsidian", "/obsiçevir",
                 "Command to send when inventory is full");
-            obsidianSellDelay = config.getInt("sellDelay", "obsidian", 1000, 100, 10000,
+            obsidianSellDelay = config.getInt("sellDelay", "obsidian", 5000, 100, 30000,
                 "Delay after sell command in milliseconds");
+            obsidianConvertItem = config.getInt("convertItem", "obsidian", 0, 0, 1,
+                "Item to click in convert GUI (0=Paper, 1=Obsidian)");
             
             // Obsidyen Target Distance Settings
             obsidianTargetMinOffset = config.getInt("targetMinOffset", "obsidian", 0, 0, 50,
@@ -563,8 +566,16 @@ public class ModConfig {
     }
     
     public void setObsidianSellDelay(int val) {
-        this.obsidianSellDelay = Math.max(100, Math.min(10000, val));
-        config.get("obsidian", "sellDelay", 1000).set(this.obsidianSellDelay);
+        this.obsidianSellDelay = Math.max(100, Math.min(30000, val));
+        config.get("obsidian", "sellDelay", 5000).set(this.obsidianSellDelay);
+        save();
+    }
+    
+    public int getObsidianConvertItem() { return obsidianConvertItem; }
+    
+    public void setObsidianConvertItem(int val) {
+        this.obsidianConvertItem = Math.max(0, Math.min(1, val));
+        config.get("obsidian", "convertItem", 0).set(this.obsidianConvertItem);
         save();
     }
     

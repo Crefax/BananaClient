@@ -7,12 +7,18 @@ import com.muzmod.util.AlertSystem;
 import com.muzmod.util.InputSimulator;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiChest;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
+import net.minecraft.inventory.ContainerChest;
+import net.minecraft.inventory.Slot;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
@@ -20,6 +26,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.input.Keyboard;
 
 import java.util.List;
 import java.util.Random;
@@ -79,6 +86,11 @@ public class ObsidianState extends AbstractState {
     private static final long INVENTORY_CHECK_INTERVAL = 2000;
     private boolean waitingForCevir = false;
     private long cevirCommandTime = 0;
+    
+    // GUI tıklama sistemi (yeni /obsiçevir)
+    private boolean inConvertGui = false;
+    private long lastGuiClickTime = 0;
+    private static final long GUI_CLICK_INTERVAL = 50; // 50ms aralıklarla tıkla
     
     // Focus kontrolü
     private boolean hadFocus = true;
@@ -188,21 +200,11 @@ public class ObsidianState extends AbstractState {
             return;
         }
         
-        // Sell komutu bekleniyorsa
-        if (waitingForCevir) {
-            long elapsed = System.currentTimeMillis() - cevirCommandTime;
-            int sellDelay = config.getObsidianSellDelay();
-            if (elapsed >= sellDelay) {
-                waitingForCevir = false;
-                MuzMod.LOGGER.info("[Obsidian] Sell komutu bekleme bitti, devam ediliyor");
-                // Satış sonrası yeni hedef bul
-                phase = Phase.FIND_TARGET;
-                redTarget = null;
-                yellowTarget = null;
-            } else {
-                setStatus("Bekleniyor... " + ((sellDelay - elapsed) / 1000) + "s");
-                return;
-            }
+        // === GUI TIKLAMA SİSTEMİ ===
+        // Eğer çevirme GUI'si açıksa tıklamaya devam et
+        if (inConvertGui || waitingForCevir) {
+            handleConvertGui(config);
+            return;
         }
         
         // Envanter kontrolü
@@ -217,7 +219,7 @@ public class ObsidianState extends AbstractState {
                     mc.thePlayer.sendChatMessage(sellCommand);
                     waitingForCevir = true;
                     cevirCommandTime = now;
-                    setStatus(sellCommand + " gönderildi...");
+                    setStatus(sellCommand + " gönderildi, GUI bekleniyor...");
                     return;
                 }
             }
@@ -698,6 +700,102 @@ public class ObsidianState extends AbstractState {
             }
         }
         return true;
+    }
+    
+    /**
+     * /obsiçevir GUI'sini işle
+     * GUI açılınca seçilen iteme tıkla (kağıt veya obsidyen)
+     * Sayı 0 olana kadar tıklamaya devam et, sonra ESC ile kapat
+     */
+    private void handleConvertGui(ModConfig config) {
+        long now = System.currentTimeMillis();
+        
+        // GUI açılması için bekle
+        if (waitingForCevir && !inConvertGui) {
+            // GUI açık mı kontrol et
+            if (mc.currentScreen instanceof GuiChest) {
+                GuiChest guiChest = (GuiChest) mc.currentScreen;
+                ContainerChest container = (ContainerChest) guiChest.inventorySlots;
+                String title = container.getLowerChestInventory().getDisplayName().getUnformattedText();
+                
+                // "Atölye" GUI'si mi kontrol et
+                if (title.contains("Atölye") || title.contains("atölye")) {
+                    inConvertGui = true;
+                    waitingForCevir = false;
+                    lastGuiClickTime = now;
+                    MuzMod.LOGGER.info("[Obsidian] Atölye GUI açıldı, tıklama başlıyor...");
+                }
+            } else {
+                // GUI henüz açılmadı, bekleme süresini kontrol et
+                long elapsed = now - cevirCommandTime;
+                int maxWait = config.getObsidianSellDelay();
+                if (elapsed >= maxWait) {
+                    // Zaman aşımı - devam et
+                    waitingForCevir = false;
+                    inConvertGui = false;
+                    MuzMod.LOGGER.warn("[Obsidian] GUI açılmadı, zaman aşımı. Devam ediliyor...");
+                    phase = Phase.FIND_TARGET;
+                    redTarget = null;
+                    yellowTarget = null;
+                } else {
+                    setStatus("GUI bekleniyor... " + ((maxWait - elapsed) / 1000) + "s");
+                }
+            }
+            return;
+        }
+        
+        // GUI açıksa tıkla
+        if (inConvertGui) {
+            if (!(mc.currentScreen instanceof GuiChest)) {
+                // GUI kapandı
+                inConvertGui = false;
+                MuzMod.LOGGER.info("[Obsidian] GUI kapandı, kazmaya devam ediliyor...");
+                phase = Phase.FIND_TARGET;
+                redTarget = null;
+                yellowTarget = null;
+                return;
+            }
+            
+            GuiChest guiChest = (GuiChest) mc.currentScreen;
+            ContainerChest container = (ContainerChest) guiChest.inventorySlots;
+            
+            // Hangi slot'a tıklanacak? 0=Kağıt, 4=Obsidyen (resimdeki sıraya göre)
+            int targetSlot = config.getObsidianConvertItem() == 0 ? 0 : 4;
+            
+            // Slot'u kontrol et
+            if (targetSlot < container.inventorySlots.size()) {
+                Slot slot = container.inventorySlots.get(targetSlot);
+                ItemStack stack = slot.getStack();
+                
+                // Eğer item varsa ve sayısı > 0 ise tıkla
+                if (stack != null && stack.stackSize > 0) {
+                    // 50ms aralıklarla tıkla
+                    if (now - lastGuiClickTime >= GUI_CLICK_INTERVAL) {
+                        lastGuiClickTime = now;
+                        
+                        // Sol tık ile slot'a tıkla
+                        mc.playerController.windowClick(
+                            container.windowId,
+                            targetSlot,
+                            0, // Sol tık
+                            0, // Normal tıklama
+                            mc.thePlayer
+                        );
+                        
+                        String itemName = config.getObsidianConvertItem() == 0 ? "Kağıt" : "Obsidyen";
+                        setStatus("Çevriliyor... " + itemName + " x" + stack.stackSize);
+                    }
+                } else {
+                    // Sayı 0 veya item yok - GUI'yi kapat
+                    MuzMod.LOGGER.info("[Obsidian] Çevirme tamamlandı, GUI kapatılıyor...");
+                    mc.thePlayer.closeScreen();
+                    inConvertGui = false;
+                    phase = Phase.FIND_TARGET;
+                    redTarget = null;
+                    yellowTarget = null;
+                }
+            }
+        }
     }
     
     // ===================== RENDERING =====================
