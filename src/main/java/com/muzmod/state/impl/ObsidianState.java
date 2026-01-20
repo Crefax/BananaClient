@@ -204,6 +204,14 @@ public class ObsidianState extends AbstractState {
             return;
         }
         
+        // Normal GUI açıksa (envanter, ESC menüsü vb.) kazmayı durdur
+        // Not: çevirme GUI'si hariç
+        if (mc.currentScreen != null) {
+            setStatus("GUI açık, bekleniyor...");
+            InputSimulator.releaseAll();
+            return;
+        }
+        
         // Envanter kontrolü
         if (phase == Phase.MINING && config.isObsidianSellEnabled()) {
             long now = System.currentTimeMillis();

@@ -670,15 +670,14 @@ public class MiningState extends AbstractState {
             InputSimulator.holdLeftClick(true);
         }
         
-        // GUI açıksa sadece kazma yap, aim değiştirme
+        // GUI açıksa (envanter, ESC menüsü vb.) kazmayı durdur
         if (mc.currentScreen != null) {
-            setStatus("GUI açık, kazma devam ediyor...");
-            // GUI açıkken de kazma devam etsin
-            InputSimulator.forceAttack();
+            setStatus("GUI açık, bekleniyor...");
+            InputSimulator.releaseLeftClick();
             return;
         }
         
-        // Focus yoksa sadece kazma yap, aim değiştirme
+        // Focus yoksa (pencere seçili değil ama GUI de yok) kazma devam etsin
         boolean currentFocus = mc.inGameHasFocus;
         if (!currentFocus) {
             setStatus("Focus yok, kazma devam ediyor...");
