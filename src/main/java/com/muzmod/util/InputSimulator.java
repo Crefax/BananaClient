@@ -2,10 +2,12 @@ package com.muzmod.util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.util.MovingObjectPosition;
 
 /**
  * Simulates realistic player input (key presses, mouse clicks)
  * Uses KeyBinding system for realistic behavior
+ * Also supports direct attack simulation when window not focused
  */
 public class InputSimulator {
     
@@ -17,10 +19,33 @@ public class InputSimulator {
     /**
      * Hold left click (attack/mine)
      * Her çağrıda KeyBinding state'i zorla set eder
+     * Focus yoksa bile direkt sendClickBlockToController çağırır
      */
     public static void holdLeftClick(boolean hold) {
         KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), hold);
         leftClickHeld = hold;
+        
+        // Focus yoksa manuel olarak kazma işlemini tetikle
+        if (hold && !mc.inGameHasFocus && mc.thePlayer != null && mc.theWorld != null) {
+            forceAttack();
+        }
+    }
+    
+    /**
+     * Focus olmasa bile kazma işlemini zorla başlat ve devam ettir
+     */
+    public static void forceAttack() {
+        if (mc.thePlayer == null || mc.theWorld == null || mc.playerController == null) return;
+        
+        MovingObjectPosition mop = mc.objectMouseOver;
+        if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            // Blok kırma - onPlayerDamageBlock kazma ilerlemesini sağlar
+            // clickBlock ilk vuruşu, onPlayerDamageBlock devamını yapar
+            if (!mc.playerController.onPlayerDamageBlock(mop.getBlockPos(), mop.sideHit)) {
+                // Eğer false dönerse yeni blok, clickBlock ile başlat
+                mc.playerController.clickBlock(mop.getBlockPos(), mop.sideHit);
+            }
+        }
     }
     
     /**

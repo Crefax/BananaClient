@@ -673,6 +673,8 @@ public class MiningState extends AbstractState {
         // GUI açıksa sadece kazma yap, aim değiştirme
         if (mc.currentScreen != null) {
             setStatus("GUI açık, kazma devam ediyor...");
+            // GUI açıkken de kazma devam etsin
+            InputSimulator.forceAttack();
             return;
         }
         
@@ -680,6 +682,8 @@ public class MiningState extends AbstractState {
         boolean currentFocus = mc.inGameHasFocus;
         if (!currentFocus) {
             setStatus("Focus yok, kazma devam ediyor...");
+            // Focus yokken manuel olarak kazma işlemini yap
+            InputSimulator.forceAttack();
             return;
         }
         

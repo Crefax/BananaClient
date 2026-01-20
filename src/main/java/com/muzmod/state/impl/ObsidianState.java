@@ -524,6 +524,11 @@ public class ObsidianState extends AbstractState {
         // Sürekli sol tık basılı tut (kazma) - her tick'te zorla
         InputSimulator.holdLeftClick(true);
         
+        // Focus yoksa da manuel kazma yap
+        if (!mc.inGameHasFocus) {
+            InputSimulator.forceAttack();
+        }
+        
         // Sürekli ileri yürü (W tuşu) - her tick'te zorla
         InputSimulator.walkForward(true);
         
