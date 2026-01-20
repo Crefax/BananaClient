@@ -504,7 +504,9 @@ public class ObsidianState extends AbstractState {
         double dz = redTarget.getZ() + 0.5 - mc.thePlayer.posZ;
         double dist = Math.sqrt(dx * dx + dz * dz);
         
-        debugInfo = "Hedef: " + String.format("%.1f", dist) + " blok";
+        // Gösterimde 0.8 azalt
+        double displayDist = Math.max(0, dist - 0.8);
+        debugInfo = "Hedef: " + String.format("%.1f", displayDist) + " blok";
         setStatus("Kazıyor... [" + debugInfo + "]");
         
         // Hedefe ulaştık mı?
