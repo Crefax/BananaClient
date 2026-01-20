@@ -62,13 +62,19 @@ public class InputSimulator {
             BlockPos pos = mop.getBlockPos();
             EnumFacing side = mop.sideHit;
             
-            // Aynı bloğu kazmaya devam ediyorsak sadece onPlayerDamageBlock çağır
-            // Farklı bloksa clickBlock ile başlat
+            // Aynı bloğu kazmaya devam ediyorsak onPlayerDamageBlock çağır
+            // Farklı bloksa veya kazma başlamadıysa clickBlock ile başlat
             boolean sameBlock = pos.equals(currentMiningBlock) && side == currentMiningSide;
             
+            boolean isHitting;
             if (sameBlock) {
-                // Aynı blok - sadece kazma ilerlemesi
-                mc.playerController.onPlayerDamageBlock(pos, side);
+                // Aynı blok - kazma ilerlemesi dene
+                isHitting = mc.playerController.onPlayerDamageBlock(pos, side);
+                
+                // Eğer false dönerse kazma durmuş, yeniden başlat
+                if (!isHitting) {
+                    mc.playerController.clickBlock(pos, side);
+                }
             } else {
                 // Yeni blok - kazma başlat
                 mc.playerController.clickBlock(pos, side);
@@ -90,16 +96,23 @@ public class InputSimulator {
     
     /**
      * Kazma işlemini yeniden başlat (GUI kapandıktan sonra)
-     * Mevcut bloğu kazmaya devam et, progress kaybetme
+     * clickBlock ile temiz başlangıç yap
      */
     public static void restartMining() {
         if (mc.thePlayer == null || mc.theWorld == null) return;
         if (mc.getNetHandler() == null) return;
         
+        // Mevcut kazma state'ini sıfırla
+        currentMiningBlock = null;
+        currentMiningSide = null;
+        
         KeyBinding attackKey = mc.gameSettings.keyBindAttack;
         
         // Önce bırak
         KeyBinding.setKeyBindState(attackKey.getKeyCode(), false);
+        
+        // Biraz bekle (1 tick simülasyonu)
+        try { Thread.sleep(5); } catch (InterruptedException ignored) {}
         
         // Sonra tekrar bas ve onTick çağır
         KeyBinding.setKeyBindState(attackKey.getKeyCode(), true);
@@ -107,14 +120,14 @@ public class InputSimulator {
         
         leftClickHeld = true;
         
-        // Mevcut bloğu kazmaya devam et (clickBlock çağırma - progress sıfırlar)
+        // Yeni blokla kazma başlat
         MovingObjectPosition mop = mc.objectMouseOver;
         if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             BlockPos pos = mop.getBlockPos();
             EnumFacing side = mop.sideHit;
             
-            // Sadece onPlayerDamageBlock çağır - progress'i koru
-            mc.playerController.onPlayerDamageBlock(pos, side);
+            // clickBlock ile temiz başlangıç
+            mc.playerController.clickBlock(pos, side);
             
             // Mevcut bloğu güncelle
             currentMiningBlock = pos;
@@ -211,6 +224,7 @@ public class InputSimulator {
         releaseLeftClick();
         releaseRightClick();
         releaseMovementKeys();
+        resetMiningState(); // Kazma durumunu da sıfırla
     }
     
     /**
