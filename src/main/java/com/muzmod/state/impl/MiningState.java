@@ -692,8 +692,10 @@ public class MiningState extends AbstractState {
         boolean currentFocus = mc.inGameHasFocus;
         if (!currentFocus) {
             setStatus("Focus yok, kazma devam ediyor...");
-            // Focus yokken manuel olarak kazma işlemini yap
+            // Focus yokken holdLeftClick + forceAttack ile kazma yap
+            InputSimulator.holdLeftClick(true);
             InputSimulator.forceAttack();
+            hadFocus = false;
             return;
         }
         
@@ -701,6 +703,8 @@ public class MiningState extends AbstractState {
         if (!hadFocus && currentFocus) {
             hadFocus = true;
             focusRegainTime = System.currentTimeMillis();
+            // Focus geri geldiğinde kazmayı yeniden başlat
+            InputSimulator.restartMining();
         }
         
         // Grace period içindeyse jitter ve pitch limit uygulama

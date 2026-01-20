@@ -43,22 +43,24 @@ public class InputSimulator {
     
     /**
      * Focus olmasa bile kazma işlemini zorla başlat ve devam ettir
-     * Swing animasyonu dahil
+     * Her çağrıda agresif şekilde kazma yapar
      */
     public static void forceAttack() {
         if (mc.thePlayer == null || mc.theWorld == null || mc.playerController == null) return;
         
         MovingObjectPosition mop = mc.objectMouseOver;
         if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            // Blok kırma - onPlayerDamageBlock kazma ilerlemesini sağlar
+            // Her tick'te kazma ilerlemesini zorla
+            // onPlayerDamageBlock true dönerse kazma devam ediyor
+            // false dönerse yeni blok veya kazma başlamadı
             boolean isHitting = mc.playerController.onPlayerDamageBlock(mop.getBlockPos(), mop.sideHit);
             
+            // Her durumda clickBlock da çağır - kazma başlatmayı garantile
             if (!isHitting) {
-                // Yeni blok, clickBlock ile başlat
                 mc.playerController.clickBlock(mop.getBlockPos(), mop.sideHit);
             }
             
-            // Swing animasyonu - belirli aralıklarla
+            // Swing animasyonu - her 50ms'de bir
             long now = System.currentTimeMillis();
             if (now - lastSwingTime >= SWING_INTERVAL) {
                 mc.thePlayer.swingItem();
