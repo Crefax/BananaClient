@@ -96,6 +96,9 @@ public class ObsidianState extends AbstractState {
     
     // GUI kontrolü - GUI kapandığında kazmayı yeniden başlat
     private boolean wasGuiOpen = false;
+    private long guiClosedTime = 0; // GUI kapandığı zaman
+    private static final long GUI_RESTART_DELAY = 200; // 200ms bekle sonra kazmaya başla
+    private boolean waitingToRestartMining = false; // Kazma yeniden başlatma bekleniyor mu
     
     // Block check
     private long lastBlockCheck = 0;
@@ -214,14 +217,31 @@ public class ObsidianState extends AbstractState {
             setStatus("GUI açık, bekleniyor...");
             InputSimulator.releaseAll();
             wasGuiOpen = true;
+            waitingToRestartMining = false;
             return;
         }
         
-        // GUI kapandıysa kazmayı yeniden başlat
+        // GUI kapandıysa, bekleme moduna geç
         if (wasGuiOpen) {
             wasGuiOpen = false;
-            setStatus("GUI kapandı, kazma yeniden başlatılıyor...");
-            InputSimulator.restartMining();
+            guiClosedTime = System.currentTimeMillis();
+            waitingToRestartMining = true;
+            setStatus("GUI kapandı, kazma hazırlanıyor...");
+            return;
+        }
+        
+        // Kazma yeniden başlatma bekleniyor
+        if (waitingToRestartMining) {
+            long elapsed = System.currentTimeMillis() - guiClosedTime;
+            if (elapsed >= GUI_RESTART_DELAY) {
+                waitingToRestartMining = false;
+                InputSimulator.holdLeftClick(true);
+                setStatus("Kazma yeniden başlatıldı!");
+                MuzMod.LOGGER.info("[Obsidian] GUI sonrası kazma yeniden başlatıldı");
+            } else {
+                setStatus("Kazma başlatılıyor... " + (GUI_RESTART_DELAY - elapsed) + "ms");
+                return;
+            }
         }
         
         // Envanter kontrolü
@@ -543,9 +563,6 @@ public class ObsidianState extends AbstractState {
         
         // Sürekli sol tık basılı tut (kazma) - her tick'te zorla
         InputSimulator.holdLeftClick(true);
-        
-        // Her durumda forceAttack çağır - focus olsun olmasın kazma garantisi
-        InputSimulator.forceAttack();
         
         // Sürekli ileri yürü (W tuşu) - her tick'te zorla
         InputSimulator.walkForward(true);

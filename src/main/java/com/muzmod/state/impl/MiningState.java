@@ -118,6 +118,9 @@ public class MiningState extends AbstractState {
     
     // GUI kontrolü - GUI kapandığında kazmayı yeniden başlat
     private boolean wasGuiOpen = false;
+    private long guiClosedTime = 0; // GUI kapandığı zaman
+    private static final long GUI_RESTART_DELAY = 200; // 200ms bekle sonra kazmaya başla
+    private boolean waitingToRestartMining = false; // Kazma yeniden başlatma bekleniyor mu
     
     // Navigation system reference
     private final NavigationManager nav = NavigationManager.getInstance();
@@ -678,23 +681,39 @@ public class MiningState extends AbstractState {
             setStatus("GUI açık, bekleniyor...");
             InputSimulator.releaseLeftClick();
             wasGuiOpen = true;
+            waitingToRestartMining = false;
             return;
         }
         
-        // GUI kapandıysa kazmayı yeniden başlat
+        // GUI kapandıysa, bekleme moduna geç
         if (wasGuiOpen) {
             wasGuiOpen = false;
-            setStatus("GUI kapandı, kazma yeniden başlatılıyor...");
-            InputSimulator.restartMining();
+            guiClosedTime = System.currentTimeMillis();
+            waitingToRestartMining = true;
+            setStatus("GUI kapandı, kazma hazırlanıyor...");
+            return;
+        }
+        
+        // Kazma yeniden başlatma bekleniyor
+        if (waitingToRestartMining) {
+            long elapsed = System.currentTimeMillis() - guiClosedTime;
+            if (elapsed >= GUI_RESTART_DELAY) {
+                waitingToRestartMining = false;
+                InputSimulator.holdLeftClick(true);
+                setStatus("Kazma yeniden başlatıldı!");
+                MuzMod.LOGGER.info("[Mining] GUI sonrası kazma yeniden başlatıldı");
+            } else {
+                setStatus("Kazma başlatılıyor... " + (GUI_RESTART_DELAY - elapsed) + "ms");
+                return;
+            }
         }
         
         // Focus yoksa (pencere seçili değil ama GUI de yok) kazma devam etsin
         boolean currentFocus = mc.inGameHasFocus;
         if (!currentFocus) {
             setStatus("Focus yok, kazma devam ediyor...");
-            // Focus yokken holdLeftClick + forceAttack ile kazma yap
+            // KeyBinding state'i set et - Minecraft kendi işini halleder
             InputSimulator.holdLeftClick(true);
-            InputSimulator.forceAttack();
             hadFocus = false;
             return;
         }
@@ -704,7 +723,7 @@ public class MiningState extends AbstractState {
             hadFocus = true;
             focusRegainTime = System.currentTimeMillis();
             // Focus geri geldiğinde kazmayı yeniden başlat
-            InputSimulator.restartMining();
+            InputSimulator.holdLeftClick(true);
         }
         
         // Grace period içindeyse jitter ve pitch limit uygulama
