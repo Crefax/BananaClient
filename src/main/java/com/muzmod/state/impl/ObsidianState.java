@@ -94,11 +94,6 @@ public class ObsidianState extends AbstractState {
     private int emptySlotCheckCount = 0; // Boş slot kontrol sayacı
     private static final int EMPTY_SLOT_CONFIRM_COUNT = 5; // 5 kez boş görülmesi gerekiyor
     
-    // Focus kontrolü
-    private boolean hadFocus = true;
-    private long focusRegainTime = 0;
-    private static final long FOCUS_GRACE_PERIOD = 500;
-    
     // Block check
     private long lastBlockCheck = 0;
     private static final long BLOCK_CHECK_INTERVAL = 200;
@@ -326,25 +321,9 @@ public class ObsidianState extends AbstractState {
     
     /**
      * Aim kontrolü - Kilitlenen pozisyona geri dön + Jitter
+     * NOT: Focus kontrolü kaldırıldı - pencere seçili olmasa bile çalışsın
      */
     private void handleAim(ModConfig config) {
-        boolean currentFocus = mc.inGameHasFocus;
-        
-        if (!currentFocus) {
-            hadFocus = false;
-            return;
-        }
-        
-        if (!hadFocus && currentFocus) {
-            hadFocus = true;
-            focusRegainTime = System.currentTimeMillis();
-            return;
-        }
-        
-        if (System.currentTimeMillis() - focusRegainTime < FOCUS_GRACE_PERIOD) {
-            return;
-        }
-        
         // Dönüş modunda özel işlem - smooth turn
         if (isTurning) {
             float yawDiff = turnTargetYaw - mc.thePlayer.rotationYaw;
