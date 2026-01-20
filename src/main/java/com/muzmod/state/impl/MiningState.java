@@ -116,6 +116,9 @@ public class MiningState extends AbstractState {
     private long focusRegainTime = 0;
     private static final long FOCUS_GRACE_PERIOD = 500; // 500ms grace period
     
+    // GUI kontrolü - GUI kapandığında kazmayı yeniden başlat
+    private boolean wasGuiOpen = false;
+    
     // Navigation system reference
     private final NavigationManager nav = NavigationManager.getInstance();
     private boolean usingNavigation = false; // NavigationManager kullanılıyor mu
@@ -674,7 +677,15 @@ public class MiningState extends AbstractState {
         if (mc.currentScreen != null) {
             setStatus("GUI açık, bekleniyor...");
             InputSimulator.releaseLeftClick();
+            wasGuiOpen = true;
             return;
+        }
+        
+        // GUI kapandıysa kazmayı yeniden başlat
+        if (wasGuiOpen) {
+            wasGuiOpen = false;
+            setStatus("GUI kapandı, kazma yeniden başlatılıyor...");
+            InputSimulator.restartMining();
         }
         
         // Focus yoksa (pencere seçili değil ama GUI de yok) kazma devam etsin

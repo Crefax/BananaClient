@@ -94,6 +94,9 @@ public class ObsidianState extends AbstractState {
     private int emptySlotCheckCount = 0; // Boş slot kontrol sayacı
     private static final int EMPTY_SLOT_CONFIRM_COUNT = 5; // 5 kez boş görülmesi gerekiyor
     
+    // GUI kontrolü - GUI kapandığında kazmayı yeniden başlat
+    private boolean wasGuiOpen = false;
+    
     // Block check
     private long lastBlockCheck = 0;
     private static final long BLOCK_CHECK_INTERVAL = 200;
@@ -200,6 +203,7 @@ public class ObsidianState extends AbstractState {
         // === GUI TIKLAMA SİSTEMİ ===
         // Eğer çevirme GUI'si açıksa tıklamaya devam et
         if (inConvertGui || waitingForCevir) {
+            wasGuiOpen = true;
             handleConvertGui(config);
             return;
         }
@@ -209,7 +213,15 @@ public class ObsidianState extends AbstractState {
         if (mc.currentScreen != null) {
             setStatus("GUI açık, bekleniyor...");
             InputSimulator.releaseAll();
+            wasGuiOpen = true;
             return;
+        }
+        
+        // GUI kapandıysa kazmayı yeniden başlat
+        if (wasGuiOpen) {
+            wasGuiOpen = false;
+            setStatus("GUI kapandı, kazma yeniden başlatılıyor...");
+            InputSimulator.restartMining();
         }
         
         // Envanter kontrolü

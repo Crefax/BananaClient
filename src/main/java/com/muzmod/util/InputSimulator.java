@@ -15,24 +15,35 @@ public class InputSimulator {
     
     private static boolean leftClickHeld = false;
     private static boolean rightClickHeld = false;
+    private static long lastSwingTime = 0;
+    private static final long SWING_INTERVAL = 50; // 50ms aralıklarla swing
     
     /**
      * Hold left click (attack/mine)
      * Her çağrıda KeyBinding state'i zorla set eder
-     * Focus yoksa bile direkt sendClickBlockToController çağırır
+     * Focus yoksa bile direkt kazma işlemini yapar
      */
     public static void holdLeftClick(boolean hold) {
-        KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), hold);
-        leftClickHeld = hold;
+        KeyBinding attackKey = mc.gameSettings.keyBindAttack;
+        KeyBinding.setKeyBindState(attackKey.getKeyCode(), hold);
         
-        // Focus yoksa manuel olarak kazma işlemini tetikle
-        if (hold && !mc.inGameHasFocus && mc.thePlayer != null && mc.theWorld != null) {
-            forceAttack();
+        if (hold) {
+            // onTick çağırarak Minecraft'a "tuş basıldı" sinyali ver
+            KeyBinding.onTick(attackKey.getKeyCode());
+            leftClickHeld = true;
+            
+            // Focus yoksa veya GUI'den yeni çıkıldıysa manuel kazma yap
+            if (!mc.inGameHasFocus && mc.thePlayer != null && mc.theWorld != null) {
+                forceAttack();
+            }
+        } else {
+            leftClickHeld = false;
         }
     }
     
     /**
      * Focus olmasa bile kazma işlemini zorla başlat ve devam ettir
+     * Swing animasyonu dahil
      */
     public static void forceAttack() {
         if (mc.thePlayer == null || mc.theWorld == null || mc.playerController == null) return;
@@ -40,11 +51,45 @@ public class InputSimulator {
         MovingObjectPosition mop = mc.objectMouseOver;
         if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             // Blok kırma - onPlayerDamageBlock kazma ilerlemesini sağlar
-            // clickBlock ilk vuruşu, onPlayerDamageBlock devamını yapar
-            if (!mc.playerController.onPlayerDamageBlock(mop.getBlockPos(), mop.sideHit)) {
-                // Eğer false dönerse yeni blok, clickBlock ile başlat
+            boolean isHitting = mc.playerController.onPlayerDamageBlock(mop.getBlockPos(), mop.sideHit);
+            
+            if (!isHitting) {
+                // Yeni blok, clickBlock ile başlat
                 mc.playerController.clickBlock(mop.getBlockPos(), mop.sideHit);
             }
+            
+            // Swing animasyonu - belirli aralıklarla
+            long now = System.currentTimeMillis();
+            if (now - lastSwingTime >= SWING_INTERVAL) {
+                mc.thePlayer.swingItem();
+                lastSwingTime = now;
+            }
+        }
+    }
+    
+    /**
+     * Kazma işlemini yeniden başlat (GUI kapandıktan sonra)
+     * Key binding'i sıfırlayıp tekrar aktifleştir
+     */
+    public static void restartMining() {
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+        
+        KeyBinding attackKey = mc.gameSettings.keyBindAttack;
+        
+        // Önce bırak
+        KeyBinding.setKeyBindState(attackKey.getKeyCode(), false);
+        
+        // Sonra tekrar bas ve onTick çağır
+        KeyBinding.setKeyBindState(attackKey.getKeyCode(), true);
+        KeyBinding.onTick(attackKey.getKeyCode());
+        
+        leftClickHeld = true;
+        
+        // Ayrıca manuel olarak da kazma başlat
+        MovingObjectPosition mop = mc.objectMouseOver;
+        if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            mc.playerController.clickBlock(mop.getBlockPos(), mop.sideHit);
+            mc.thePlayer.swingItem();
         }
     }
     
