@@ -2,6 +2,9 @@ package com.muzmod.util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.network.play.client.C0APacketAnimation;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MovingObjectPosition;
 
 /**
@@ -17,6 +20,10 @@ public class InputSimulator {
     private static boolean rightClickHeld = false;
     private static long lastSwingTime = 0;
     private static final long SWING_INTERVAL = 50; // 50ms aralıklarla swing
+    
+    // Kazma durumu - progress kaybını önlemek için
+    private static BlockPos currentMiningBlock = null;
+    private static EnumFacing currentMiningSide = null;
     
     /**
      * Hold left click (attack/mine)
@@ -44,26 +51,38 @@ public class InputSimulator {
     /**
      * Focus olmasa bile kazma işlemini zorla başlat ve devam ettir
      * Her çağrıda agresif şekilde kazma yapar
+     * Sunucuya swing paketi gönderir
      */
     public static void forceAttack() {
         if (mc.thePlayer == null || mc.theWorld == null || mc.playerController == null) return;
+        if (mc.getNetHandler() == null) return;
         
         MovingObjectPosition mop = mc.objectMouseOver;
         if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            // Her tick'te kazma ilerlemesini zorla
-            // onPlayerDamageBlock true dönerse kazma devam ediyor
-            // false dönerse yeni blok veya kazma başlamadı
-            boolean isHitting = mc.playerController.onPlayerDamageBlock(mop.getBlockPos(), mop.sideHit);
+            BlockPos pos = mop.getBlockPos();
+            EnumFacing side = mop.sideHit;
             
-            // Her durumda clickBlock da çağır - kazma başlatmayı garantile
-            if (!isHitting) {
-                mc.playerController.clickBlock(mop.getBlockPos(), mop.sideHit);
+            // Aynı bloğu kazmaya devam ediyorsak sadece onPlayerDamageBlock çağır
+            // Farklı bloksa clickBlock ile başlat
+            boolean sameBlock = pos.equals(currentMiningBlock) && side == currentMiningSide;
+            
+            if (sameBlock) {
+                // Aynı blok - sadece kazma ilerlemesi
+                mc.playerController.onPlayerDamageBlock(pos, side);
+            } else {
+                // Yeni blok - kazma başlat
+                mc.playerController.clickBlock(pos, side);
+                currentMiningBlock = pos;
+                currentMiningSide = side;
             }
             
-            // Swing animasyonu - her 50ms'de bir
+            // Swing animasyonu + Sunucuya paket gönder - her 50ms'de bir
             long now = System.currentTimeMillis();
             if (now - lastSwingTime >= SWING_INTERVAL) {
+                // Client-side animasyon
                 mc.thePlayer.swingItem();
+                // Sunucuya swing paketi gönder (önemli - anti-cheat için)
+                mc.getNetHandler().addToSendQueue(new C0APacketAnimation());
                 lastSwingTime = now;
             }
         }
@@ -71,10 +90,11 @@ public class InputSimulator {
     
     /**
      * Kazma işlemini yeniden başlat (GUI kapandıktan sonra)
-     * Key binding'i sıfırlayıp tekrar aktifleştir
+     * Mevcut bloğu kazmaya devam et, progress kaybetme
      */
     public static void restartMining() {
         if (mc.thePlayer == null || mc.theWorld == null) return;
+        if (mc.getNetHandler() == null) return;
         
         KeyBinding attackKey = mc.gameSettings.keyBindAttack;
         
@@ -87,12 +107,31 @@ public class InputSimulator {
         
         leftClickHeld = true;
         
-        // Ayrıca manuel olarak da kazma başlat
+        // Mevcut bloğu kazmaya devam et (clickBlock çağırma - progress sıfırlar)
         MovingObjectPosition mop = mc.objectMouseOver;
         if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            mc.playerController.clickBlock(mop.getBlockPos(), mop.sideHit);
+            BlockPos pos = mop.getBlockPos();
+            EnumFacing side = mop.sideHit;
+            
+            // Sadece onPlayerDamageBlock çağır - progress'i koru
+            mc.playerController.onPlayerDamageBlock(pos, side);
+            
+            // Mevcut bloğu güncelle
+            currentMiningBlock = pos;
+            currentMiningSide = side;
+            
+            // Swing animasyonu + sunucuya paket
             mc.thePlayer.swingItem();
+            mc.getNetHandler().addToSendQueue(new C0APacketAnimation());
         }
+    }
+    
+    /**
+     * Kazma durumunu sıfırla (state değiştiğinde)
+     */
+    public static void resetMiningState() {
+        currentMiningBlock = null;
+        currentMiningSide = null;
     }
     
     /**
