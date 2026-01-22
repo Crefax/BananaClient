@@ -313,17 +313,18 @@ public class OXState implements IState {
     /**
      * Etraftaki oyuncuların pozisyonlarını analiz et
      * Zıplayan oyuncuları da say - 10 blok aşağıya kadar kontrol et
+     * TÜM ERİŞİLEBİLİR OYUNCULAR sayılır - mesafe limiti yok!
      */
     private void analyzePlayerPositions(EntityPlayerSP player) {
         playersOnLime = 0;
         playersOnRed = 0;
         
-        // 30 blok yarıçapındaki oyuncuları kontrol et
-        List<EntityPlayer> nearbyPlayers = mc.theWorld.playerEntities;
+        // TÜM yüklü oyuncuları kontrol et - mesafe limiti YOK
+        List<EntityPlayer> allPlayers = mc.theWorld.playerEntities;
         
-        for (EntityPlayer other : nearbyPlayers) {
+        for (EntityPlayer other : allPlayers) {
+            // Kendimizi sayma
             if (other == player) continue;
-            if (other.getDistanceToEntity(player) > 30) continue;
             
             // Oyuncunun altındaki blokları kontrol et (zıplayan oyuncular için 10 blok aşağıya kadar)
             EnumDyeColor foundColor = null;
@@ -345,6 +346,14 @@ public class OXState implements IState {
             } else if (foundColor == EnumDyeColor.RED) {
                 playersOnRed++;
             }
+        }
+        
+        // Debug log - her 10 analizde bir
+        if (analysisCount % 10 == 0) {
+            MuzMod.LOGGER.info("[OXState] Analysis #" + analysisCount + 
+                              ": Total players=" + allPlayers.size() + 
+                              ", Lime=" + playersOnLime + 
+                              ", Red=" + playersOnRed);
         }
         
         analysisCount++;

@@ -5,6 +5,7 @@ import com.muzmod.config.ModConfig;
 import com.muzmod.state.AbstractState;
 import com.muzmod.util.AlertSystem;
 import com.muzmod.util.InputSimulator;
+import com.muzmod.util.TeleportDetector;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
@@ -143,6 +144,9 @@ public class ObsidianState extends AbstractState {
         // Focus bypass'ı etkinleştir - pencere aktif olmasa bile mining devam eder
         InputSimulator.setFocusBypass(true);
         
+        // Teleport algılama sistemini etkinleştir
+        TeleportDetector.register();
+        
         phase = Phase.INIT;
         isTurning = false;
         currentMiningBlock = null;
@@ -176,6 +180,9 @@ public class ObsidianState extends AbstractState {
         
         // Focus bypass'ı devre dışı bırak
         InputSimulator.setFocusBypass(false);
+        
+        // Teleport algılama sistemini devre dışı bırak
+        TeleportDetector.unregister();
         
         InputSimulator.releaseAll();
         MinecraftForge.EVENT_BUS.unregister(this);

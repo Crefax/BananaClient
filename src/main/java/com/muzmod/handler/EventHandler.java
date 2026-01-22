@@ -432,17 +432,12 @@ public class EventHandler {
             return;
         }
         
-        // END fazında config yükleme ve teleport detector registration
+        // END fazında config yükleme
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.thePlayer != null && mc.theWorld != null) {
             String playerName = mc.thePlayer.getName();
             if (playerName != null && !playerName.equals(MuzMod.instance.getCurrentPlayerName())) {
                 MuzMod.instance.loadConfigForPlayer(playerName);
-            }
-            
-            // Teleport detector'ı register et (henüz yapılmadıysa)
-            if (!TeleportDetector.isRegistered()) {
-                TeleportDetector.register();
             }
         }
     }
