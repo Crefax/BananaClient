@@ -169,6 +169,9 @@ public class MiningState extends AbstractState {
     public void onEnable() {
         super.onEnable();
         
+        // Focus bypass'ı etkinleştir - pencere aktif olmasa bile mining devam eder
+        InputSimulator.setFocusBypass(true);
+        
         // Eğer pause'dan dönüyorsak, eski state'i geri yükle
         if (isPaused && pausedPhase != null) {
             phase = pausedPhase;
@@ -232,6 +235,10 @@ public class MiningState extends AbstractState {
     @Override
     public void onDisable() {
         super.onDisable();
+        
+        // Focus bypass'ı devre dışı bırak
+        InputSimulator.setFocusBypass(false);
+        
         InputSimulator.releaseAll();
         referenceOre = null;
         markedOres.clear();
@@ -708,14 +715,14 @@ public class MiningState extends AbstractState {
             }
         }
         
-        // Focus yoksa (pencere seçili değil ama GUI de yok) kazma devam etsin
+        // Focus kontrolü - sadece loglama için, mining EventHandler.tickMining() ile hallediliyor
         boolean currentFocus = mc.inGameHasFocus;
         if (!currentFocus) {
             setStatus("Focus yok, kazma devam ediyor...");
-            // KeyBinding state'i set et - Minecraft kendi işini halleder
+            // holdLeftClick true tutarak tickMining'in çalışmasını sağla
             InputSimulator.holdLeftClick(true);
             hadFocus = false;
-            return;
+            // return YAPMA - aşağıdaki kontroller de çalışsın (blok değişimi vs)
         }
         
         // Focus kontrolü - grace period için

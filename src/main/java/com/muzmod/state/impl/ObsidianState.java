@@ -139,6 +139,10 @@ public class ObsidianState extends AbstractState {
     @Override
     public void onEnable() {
         super.onEnable();
+        
+        // Focus bypass'ı etkinleştir - pencere aktif olmasa bile mining devam eder
+        InputSimulator.setFocusBypass(true);
+        
         phase = Phase.INIT;
         isTurning = false;
         currentMiningBlock = null;
@@ -169,6 +173,10 @@ public class ObsidianState extends AbstractState {
     @Override
     public void onDisable() {
         super.onDisable();
+        
+        // Focus bypass'ı devre dışı bırak
+        InputSimulator.setFocusBypass(false);
+        
         InputSimulator.releaseAll();
         MinecraftForge.EVENT_BUS.unregister(this);
         currentMiningBlock = null;

@@ -124,7 +124,7 @@ public class DiscordWebhook {
         
         // Footer
         JsonObject footer = new JsonObject();
-        footer.addProperty("text", "MuzMod v0.9.7 • " + playerName);
+        footer.addProperty("text", "MuzMod v0.9.9 • " + playerName);
         footer.addProperty("icon_url", AVATAR_API + playerName + "?size=16&overlay");
         embed.add("footer", footer);
         

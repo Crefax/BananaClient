@@ -2,6 +2,7 @@
 build/
 out/
 bin/
+temp_mc_src/
 
 # IDE files
 .idea/

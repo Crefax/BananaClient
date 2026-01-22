@@ -8,6 +8,8 @@ import com.muzmod.gui.GuiAccountManager;
 import com.muzmod.gui.GuiProxyMultiplayer;
 import com.muzmod.render.OverlayRenderer;
 import com.muzmod.render.WorldRenderer;
+import com.muzmod.util.InputSimulator;
+import com.muzmod.util.TeleportDetector;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiMainMenu;
@@ -23,6 +25,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -419,17 +422,37 @@ public class EventHandler {
     
     /**
      * Oyuncu dünyaya girdiğinde hesaba özel config yükle
+     * Ayrıca focus bypass'ı uygula
      */
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
+        // Focus bypass'ı START'ta uygula - sendClickBlockToController'dan ÖNCE
+        if (event.phase == TickEvent.Phase.START) {
+            InputSimulator.tickFocusBypass();
+            return;
+        }
         
+        // END fazında config yükleme ve teleport detector registration
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.thePlayer != null && mc.theWorld != null) {
             String playerName = mc.thePlayer.getName();
             if (playerName != null && !playerName.equals(MuzMod.instance.getCurrentPlayerName())) {
                 MuzMod.instance.loadConfigForPlayer(playerName);
             }
+            
+            // Teleport detector'ı register et (henüz yapılmadıysa)
+            if (!TeleportDetector.isRegistered()) {
+                TeleportDetector.register();
+            }
         }
+    }
+    
+    /**
+     * Sunucudan disconnect olunca teleport detector'ı sıfırla
+     */
+    @SubscribeEvent
+    public void onClientDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
+        TeleportDetector.reset();
+        MuzMod.LOGGER.info("[EventHandler] Client disconnected, TeleportDetector reset");
     }
 }

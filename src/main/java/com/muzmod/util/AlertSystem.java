@@ -84,23 +84,6 @@ public class AlertSystem {
     }
     
     /**
-     * Uyarı sesi çal
-     */
-    private static void playAlertSound() {
-        try {
-            // Java AWT beep sesi
-            Toolkit.getDefaultToolkit().beep();
-            
-            // Minecraft anvil sesi de çal
-            if (mc.thePlayer != null) {
-                mc.thePlayer.playSound("random.anvil_land", 1.0f, 1.0f);
-            }
-        } catch (Exception e) {
-            MuzMod.LOGGER.error("[Alert] Sound error: " + e.getMessage());
-        }
-    }
-    
-    /**
      * Windows notification göster
      */
     private static void showWindowsNotification(String title, String message) {
@@ -130,5 +113,55 @@ public class AlertSystem {
         } catch (Exception e) {
             MuzMod.LOGGER.error("[Alert] Notification error: " + e.getMessage());
         }
+    }
+    
+    // ===== PUBLIC HELPER METHODS =====
+    
+    /**
+     * Chat'e uyarı mesajı gönder (public)
+     */
+    public static void sendChatAlert(String message) {
+        if (mc.thePlayer != null) {
+            mc.thePlayer.addChatMessage(new ChatComponentText(message));
+        }
+    }
+    
+    /**
+     * Title göster
+     */
+    public static void showTitle(String title, String subtitle, int fadeIn, int stay, int fadeOut) {
+        if (mc.ingameGUI != null) {
+            mc.ingameGUI.displayTitle(title, null, fadeIn, stay, fadeOut);
+            if (subtitle != null) {
+                mc.ingameGUI.displayTitle(null, subtitle, fadeIn, stay, fadeOut);
+            }
+        }
+    }
+    
+    /**
+     * Uyarı sesi çal (public)
+     */
+    public static void playAlertSound() {
+        try {
+            Toolkit.getDefaultToolkit().beep();
+            if (mc.thePlayer != null) {
+                mc.thePlayer.playSound("random.anvil_land", 1.0f, 1.0f);
+            }
+        } catch (Exception e) {
+            MuzMod.LOGGER.error("[Alert] Sound error: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Windows bildirimi gönder (public)
+     */
+    public static void sendWindowsNotification(String title, String message) {
+        new Thread(() -> {
+            try {
+                showWindowsNotification(title, message);
+            } catch (Exception e) {
+                MuzMod.LOGGER.error("[Alert] Windows notification error: " + e.getMessage());
+            }
+        }).start();
     }
 }

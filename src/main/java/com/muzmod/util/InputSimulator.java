@@ -1,11 +1,14 @@
 package com.muzmod.util;
 
+import com.muzmod.MuzMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 
 /**
  * Simulates player input (key presses, mouse clicks)
  * Sadece KeyBinding sistemi kullanır - basit ve güvenilir
+ * 
+ * Focus bypass: forceFocus() ile Minecraft her zaman focus'ta sanır
  */
 public class InputSimulator {
     
@@ -13,6 +16,35 @@ public class InputSimulator {
     
     private static boolean leftClickHeld = false;
     private static boolean rightClickHeld = false;
+    private static boolean focusBypassEnabled = false;
+    
+    /**
+     * Focus bypass'ı etkinleştir/devre dışı bırak
+     * Etkinken Minecraft pencere aktif olmasa bile aktifmiş gibi davranır
+     */
+    public static void setFocusBypass(boolean enabled) {
+        focusBypassEnabled = enabled;
+        MuzMod.LOGGER.info("[InputSimulator] Focus bypass: " + enabled);
+    }
+    
+    /**
+     * Focus bypass aktif mi?
+     */
+    public static boolean isFocusBypassEnabled() {
+        return focusBypassEnabled;
+    }
+    
+    /**
+     * Her tick çağrılmalı - focus bypass aktifse inGameHasFocus'u true tutar
+     * GUI açıkken bypass uygulanmaz
+     */
+    public static void tickFocusBypass() {
+        if (!focusBypassEnabled) return;
+        if (mc.currentScreen != null) return; // GUI açıkken bypass yapma
+        
+        // Minecraft'ı kandır - pencere aktif olmasa bile aktifmiş gibi davran
+        mc.inGameHasFocus = true;
+    }
     
     /**
      * Sol tık basılı tut (kazma/saldırı)
