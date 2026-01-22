@@ -416,48 +416,48 @@ public class ScheduleManager {
     private void createDefaultSchedule() {
         entries.clear();
         
-        // Mining saatleri - 20 saniye erken git (SS:MM:40 olduğunda başla)
-        // Event: 03:40, 15:40, 21:40, 23:40 -> Başlangıç: 03:39:40, 15:39:40, vb.
+        // Mining saatleri - 20 saniye erken başla, 20 saniye erken bitir
+        // Event: 03:40, 15:40, 21:40, 23:40 -> Başlangıç: 03:39:40, Bitiş: 03:59:40
         // Hafta içi (Pzt-Cum, 0-4)
         for (int day = 0; day < 5; day++) {
-            // 03:40 eventi -> 03:39:40'ta başla
-            entries.add(new ScheduleEntry(day, 3, 39, 40, 4, 0, 0, ScheduleEntry.EventType.MINING));
-            // 15:40 eventi -> 15:39:40'ta başla
-            entries.add(new ScheduleEntry(day, 15, 39, 40, 16, 0, 0, ScheduleEntry.EventType.MINING));
-            // 21:40 eventi -> 21:39:40'ta başla
-            entries.add(new ScheduleEntry(day, 21, 39, 40, 22, 0, 0, ScheduleEntry.EventType.MINING));
-            // 23:40 eventi -> 23:39:40'ta başla
-            entries.add(new ScheduleEntry(day, 23, 39, 40, 0, 0, 0, ScheduleEntry.EventType.MINING));
+            // 03:40 eventi -> 03:39:40'ta başla, 03:59:40'ta bitir
+            entries.add(new ScheduleEntry(day, 3, 39, 40, 3, 59, 40, ScheduleEntry.EventType.MINING));
+            // 15:40 eventi -> 15:39:40'ta başla, 15:59:40'ta bitir
+            entries.add(new ScheduleEntry(day, 15, 39, 40, 15, 59, 40, ScheduleEntry.EventType.MINING));
+            // 21:40 eventi -> 21:39:40'ta başla, 21:59:40'ta bitir
+            entries.add(new ScheduleEntry(day, 21, 39, 40, 21, 59, 40, ScheduleEntry.EventType.MINING));
+            // 23:40 eventi -> 23:39:40'ta başla, 23:59:40'ta bitir
+            entries.add(new ScheduleEntry(day, 23, 39, 40, 23, 59, 40, ScheduleEntry.EventType.MINING));
         }
         
         // Hafta sonu (Cmt-Paz, 5-6): 03:40, 11:40, 15:40, 21:40, 23:40
         for (int day = 5; day < 7; day++) {
-            entries.add(new ScheduleEntry(day, 3, 39, 40, 4, 0, 0, ScheduleEntry.EventType.MINING));
-            entries.add(new ScheduleEntry(day, 11, 39, 40, 12, 0, 0, ScheduleEntry.EventType.MINING));
-            entries.add(new ScheduleEntry(day, 15, 39, 40, 16, 0, 0, ScheduleEntry.EventType.MINING));
-            entries.add(new ScheduleEntry(day, 21, 39, 40, 22, 0, 0, ScheduleEntry.EventType.MINING));
-            entries.add(new ScheduleEntry(day, 23, 39, 40, 0, 0, 0, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 3, 39, 40, 3, 59, 40, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 11, 39, 40, 11, 59, 40, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 15, 39, 40, 15, 59, 40, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 21, 39, 40, 21, 59, 40, ScheduleEntry.EventType.MINING));
+            entries.add(new ScheduleEntry(day, 23, 39, 40, 23, 59, 40, ScheduleEntry.EventType.MINING));
         }
         
-        // OX Event saatleri - 20 saniye erken git
+        // OX Event saatleri - 20 saniye erken başla, 13 dakika süre
         // Hafta içi (Pzt-Cum): 17:50, 00:05
         for (int day = 0; day < 5; day++) {
-            // 00:05 eventi -> 00:04:40'ta başla
-            entries.add(new ScheduleEntry(day, 0, 4, 40, 0, 15, 0, ScheduleEntry.EventType.OX));
-            // 17:50 eventi -> 17:49:40'ta başla
-            entries.add(new ScheduleEntry(day, 17, 49, 40, 18, 0, 0, ScheduleEntry.EventType.OX));
+            // 00:05 eventi -> 00:04:40'ta başla, 00:17:40'ta bitir (13 dk)
+            entries.add(new ScheduleEntry(day, 0, 4, 40, 0, 17, 40, ScheduleEntry.EventType.OX));
+            // 17:50 eventi -> 17:49:40'ta başla, 18:02:40'ta bitir (13 dk)
+            entries.add(new ScheduleEntry(day, 17, 49, 40, 18, 2, 40, ScheduleEntry.EventType.OX));
         }
         
         // Hafta sonu (Cmt-Paz): 11:00, 17:50, 00:05
         for (int day = 5; day < 7; day++) {
-            entries.add(new ScheduleEntry(day, 0, 4, 40, 0, 15, 0, ScheduleEntry.EventType.OX));
-            // 11:00 eventi -> 10:59:40'ta başla
-            entries.add(new ScheduleEntry(day, 10, 59, 40, 11, 10, 0, ScheduleEntry.EventType.OX));
-            entries.add(new ScheduleEntry(day, 17, 49, 40, 18, 0, 0, ScheduleEntry.EventType.OX));
+            entries.add(new ScheduleEntry(day, 0, 4, 40, 0, 17, 40, ScheduleEntry.EventType.OX));
+            // 11:00 eventi -> 10:59:40'ta başla, 11:12:40'ta bitir (13 dk)
+            entries.add(new ScheduleEntry(day, 10, 59, 40, 11, 12, 40, ScheduleEntry.EventType.OX));
+            entries.add(new ScheduleEntry(day, 17, 49, 40, 18, 2, 40, ScheduleEntry.EventType.OX));
         }
         
         save();
-        MuzMod.LOGGER.info("[Schedule] Created default schedule with Mining and OX events (20s early start)");
+        MuzMod.LOGGER.info("[Schedule] Created default schedule with Mining and OX events (20s early start/end)");
     }
     
     // Getters & Setters
