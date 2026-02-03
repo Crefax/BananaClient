@@ -1,4 +1,4 @@
-# MuzMod - Minecraft 1.8.9 Forge Mod
+# BananClient - Minecraft 1.8.9 Forge Mod
 
 Minecraft sunucularında otomatik görev yönetimi için tasarlanmış bir mod.
 
