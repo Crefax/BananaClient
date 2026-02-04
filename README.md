@@ -18,13 +18,12 @@ Minecraft sunucularında otomatik görev yönetimi için tasarlanmış bir mod.
 - Oyuncu algılama ve kaçınma sistemi
 
 ### Oyuncu Algılama
-- 3 blok yarıçaplı halka client-side çizimi
+- Seçilen blok yarıçaplı halka client-side çizimi
 - Yakınlarda oyuncu varsa otomatik uzaklaşma
 - Güvenli mesafede kazıma devam etme
 
 ### Zamanlama
 - PC saatine göre otomatik state geçişleri
-- Örnek: 04:30 - 04:40 arası Mining, sonra AFK
 
 ## Kullanım
 
@@ -52,28 +51,3 @@ gradlew build
 
 Build edilen jar dosyası `build/libs/` klasöründe oluşacak.
 
-## Yapılandırma
-
-Config dosyası: `.minecraft/config/muzmod.cfg`
-
-### Mining Ayarları
-- `miningWarpCommand`: Maden bölgesine warp komutu
-- `miningStartHour/Minute`: Başlangıç saati
-- `miningEndHour/Minute`: Bitiş saati
-
-### AFK Ayarları
-- `afkWarpCommand`: AFK bölgesine warp komutu
-- `afkStartHour/Minute`: Başlangıç saati
-- `afkEndHour/Minute`: Bitiş saati
-
-### Oyuncu Algılama
-- `playerDetectionRadius`: Algılama yarıçapı (blok)
-- `avoidPlayers`: Oyunculardan kaçın (true/false)
-
-## Ekran Görüntüsü
-
-Oyun içinde:
-- Sol üstte durum overlay'i
-- Etrafında yeşil/kırmızı oyuncu algılama halkası
-- Bulunan ore'lar cyan ile işaretli
-- Hedef ore sarı ile işaretli
